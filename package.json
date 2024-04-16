@@ -1,0 +1,26 @@
+{
+  "name": "genlayer-cli",
+  "version": "0.0.1",
+  "description": "GenLayer Command Line Tool",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yeagerai/genlayer-cli.git"
+  },
+  "keywords": [
+    "genlayer",
+    "intelligent",
+    "contract",
+    "simulator",
+    "cli"
+  ],
+  "author": "GenLayer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yeagerai/genlayer-cli/issues"
+  },
+  "homepage": "https://github.com/yeagerai/genlayer-cli#readme"
+}
