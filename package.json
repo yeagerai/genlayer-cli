@@ -4,7 +4,8 @@
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "node esbuild.config.js"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,22 @@
   "bugs": {
     "url": "https://github.com/yeagerai/genlayer-cli/issues"
   },
-  "homepage": "https://github.com/yeagerai/genlayer-cli#readme"
+  "homepage": "https://github.com/yeagerai/genlayer-cli#readme",
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "node-fetch": "^3.3.2",
+    "prettier": "^3.2.5"
+  }
 }
