@@ -7,7 +7,6 @@ export function initializeGeneralCommands(program: Command) {
     .command("init")
     .description("Initialize the GenLayer Environment")
     .option("-n, --numValidators <numValidators>", "Number of validators")
-    .action(async options => {
-      await initAction({numValidators: options.numValidators});
-    });
+    .action(initAction);
+  return program;
 }
