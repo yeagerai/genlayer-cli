@@ -1,10 +1,10 @@
 import fetch from "node-fetch";
 
-const JSON_RPC_URL = process.env.JSON_RPC_URL || "";
+import {DEFAULT_JSON_RPC_URL} from "../config/simulator";
 
 export async function requestJsonRpc(method: string, body: object) {
   try {
-    const response = await fetch(JSON_RPC_URL, {
+    const response = await fetch(DEFAULT_JSON_RPC_URL, {
       method,
       body: JSON.stringify(body),
     });

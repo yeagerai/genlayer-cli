@@ -1,8 +1,10 @@
 import {program} from "commander";
-import {exampleCommand} from "./commands/exampleCommand";
 
-program.version("0.1.0").description("An example CLI tool");
+import {CLI_DESCRIPTION} from "./lib/config/text";
+import {initializeGeneralCommands} from "./commands/general";
 
-program.command("example").description("Run the example command").action(exampleCommand);
-console.log("program", program);
+program.version("0.0.1").description(CLI_DESCRIPTION);
+
+initializeGeneralCommands(program);
+
 program.parse(process.argv);
