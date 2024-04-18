@@ -4,7 +4,7 @@ import {initializeGeneralCommands} from "../../src/commands/general";
 import {getCommand} from "../utils";
 
 jest.mock("inquirer", () => ({
-  prompt: jest.fn().mockResolvedValue({confirmDelete: true}),
+  prompt: jest.fn().mockResolvedValue({}),
 }));
 const action = jest.fn();
 
@@ -20,7 +20,7 @@ describe("init command", () => {
     jest.restoreAllMocks();
   });
 
-  test("doesnt have required arguments nor options", async () => {
+  test("doesn't have required arguments nor options", async () => {
     expect(() => program.parse(["node", "test", "init"])).not.toThrow();
   });
 
