@@ -1,7 +1,7 @@
 import {program} from "commander";
 
 import {initializeGeneralCommands} from "../../src/commands/general";
-import {getCommand} from "../utils";
+import {getCommand, getCommandOption} from "../utils";
 
 jest.mock("inquirer", () => ({
   prompt: jest.fn().mockResolvedValue({}),
@@ -27,6 +27,12 @@ describe("init command", () => {
   test("option -n, --numValidators is accepted", async () => {
     expect(() => program.parse(["node", "test", "init", "-n", "10"])).not.toThrow();
     expect(() => program.parse(["node", "test", "init", "--numValidators", "10"])).not.toThrow();
+  });
+
+  test("option -n, --numValidators default value is 5", async () => {
+    // Given // When
+    const numValidatorsOption = getCommandOption(initCommand, "--numValidators");
+    expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
   test("random option is not accepted", async () => {
