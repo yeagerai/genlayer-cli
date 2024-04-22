@@ -1,4 +1,4 @@
-export const DEFAULT_JSON_RPC_URL = "http://localhost:4000";
+export const DEFAULT_JSON_RPC_URL = "http://localhost:4000/api";
 export const DEFAULT_REPO_GH_URL = "git@github.com:yeagerai/genlayer-simulator.git";
 export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
   darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && cp .env.example .env && docker compose build && docker compose up"'`,

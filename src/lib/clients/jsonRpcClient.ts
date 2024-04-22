@@ -19,6 +19,9 @@ export class JsonRpcClient {
     try {
       const response = await fetch(this.serverUrl, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: uuidv4(),
