@@ -73,7 +73,7 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
 }
 
 export async function waitForSimulatorToBeReady(retries: number = 10): Promise<boolean> {
-  const response = await rpcClient.request({method: "count_validators", params: []});
+  const response = await rpcClient.request({method: "ping", params: []});
   if (response) {
     return true;
   }
