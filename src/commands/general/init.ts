@@ -6,6 +6,7 @@ import {
   downloadSimulator,
   runSimulator,
   waitForSimulatorToBeReady,
+  updateSimulator,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -60,7 +61,7 @@ export async function initAction(options: InitActionOptions) {
   try {
     const {wasInstalled} = await downloadSimulator();
     if (wasInstalled) {
-      console.log("GenLayer Simulator already exists. Skipping this part!");
+      await updateSimulator();
     }
   } catch (error) {
     console.error(error);

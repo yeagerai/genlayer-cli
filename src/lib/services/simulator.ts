@@ -66,6 +66,20 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
   return {wasInstalled: false};
 }
 
+export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
+  const simulatorLocation = getSimulatorLocation();
+
+  try {
+    await executeCommand(`cd ${simulatorLocation} && git pull`, "git");
+  } catch (error: any) {
+    if (error.toString().includes("already exists and is not an empty directory")) {
+      return {wasInstalled: true};
+    }
+    throw error;
+  }
+  return {wasInstalled: false};
+}
+
 export function runSimulator(): Promise<{stdout: string; stderr: string}> {
   const simulatorLocation = getSimulatorLocation();
   const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
@@ -73,13 +87,20 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
 }
 
 export async function waitForSimulatorToBeReady(retries: number = 10): Promise<boolean> {
-  const response = await rpcClient.request({method: "ping", params: []});
-  if (response) {
-    return true;
-  }
-  if (retries > 0) {
-    await sleep(STARTING_TIMEOUT_WAIT_CYLCE);
-    return waitForSimulatorToBeReady(retries - 1);
+  try {
+    const response = await rpcClient.request({method: "ping", params: []});
+    if (response && response.result.status === "OK") {
+      return true;
+    }
+    if (retries > 0) {
+      await sleep(STARTING_TIMEOUT_WAIT_CYLCE);
+      return waitForSimulatorToBeReady(retries - 1);
+    }
+  } catch (error: any) {
+    if (error.message.includes("ECONNREFUSED") && retries > 0) {
+      await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
+      return waitForSimulatorToBeReady(retries - 1);
+    }
   }
 
   return false;
