@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
+  "bin": {
+    "genlayer": "./dist/index.js"
+  },
   "scripts": {
     "test": "jest",
     "dev": "node esbuild.config.js"

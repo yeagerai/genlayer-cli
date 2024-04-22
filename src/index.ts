@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import {program} from "commander";
 
 import {CLI_DESCRIPTION} from "@/lib/config/text";
