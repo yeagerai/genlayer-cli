@@ -30,13 +30,13 @@ describe("init command", () => {
     expect(() => program.parse(["node", "test", "init", "--numValidators", "10"])).not.toThrow();
   });
 
-  test("option -n, --numValidators default value is 5", () => {
+  test("option -n, --numValidators default value is 5", async () => {
     // Given // When
     const numValidatorsOption = getCommandOption(initCommand, "--numValidators");
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
-  test("random option is not accepted", () => {
+  test("random option is not accepted", async () => {
     initCommand?.exitOverride();
     expect(() => program.parse(["node", "test", "init", "-random"])).toThrow(
       "error: unknown option '-random'",
