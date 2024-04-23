@@ -8,11 +8,11 @@
     "push": true
   },
   "github": {
-    "release": false,
+    "release": true,
     "tokenRef": "GITHUB_TOKEN"
   },
   "npm": {
-    "publish": false
+    "publish": true
   },
   "plugins": {
     "@release-it/conventional-changelog": {
