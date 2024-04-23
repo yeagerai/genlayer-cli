@@ -1,0 +1,11 @@
+module.exports = {
+  context: {
+    tsconfig: "./tsconfig.json",
+    entryPoints: ["src/index.ts"],
+    bundle: true, // Bundle all dependencies
+    outfile: "dist/index.js", // Output file
+    platform: "node",
+    target: "es6",
+  },
+  watch: false,
+};
