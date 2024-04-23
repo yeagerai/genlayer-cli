@@ -1,6 +1,6 @@
 {
   "name": "genlayer",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
   "scripts": {
