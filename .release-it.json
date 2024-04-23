@@ -1,6 +1,6 @@
 {
   "git": {
-    "commitMessage": "Release v${version}",
+    "commitMessage": "Release v${version} [skip ci]",
     "tagName": "v${version}",
     "requireCleanWorkingDir": false,
     "requireUpstream": false,

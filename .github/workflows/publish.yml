@@ -2,6 +2,9 @@ name: Release & Publish Package to NPM
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 8-cli-github-action-to-manage-release-process-to-npm
 
 jobs:
   release:
