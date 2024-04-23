@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 8-cli-github-action-to-manage-release-process-to-npm
+      - main
 
 jobs:
   release:
