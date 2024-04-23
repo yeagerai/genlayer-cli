@@ -1,5 +1,5 @@
 {
-  "name": "genlayer-cli",
+  "name": "genlayer",
   "version": "0.0.1",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
