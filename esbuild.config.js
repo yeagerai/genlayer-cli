@@ -1,17 +1,14 @@
 const esbuild = require("esbuild");
+const isProduction = process.env.NODE_ENV === "production";
+const config = require(isProduction ? "./esbuild.config.prod" : "./esbuild.config.dev");
 
 const run = async () => {
-  // Start build with esbuild
-  const context = await esbuild.context({
-    tsconfig: "./tsconfig.json",
-    entryPoints: ["src/index.ts"],
-    bundle: true, // Bundle all dependencies
-    outfile: "dist/index.js", // Output file
-    platform: "node",
-    target: "es6",
-  });
-
-  await context.watch();
+  if (config.watch) {
+    const context = await esbuild.context(config.context);
+    await context.watch();
+  } else {
+    await esbuild.build(config.context);
+  }
 };
 
 run().catch(e => {
