@@ -11,6 +11,7 @@ const action = jest.fn();
 describe("init command", () => {
   initializeGeneralCommands(program);
   const initCommand = getCommand("init");
+  initCommand?.action(action);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -20,11 +21,11 @@ describe("init command", () => {
     jest.restoreAllMocks();
   });
 
-  test("doesn't have required arguments nor options", async () => {
+  test("doesn't have required arguments nor options", () => {
     expect(() => program.parse(["node", "test", "init"])).not.toThrow();
   });
 
-  test("option -n, --numValidators is accepted", async () => {
+  test("option -n, --numValidators is accepted", () => {
     expect(() => program.parse(["node", "test", "init", "-n", "10"])).not.toThrow();
     expect(() => program.parse(["node", "test", "init", "--numValidators", "10"])).not.toThrow();
   });
@@ -45,10 +46,8 @@ describe("init command", () => {
     );
   });
 
-  test("action is called", async () => {
-    // Given
-    initCommand?.action(action);
-    // When
+  test("action is called", () => {
+    // Given When
     program.parse(["node", "test", "init"]);
     // Then
     expect(action).toHaveBeenCalledTimes(1);
