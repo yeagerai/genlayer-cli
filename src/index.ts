@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import {program} from "commander";
-
+import {version} from "../package.json";
 import {CLI_DESCRIPTION} from "@/lib/config/text";
 import {initializeGeneralCommands} from "@/commands/general";
 
-program.version("0.0.1").description(CLI_DESCRIPTION);
+program.version(version).description(CLI_DESCRIPTION);
 
 initializeGeneralCommands(program);
 
