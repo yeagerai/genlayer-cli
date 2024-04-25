@@ -43508,6 +43508,7 @@ var DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation) => ({
 });
 var AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"];
 var STARTING_TIMEOUT_WAIT_CYLCE = 2e3;
+var STARTING_TIMEOUT_ATTEMPTS = 60;
 
 // src/lib/clients/jsonRpcClient.ts
 var JsonRpcClient = class {
@@ -43658,8 +43659,8 @@ function runSimulator() {
   const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
   return executeCommandInNewTerminal(commandsByPlatform);
 }
-function waitForSimulatorToBeReady(retries = 10) {
-  return __async(this, null, function* () {
+function waitForSimulatorToBeReady() {
+  return __async(this, arguments, function* (retries = STARTING_TIMEOUT_ATTEMPTS) {
     try {
       const response = yield rpcClient.request({ method: "ping", params: [] });
       if (response && response.result.status === "OK") {

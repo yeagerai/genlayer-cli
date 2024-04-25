@@ -8,3 +8,4 @@ export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;
 export type RunningPlatform = (typeof AVAILABLE_PLATFORMS)[number];
 export const STARTING_TIMEOUT_WAIT_CYLCE = 2000;
+export const STARTING_TIMEOUT_ATTEMPTS = 60;

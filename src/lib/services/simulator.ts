@@ -3,6 +3,7 @@ import {
   DEFAULT_REPO_GH_URL,
   DEFAULT_RUN_SIMULATOR_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
+  STARTING_TIMEOUT_ATTEMPTS,
 } from "@/lib/config/simulator";
 import {
   checkCommand,
@@ -86,7 +87,9 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
   return executeCommandInNewTerminal(commandsByPlatform);
 }
 
-export async function waitForSimulatorToBeReady(retries: number = 10): Promise<boolean> {
+export async function waitForSimulatorToBeReady(
+  retries: number = STARTING_TIMEOUT_ATTEMPTS,
+): Promise<boolean> {
   try {
     const response = await rpcClient.request({method: "ping", params: []});
     if (response && response.result.status === "OK") {
