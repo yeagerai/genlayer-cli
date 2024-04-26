@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import {rpcClient} from "@/lib/clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
@@ -59,7 +61,8 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
   try {
     await executeCommand(`git clone ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`, "git");
   } catch (error: any) {
-    if (error.toString().includes("already exists and is not an empty directory")) {
+    const simulatorLocationExists = fs.existsSync(simulatorLocation);
+    if (simulatorLocationExists) {
       return {wasInstalled: true};
     }
     throw error;
@@ -69,15 +72,7 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
 
 export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
   const simulatorLocation = getSimulatorLocation();
-
-  try {
-    await executeCommand(`cd ${simulatorLocation} && git pull`, "git");
-  } catch (error: any) {
-    if (error.toString().includes("already exists and is not an empty directory")) {
-      return {wasInstalled: true};
-    }
-    throw error;
-  }
+  await executeCommand(`cd ${simulatorLocation} && git pull`, "git");
   return {wasInstalled: false};
 }
 
