@@ -85,8 +85,10 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
 export async function waitForSimulatorToBeReady(
   retries: number = STARTING_TIMEOUT_ATTEMPTS,
 ): Promise<boolean> {
+  console.log("🚀 ~ waitForSimulatorToBeReady ~ retries:", retries);
   try {
     const response = await rpcClient.request({method: "ping", params: []});
+    console.log("🚀 ~ waitForSimulatorToBeReady ~ response:", response);
     if (response && response.result.status === "OK") {
       return true;
     }
@@ -95,7 +97,8 @@ export async function waitForSimulatorToBeReady(
       return waitForSimulatorToBeReady(retries - 1);
     }
   } catch (error: any) {
-    if (error.message.includes("ECONNREFUSED") && retries > 0) {
+    console.log("🚀 ~ error:", error);
+    if ((error.message.includes("ECONNREFUSED") || error.message.includes("socket hang up")) && retries > 0) {
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
       return waitForSimulatorToBeReady(retries - 1);
     }
@@ -109,8 +112,20 @@ type InitializeDatabaseResultType = {
   tablesResponse: any;
 };
 
+export function clearDatabaseTables(): Promise<any> {
+  return rpcClient.request({method: "clear_tables", params: []});
+}
+
 export async function initializeDatabase(): Promise<InitializeDatabaseResultType> {
   const createResponse = await rpcClient.request({method: "create_db", params: []});
   const tablesResponse = await rpcClient.request({method: "create_tables", params: []});
   return {createResponse, tablesResponse};
+}
+
+export function createRandomValidators(): Promise<any> {
+  return rpcClient.request({method: "create_random_validators", params: [10, 1, 10]});
+}
+
+export function deleteAllValidators(): Promise<any> {
+  return rpcClient.request({method: "delete_all_validators", params: []});
 }

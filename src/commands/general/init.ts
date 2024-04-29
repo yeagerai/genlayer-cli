@@ -7,6 +7,9 @@ import {
   runSimulator,
   waitForSimulatorToBeReady,
   updateSimulator,
+  clearDatabaseTables,
+  createRandomValidators,
+  deleteAllValidators,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -92,6 +95,9 @@ export async function initAction(options: InitActionOptions) {
   // Initialize the database
   console.log("Initializing the database...");
   try {
+    //remove everything from the database
+    await clearDatabaseTables();
+
     const {createResponse, tablesResponse} = await initializeDatabase();
     if (!createResponse || !tablesResponse) {
       console.error("Unable to initialize the database. Please try again.");
@@ -101,5 +107,19 @@ export async function initAction(options: InitActionOptions) {
     console.error(error);
     return;
   }
+
+  // Initializing validators
+  console.log("Initializing validators...");
+  try {
+    //remove all validators
+    await deleteAllValidators();
+    // create random validators
+    await createRandomValidators();
+  } catch (error) {
+    console.error("Unable to initialize the validators.");
+    console.error(error);
+    return;
+  }
+
   console.log("GenLayer simulator initialized successfully!");
 }
