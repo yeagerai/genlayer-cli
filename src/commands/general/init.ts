@@ -81,9 +81,15 @@ export async function initAction(options: InitActionOptions) {
   }
 
   try {
-    const initialized = await waitForSimulatorToBeReady();
-    if (!initialized) {
+    const {initialized, error} = await waitForSimulatorToBeReady();
+    if (!initialized && error === "ERROR") {
       console.error("Unable to initialize the GenLayer simulator. Please try again.");
+      return;
+    }
+    if (!initialized && error === "TIMEOUT") {
+      console.error(
+        "The simulator is taking too lonk to initialize. Please try again after the simulator is ready.",
+      );
       return;
     }
     console.log("Simulator is running!");

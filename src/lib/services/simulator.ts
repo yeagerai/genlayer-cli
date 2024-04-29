@@ -82,15 +82,20 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
   return executeCommandInNewTerminal(commandsByPlatform);
 }
 
+type WaitForSimulatorToBeReadyResultType = {
+  initialized: boolean;
+  error?: "TIMEOUT" | "ERROR";
+};
+
 export async function waitForSimulatorToBeReady(
   retries: number = STARTING_TIMEOUT_ATTEMPTS,
-): Promise<boolean> {
+): Promise<WaitForSimulatorToBeReadyResultType> {
   console.log("🚀 ~ waitForSimulatorToBeReady ~ retries:", retries);
   try {
     const response = await rpcClient.request({method: "ping", params: []});
     console.log("🚀 ~ waitForSimulatorToBeReady ~ response:", response);
     if (response && response.result.status === "OK") {
-      return true;
+      return {initialized: true};
     }
     if (retries > 0) {
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE);
@@ -102,19 +107,20 @@ export async function waitForSimulatorToBeReady(
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
       return waitForSimulatorToBeReady(retries - 1);
     }
+    return {initialized: false, error: "ERROR"};
   }
 
-  return false;
+  return {initialized: false, error: "TIMEOUT"};
+}
+
+export function clearDatabaseTables(): Promise<any> {
+  return rpcClient.request({method: "clear_tables", params: []});
 }
 
 type InitializeDatabaseResultType = {
   createResponse: any;
   tablesResponse: any;
 };
-
-export function clearDatabaseTables(): Promise<any> {
-  return rpcClient.request({method: "clear_tables", params: []});
-}
 
 export async function initializeDatabase(): Promise<InitializeDatabaseResultType> {
   const createResponse = await rpcClient.request({method: "create_db", params: []});
