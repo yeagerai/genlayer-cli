@@ -137,10 +137,9 @@ type WaitForSimulatorToBeReadyResultType = {
 export async function waitForSimulatorToBeReady(
   retries: number = STARTING_TIMEOUT_ATTEMPTS,
 ): Promise<WaitForSimulatorToBeReadyResultType> {
-  console.log("🚀 ~ waitForSimulatorToBeReady ~ retries:", retries);
+  console.log("Waiting for Simulator to be ready...:");
   try {
     const response = await rpcClient.request({method: "ping", params: []});
-    console.log("🚀 ~ waitForSimulatorToBeReady ~ response:", response);
     if (response && response.result.status === "OK") {
       return {initialized: true};
     }
@@ -149,7 +148,6 @@ export async function waitForSimulatorToBeReady(
       return waitForSimulatorToBeReady(retries - 1);
     }
   } catch (error: any) {
-    console.log("🚀 ~ error:", error);
     if ((error.message.includes("ECONNREFUSED") || error.message.includes("socket hang up")) && retries > 0) {
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
       return waitForSimulatorToBeReady(retries - 1);
