@@ -20,17 +20,22 @@ type ExecuteCommandResult = {
   stderr: string;
 };
 
-export function executeCommand(command: string, toolName: string): Promise<ExecuteCommandResult> {
+type ExecuteCommandInNewTerminalInput = {
+  [key in RunningPlatform]: string;
+};
+
+export function executeCommand(
+  cmdsByPlatform: ExecuteCommandInNewTerminalInput,
+  toolName: string,
+): Promise<ExecuteCommandResult> {
   try {
+    const runningPlatform = getPlatform();
+    const command = cmdsByPlatform[runningPlatform];
     return asyncExec(command);
   } catch (error: any) {
     throw new Error(`Error executing ${toolName}: ${error.message}`);
   }
 }
-
-type ExecuteCommandInNewTerminalInput = {
-  [key in RunningPlatform]: string;
-};
 
 export function executeCommandInNewTerminal(
   cmdsByPlatform: ExecuteCommandInNewTerminalInput,

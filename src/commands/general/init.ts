@@ -1,12 +1,19 @@
 import inquirer from "inquirer";
 
+import {AI_PROVIDERS_CONFIG, AiProviders} from "@/lib/config/simulator";
 import {
   initializeDatabase,
   checkRequirements,
   downloadSimulator,
+  configSimulator,
   runSimulator,
   waitForSimulatorToBeReady,
   updateSimulator,
+  clearDatabaseTables,
+  createRandomValidators,
+  deleteAllValidators,
+  runOllamaModel,
+  getAiProvidersOptions,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -68,6 +75,58 @@ export async function initAction(options: InitActionOptions) {
     return;
   }
 
+  // Check LLM configuration
+  const questions = [
+    {
+      type: "checkbox",
+      name: "selectedLlmProviders",
+      message: "Select which LLM providers do you want to use:",
+      choices: getAiProvidersOptions(),
+      validate: function (answer: string[]) {
+        if (answer.length < 1) {
+          return "You must choose at least one option.";
+        }
+        return true;
+      },
+    },
+  ];
+
+  // Since ollama runs locally we can run it here and then look for the other providers
+  const llmProvidersAnswer = await inquirer.prompt(questions);
+  const selectedLlmProviders = llmProvidersAnswer.selectedLlmProviders as AiProviders[];
+
+  // Gather the API Keys
+  const aiProvidersEnvVars: Record<string, string> = {};
+  const configurableAiProviders = selectedLlmProviders.filter((provider: string) => provider !== "ollama");
+  for (let i = 0; i < configurableAiProviders.length; i++) {
+    const provider = configurableAiProviders[i];
+    const providerConfig = AI_PROVIDERS_CONFIG[provider];
+    const questions = [
+      {
+        type: "password",
+        name: providerConfig.cliOptionValue,
+        message: `Please enter your ${providerConfig.name} API Key:`,
+        validate: function (value: string) {
+          if (value.length) {
+            return true;
+          }
+          return `Please enter a valid API Key for ${providerConfig.name}.`;
+        },
+      },
+    ];
+
+    const apiKeyAnswer = await inquirer.prompt(questions);
+    aiProvidersEnvVars[providerConfig.envVar] = apiKeyAnswer[providerConfig.cliOptionValue];
+  }
+
+  console.log("Configuring GenLayer Simulator environment...");
+  try {
+    await configSimulator(aiProvidersEnvVars);
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {
@@ -78,9 +137,15 @@ export async function initAction(options: InitActionOptions) {
   }
 
   try {
-    const initialized = await waitForSimulatorToBeReady();
-    if (!initialized) {
+    const {initialized, error} = await waitForSimulatorToBeReady();
+    if (!initialized && error === "ERROR") {
       console.error("Unable to initialize the GenLayer simulator. Please try again.");
+      return;
+    }
+    if (!initialized && error === "TIMEOUT") {
+      console.error(
+        "The simulator is taking too lonk to initialize. Please try again after the simulator is ready.",
+      );
       return;
     }
     console.log("Simulator is running!");
@@ -89,9 +154,17 @@ export async function initAction(options: InitActionOptions) {
     return;
   }
 
+  // Ollama doesn't need changes in configuration, we just run it
+  if (selectedLlmProviders.includes("ollama")) {
+    await runOllamaModel();
+  }
+
   // Initialize the database
   console.log("Initializing the database...");
   try {
+    //remove everything from the database
+    await clearDatabaseTables();
+
     const {createResponse, tablesResponse} = await initializeDatabase();
     if (!createResponse || !tablesResponse) {
       console.error("Unable to initialize the database. Please try again.");
@@ -101,5 +174,19 @@ export async function initAction(options: InitActionOptions) {
     console.error(error);
     return;
   }
+
+  // Initializing validators
+  console.log("Initializing validators...");
+  try {
+    //remove all validators
+    await deleteAllValidators();
+    // create random validators
+    await createRandomValidators();
+  } catch (error) {
+    console.error("Unable to initialize the validators.");
+    console.error(error);
+    return;
+  }
+
   console.log("GenLayer simulator initialized successfully!");
 }
