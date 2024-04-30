@@ -1,5 +1,12 @@
 
 
+## 0.0.22 (2024-04-30)
+
+
+### Bug Fixes
+
+* running on windows ([#18](https://github.com/yeagerai/genlayer-cli/issues/18)) ([5017bb6](https://github.com/yeagerai/genlayer-cli/commit/5017bb68b7cbfd1f18b73cf36db9f925207a708d))
+
 ## 0.0.21 (2024-04-30)
 
 ## 0.0.20 (2024-04-26)
