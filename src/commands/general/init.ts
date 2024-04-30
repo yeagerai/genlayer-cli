@@ -130,7 +130,7 @@ export async function initAction(options: InitActionOptions) {
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {
-    await runSimulator();
+    runSimulator();
   } catch (error) {
     console.error(error);
     return;
@@ -144,7 +144,7 @@ export async function initAction(options: InitActionOptions) {
     }
     if (!initialized && error === "TIMEOUT") {
       console.error(
-        "The simulator is taking too lonk to initialize. Please try again after the simulator is ready.",
+        "The simulator is taking too long to initialize. Please try again after the simulator is ready.",
       );
       return;
     }
@@ -156,7 +156,7 @@ export async function initAction(options: InitActionOptions) {
 
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
-    await runOllamaModel();
+    runOllamaModel();
   }
 
   // Initialize the database
