@@ -1,11 +1,15 @@
 import * as fs from "fs";
+import * as dotenv from "dotenv";
 
 import {rpcClient} from "@/lib/clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
   DEFAULT_RUN_SIMULATOR_COMMAND,
+  DEFAULT_CONFIG_SIMULATOR_COMMAND,
+  DEFAULT_RUN_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
+  AI_PROVIDERS_CONFIG,
 } from "@/lib/config/simulator";
 import {
   checkCommand,
@@ -22,6 +26,30 @@ function getSimulatorLocation(): string {
 
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
+}
+
+function addConfigToEnvFile(newConfig: Record<string, string>): void {
+  const simulatorLocation = getSimulatorLocation();
+  const envFilePath = `${simulatorLocation}/.env`;
+
+  // Create a backup of the original .env file
+  fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
+
+  // Transform the config string to object
+  const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
+  Object.keys(newConfig).forEach(key => {
+    envConfig[key] = newConfig[key];
+  });
+
+  // Transform the updated config object back into a string
+  const updatedConfig = Object.keys(envConfig)
+    .map(key => {
+      return `${key}=${envConfig[key]}`;
+    })
+    .join("\n");
+
+  // Write the new .env file
+  fs.writeFileSync(envFilePath, updatedConfig);
 }
 
 // Public functions
@@ -59,7 +87,9 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
   const simulatorLocation = getSimulatorLocation();
 
   try {
-    await executeCommand(`git clone ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`, "git");
+    const gitCommand = `git clone ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`;
+    const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
+    await executeCommand(cmdsByPlatform, "git");
   } catch (error: any) {
     const simulatorLocationExists = fs.existsSync(simulatorLocation);
     if (simulatorLocationExists) {
@@ -72,8 +102,25 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
 
 export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
   const simulatorLocation = getSimulatorLocation();
-  await executeCommand(`cd ${simulatorLocation} && git pull`, "git");
+  const gitCommand = `cd ${simulatorLocation} && git pull`;
+  const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
+  await executeCommand(cmdsByPlatform, "git");
   return {wasInstalled: false};
+}
+
+export async function runOllamaModel(): Promise<boolean> {
+  const simulatorLocation = getSimulatorLocation();
+  const cmdsByPlatform = DEFAULT_RUN_OLLAMA_COMMAND(simulatorLocation);
+  await executeCommandInNewTerminal(cmdsByPlatform);
+  return true;
+}
+
+export async function configSimulator(newConfig: Record<string, string>): Promise<boolean> {
+  const simulatorLocation = getSimulatorLocation();
+  const commandsByPlatform = DEFAULT_CONFIG_SIMULATOR_COMMAND(simulatorLocation);
+  await executeCommand(commandsByPlatform, "copy (cp)");
+  addConfigToEnvFile(newConfig);
+  return true;
 }
 
 export function runSimulator(): Promise<{stdout: string; stderr: string}> {
@@ -134,4 +181,10 @@ export function createRandomValidators(): Promise<any> {
 
 export function deleteAllValidators(): Promise<any> {
   return rpcClient.request({method: "delete_all_validators", params: []});
+}
+
+export function getAiProvidersOptions(): Array<{name: string; value: string}> {
+  return Object.values(AI_PROVIDERS_CONFIG).map(providerConfig => {
+    return {name: providerConfig.name, value: providerConfig.cliOptionValue};
+  });
 }
