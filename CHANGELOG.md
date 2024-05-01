@@ -1,5 +1,12 @@
 
 
+## 0.0.23 (2024-05-01)
+
+
+### Bug Fixes
+
+* windows installation ([#19](https://github.com/yeagerai/genlayer-cli/issues/19)) ([3eafe6d](https://github.com/yeagerai/genlayer-cli/commit/3eafe6df9f5f657139177a588d6d53a652a25bd3))
+
 ## 0.0.22 (2024-04-30)
 
 
