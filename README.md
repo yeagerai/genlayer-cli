@@ -26,6 +26,21 @@ This command will download the necessary components and start the simulator. Onc
 
 Contributions to the GenLayer CLI are welcome! Please feel free to fork the repository, make your changes, and submit a pull request. We appreciate your efforts to improve the software.
 
+### Running the CLI from the repository
+
+First, install the dependencies and start the build process
+```bash
+npm install
+npm run dev
+```
+This will continuously rebuild the CLI from the source
+
+Then in another window execute the CLI commands like so:
+
+```bash
+node dist/index.js init
+```
+
 ## License
 
 This project is licensed under the ... License - see the [LICENSE](LICENSE) file for details.
