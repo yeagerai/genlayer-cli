@@ -1,12 +1,12 @@
 import * as fs from "fs";
 import * as dotenv from "dotenv";
+import * as path from "path";
 
 import {rpcClient} from "@/lib/clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
   DEFAULT_RUN_SIMULATOR_COMMAND,
-  DEFAULT_CONFIG_SIMULATOR_COMMAND,
-  DEFAULT_RUN_OLLAMA_COMMAND,
+  DEFAULT_PULL_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
@@ -20,8 +20,16 @@ import {
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 // Private helper functions
-function getSimulatorLocation(): string {
-  return `${getHomeDirectory()}/genlayer-simulator`;
+export function getSimulatorLocation(): string {
+  return path.join(getHomeDirectory(), 'genlayer-simulator');
+}
+
+export function readEnvConfigValue(key: string): string {
+  const simulatorLocation = getSimulatorLocation();
+  const envFilePath = path.join(simulatorLocation, '.env');
+  // Transform the config string to object
+  const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
+  return envConfig[key];
 }
 
 function sleep(millliseconds: number): Promise<void> {
@@ -30,7 +38,7 @@ function sleep(millliseconds: number): Promise<void> {
 
 function addConfigToEnvFile(newConfig: Record<string, string>): void {
   const simulatorLocation = getSimulatorLocation();
-  const envFilePath = `${simulatorLocation}/.env`;
+  const envFilePath = path.join(simulatorLocation, '.env');
 
   // Create a backup of the original .env file
   fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
@@ -102,23 +110,24 @@ export async function downloadSimulator(): Promise<DownloadSimulatorResultType> 
 
 export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
   const simulatorLocation = getSimulatorLocation();
-  const gitCommand = `cd ${simulatorLocation} && git pull`;
+  const gitCommand = `git -C  "${simulatorLocation}" pull`;
   const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
   await executeCommand(cmdsByPlatform, "git");
   return {wasInstalled: false};
 }
 
-export async function runOllamaModel(): Promise<boolean> {
+export async function pullOllamaModel(): Promise<boolean> {
   const simulatorLocation = getSimulatorLocation();
-  const cmdsByPlatform = DEFAULT_RUN_OLLAMA_COMMAND(simulatorLocation);
+  const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(simulatorLocation);
   await executeCommandInNewTerminal(cmdsByPlatform);
   return true;
 }
 
 export async function configSimulator(newConfig: Record<string, string>): Promise<boolean> {
   const simulatorLocation = getSimulatorLocation();
-  const commandsByPlatform = DEFAULT_CONFIG_SIMULATOR_COMMAND(simulatorLocation);
-  await executeCommand(commandsByPlatform, "copy (cp)");
+  const envExample = path.join(simulatorLocation, '.env.example');
+  const envFilePath = path.join(simulatorLocation, '.env');
+  fs.copyFileSync(envExample, envFilePath);  
   addConfigToEnvFile(newConfig);
   return true;
 }
@@ -137,7 +146,7 @@ type WaitForSimulatorToBeReadyResultType = {
 export async function waitForSimulatorToBeReady(
   retries: number = STARTING_TIMEOUT_ATTEMPTS,
 ): Promise<WaitForSimulatorToBeReadyResultType> {
-  console.log("Waiting for Simulator to be ready...:");
+  console.log("Waiting for the simulator to start up...");
   try {
     const response = await rpcClient.request({method: "ping", params: []});
     if (response && response.result.status === "OK") {

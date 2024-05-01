@@ -12,8 +12,10 @@ import {
   clearDatabaseTables,
   createRandomValidators,
   deleteAllValidators,
-  runOllamaModel,
+  pullOllamaModel,
   getAiProvidersOptions,
+  getSimulatorLocation,
+  readEnvConfigValue,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -53,7 +55,7 @@ export async function initAction(options: InitActionOptions) {
     {
       type: "confirm",
       name: "confirmDownload",
-      message: `This action is going to download the GenLayer Simulator from GitHub. Do you want to continue?`,
+      message: `This action is going to download the GenLayer Simulator from GitHub into "${getSimulatorLocation()}". Do you want to continue?`,
       default: true,
     },
   ]);
@@ -148,7 +150,7 @@ export async function initAction(options: InitActionOptions) {
       );
       return;
     }
-    console.log("Simulator is running!");
+    console.log(`Simulator is running!`);
   } catch (error) {
     console.error(error);
     return;
@@ -156,7 +158,8 @@ export async function initAction(options: InitActionOptions) {
 
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
-    runOllamaModel();
+    console.log("Pulling llama2 from Ollama...")
+    await pullOllamaModel();
   }
 
   // Initialize the database
@@ -187,6 +190,7 @@ export async function initAction(options: InitActionOptions) {
     console.error(error);
     return;
   }
-
-  console.log("GenLayer simulator initialized successfully!");
+  
+  const frontendPort = readEnvConfigValue('FRONTEND_PORT');
+  console.log(`GenLayer simulator initialized successfully! Go to http://localhost:${frontendPort} in your browser to access it.`);
 }
