@@ -22,17 +22,24 @@ genlayer init
 
 This command will download the necessary components and start the simulator. Once initialized, you will be ready to execute further commands (to be implemented) to interact with the simulator.
 
-## Troubleshooting
-
-If you encounter an error "Host key verification failed." during the init process, you need to run a command to add the GitHub punlic key to your known hosts:
-
-```
- ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-```
-
 ## Contributing
 
 Contributions to the GenLayer CLI are welcome! Please feel free to fork the repository, make your changes, and submit a pull request. We appreciate your efforts to improve the software.
+
+### Running the CLI from the repository
+
+First, install the dependencies and start the build process
+```bash
+npm install
+npm run dev
+```
+This will continuously rebuild the CLI from the source
+
+Then in another window execute the CLI commands like so:
+
+```bash
+node dist/index.js init
+```
 
 ## License
 

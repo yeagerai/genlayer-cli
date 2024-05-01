@@ -150,7 +150,7 @@ export async function initAction(options: InitActionOptions) {
       );
       return;
     }
-    console.log(`Simulator is running!`);
+    console.log("Simulator is running!");
   } catch (error) {
     console.error(error);
     return;
