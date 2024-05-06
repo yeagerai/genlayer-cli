@@ -1,5 +1,12 @@
 
 
+## 0.0.25 (2024-05-06)
+
+
+### Bug Fixes
+
+* OPEN AI .env key renamed in simulator ([#21](https://github.com/yeagerai/genlayer-cli/issues/21)) ([676d159](https://github.com/yeagerai/genlayer-cli/commit/676d1591871d6f81f1b8695bd4366997384579c6))
+
 ## 0.0.24 (2024-05-06)
 
 ## 0.0.23 (2024-05-01)
