@@ -106,7 +106,7 @@ export async function initAction(options: InitActionOptions) {
     const providerConfig = AI_PROVIDERS_CONFIG[provider];
     const questions = [
       {
-        type: "password",
+        type: "input",
         name: providerConfig.cliOptionValue,
         message: `Please enter your ${providerConfig.name} API Key:`,
         validate: function (value: string) {
