@@ -6,6 +6,10 @@ module.exports = {
     outfile: "dist/index.js", // Output file
     platform: "node",
     target: "es6",
+    define: { 'import.meta.url': '_importMetaUrl' },
+    banner: {
+      js: "const _importMetaUrl=require('url').pathToFileURL(__filename)",
+    },
   },
   watch: true,
 };
