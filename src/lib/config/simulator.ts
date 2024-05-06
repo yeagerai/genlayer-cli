@@ -16,12 +16,12 @@ export const STARTING_TIMEOUT_WAIT_CYLCE = 2000;
 export const STARTING_TIMEOUT_ATTEMPTS = 120;
 
 export type AiProviders = "ollama" | "openai";
-export type AiProvidersEnvVars = "ollama" | "GENVMOPENAIKEY";
+export type AiProvidersEnvVars = "ollama" | "OPENAIKEY";
 export type AiProvidersConfigType = {
   [key in AiProviders]: {name: string; envVar: AiProvidersEnvVars; cliOptionValue: string};
 };
 
 export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
   ollama: {name: "Ollama (This will download and run a local instance of Llama 2)", envVar: "ollama", cliOptionValue: "ollama"},
-  openai: {name: "OpenAI (You will need to provide an OpenAI API key)", envVar: "GENVMOPENAIKEY", cliOptionValue: "openai"},
+  openai: {name: "OpenAI (You will need to provide an OpenAI API key)", envVar: "OPENAIKEY", cliOptionValue: "openai"},
 };
