@@ -15,7 +15,8 @@ import {
   pullOllamaModel,
   getAiProvidersOptions,
   getSimulatorLocation,
-  readEnvConfigValue,
+  getFrontendUrl,
+  openFrontend,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -158,7 +159,7 @@ export async function initAction(options: InitActionOptions) {
 
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
-    console.log("Pulling llama2 from Ollama...")
+    console.log("Pulling llama2 from Ollama...");
     await pullOllamaModel();
   }
 
@@ -190,7 +191,14 @@ export async function initAction(options: InitActionOptions) {
     console.error(error);
     return;
   }
-  
-  const frontendPort = readEnvConfigValue('FRONTEND_PORT');
-  console.log(`GenLayer simulator initialized successfully! Go to http://localhost:${frontendPort} in your browser to access it.`);
+
+  // Simulator ready
+  console.log(
+    `GenLayer simulator initialized successfully! Go to ${getFrontendUrl()} in your browser to access it.`,
+  );
+  try {
+    openFrontend();
+  } catch (error) {
+    console.error(error);
+  }
 }
