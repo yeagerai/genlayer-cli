@@ -16,17 +16,18 @@ import {
   getHomeDirectory,
   executeCommand,
   executeCommandInNewTerminal,
+  openUrl,
 } from "@/lib/clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 // Private helper functions
 export function getSimulatorLocation(): string {
-  return path.join(getHomeDirectory(), 'genlayer-simulator');
+  return path.join(getHomeDirectory(), "genlayer-simulator");
 }
 
 export function readEnvConfigValue(key: string): string {
   const simulatorLocation = getSimulatorLocation();
-  const envFilePath = path.join(simulatorLocation, '.env');
+  const envFilePath = path.join(simulatorLocation, ".env");
   // Transform the config string to object
   const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
   return envConfig[key];
@@ -38,7 +39,7 @@ function sleep(millliseconds: number): Promise<void> {
 
 function addConfigToEnvFile(newConfig: Record<string, string>): void {
   const simulatorLocation = getSimulatorLocation();
-  const envFilePath = path.join(simulatorLocation, '.env');
+  const envFilePath = path.join(simulatorLocation, ".env");
 
   // Create a backup of the original .env file
   fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
@@ -125,9 +126,9 @@ export async function pullOllamaModel(): Promise<boolean> {
 
 export async function configSimulator(newConfig: Record<string, string>): Promise<boolean> {
   const simulatorLocation = getSimulatorLocation();
-  const envExample = path.join(simulatorLocation, '.env.example');
-  const envFilePath = path.join(simulatorLocation, '.env');
-  fs.copyFileSync(envExample, envFilePath);  
+  const envExample = path.join(simulatorLocation, ".env.example");
+  const envFilePath = path.join(simulatorLocation, ".env");
+  fs.copyFileSync(envExample, envFilePath);
   addConfigToEnvFile(newConfig);
   return true;
 }
@@ -194,4 +195,14 @@ export function getAiProvidersOptions(): Array<{name: string; value: string}> {
   return Object.values(AI_PROVIDERS_CONFIG).map(providerConfig => {
     return {name: providerConfig.name, value: providerConfig.cliOptionValue};
   });
+}
+
+export function getFrontendUrl(): string {
+  const frontendPort = readEnvConfigValue("FRONTEND_PORT");
+  return `http://localhost:${frontendPort}`;
+}
+
+export async function openFrontend(): Promise<boolean> {
+  await openUrl(getFrontendUrl());
+  return true;
 }

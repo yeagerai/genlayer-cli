@@ -1,6 +1,7 @@
 import util from "node:util";
-import {PromiseWithChild, exec} from "child_process";
+import {ChildProcess, PromiseWithChild, exec} from "child_process";
 import os from "os";
+import open from "open";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "@/lib/config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
@@ -59,4 +60,8 @@ function getPlatform(): RunningPlatform {
     throw new Error(`Unsupported platform: ${currentPlatform}`);
   }
   return currentPlatform;
+}
+
+export function openUrl(url: string): Promise<ChildProcess> {
+  return open(url);
 }
