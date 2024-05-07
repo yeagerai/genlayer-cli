@@ -141,7 +141,8 @@ export function runSimulator(): Promise<{stdout: string; stderr: string}> {
 
 type WaitForSimulatorToBeReadyResultType = {
   initialized: boolean;
-  error?: "TIMEOUT" | "ERROR";
+  errorCode?: "TIMEOUT" | "ERROR";
+  errorMessage?: string;
 };
 
 export async function waitForSimulatorToBeReady(
@@ -162,10 +163,10 @@ export async function waitForSimulatorToBeReady(
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
       return waitForSimulatorToBeReady(retries - 1);
     }
-    return {initialized: false, error: "ERROR"};
+    return {initialized: false, errorCode: "ERROR", errorMessage: error.message};
   }
 
-  return {initialized: false, error: "TIMEOUT"};
+  return {initialized: false, errorCode: "TIMEOUT"};
 }
 
 export function clearAccountsAndTransactionsDatabase(): Promise<any> {
