@@ -11,14 +11,22 @@ import {
 } from "@/lib/services/simulator";
 
 export interface StartActionOptions {
-  restart: string;
+  resetAccounts: string;
+  resetValidators: string;
 }
 
 export async function startAction(options: StartActionOptions) {
-  const restartHintText = options.restart
-    ? "restarting the database and validators"
-    : "keeping the database and validators previous configuration";
-  console.log(`Starting GenLayer simulator ${restartHintText}`);
+  const {resetAccounts, resetValidators} = options;
+
+  const restartAccountsHintText = resetAccounts
+    ? "restarting the accounts and transactions database"
+    : "keeping the accounts and transactions records";
+
+  const restartValidatorsHintText = resetValidators
+    ? "and creating new random validators"
+    : "and keeping the existing validators";
+
+  console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
 
   // Update the simulator to the latest version
   console.log(`Updating GenLayer Simulator...`);
@@ -56,7 +64,7 @@ export async function startAction(options: StartActionOptions) {
     return;
   }
 
-  if (options.restart) {
+  if (resetAccounts) {
     // Initialize the database
     console.log("Initializing the database...");
     try {
@@ -72,7 +80,10 @@ export async function startAction(options: StartActionOptions) {
       console.error(error);
       return;
     }
+    console.log("Database successfully reset...");
+  }
 
+  if (resetValidators) {
     // Initializing validators
     console.log("Initializing validators...");
     try {
@@ -85,6 +96,7 @@ export async function startAction(options: StartActionOptions) {
       console.error(error);
       return;
     }
+    console.log("New random validators successfully created...");
   }
 
   // Simulator ready

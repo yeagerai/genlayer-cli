@@ -13,7 +13,8 @@ export function initializeGeneralCommands(program: Command) {
   program
     .command("up")
     .description("Starts GenLayer's simulator")
-    .option("-nr, --no-restart", "Don't restart the database and validators", true)
+    .option("--no-reset-accounts", "Don't restart the database for accouts and transactions", true)
+    .option("--reset-validators", "Remove all current validators and create new random ones", false)
     .action(startAction);
 
   return program;

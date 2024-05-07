@@ -9,7 +9,7 @@ import {
   runSimulator,
   waitForSimulatorToBeReady,
   updateSimulator,
-  clearDatabaseTables,
+  clearAccountsAndTransactionsDatabase,
   createRandomValidators,
   deleteAllValidators,
   pullOllamaModel,
@@ -167,7 +167,7 @@ export async function initAction(options: InitActionOptions) {
   console.log("Initializing the database...");
   try {
     //remove everything from the database
-    await clearDatabaseTables();
+    await clearAccountsAndTransactionsDatabase();
 
     const {createResponse, tablesResponse} = await initializeDatabase();
     if (!createResponse || !tablesResponse) {
