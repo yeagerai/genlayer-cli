@@ -32,7 +32,7 @@ export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
     cliOptionValue: "openai",
   },
   heurist: {
-    name: "Heurist (You will need to provide an API key)",
+    name: 'Heurist (You will need to provide an API key. Get free API credits at https://dev-api-form.heurist.ai/ with referral code: "genlayer"):',
     envVar: "HEURISTAIAPIKEY",
     cliOptionValue: "heurist",
   },
