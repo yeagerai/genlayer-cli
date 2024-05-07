@@ -4,21 +4,29 @@ import {
   waitForSimulatorToBeReady,
   deleteAllValidators,
   createRandomValidators,
-  clearDatabaseTables,
+  clearAccountsAndTransactionsDatabase,
   initializeDatabase,
   getFrontendUrl,
   openFrontend,
 } from "@/lib/services/simulator";
 
 export interface StartActionOptions {
-  restart: string;
+  resetAccounts: string;
+  resetValidators: string;
 }
 
 export async function startAction(options: StartActionOptions) {
-  const restartHintText = options.restart
-    ? "restarting the database and validators"
-    : "keeping the database and validators previous configuration";
-  console.log(`Starting GenLayer simulator ${restartHintText}`);
+  const {resetAccounts, resetValidators} = options;
+
+  const restartAccountsHintText = resetAccounts
+    ? "restarting the accounts and transactions database"
+    : "keeping the accounts and transactions records";
+
+  const restartValidatorsHintText = resetValidators
+    ? "and creating new random validators"
+    : "and keeping the existing validators";
+
+  console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
 
   // Update the simulator to the latest version
   console.log(`Updating GenLayer Simulator...`);
@@ -39,12 +47,13 @@ export async function startAction(options: StartActionOptions) {
   }
 
   try {
-    const {initialized, error} = await waitForSimulatorToBeReady();
-    if (!initialized && error === "ERROR") {
+    const {initialized, errorCode, errorMessage} = await waitForSimulatorToBeReady();
+    if (!initialized && errorCode === "ERROR") {
+      console.log(errorMessage);
       console.error("Unable to initialize the GenLayer simulator. Please try again.");
       return;
     }
-    if (!initialized && error === "TIMEOUT") {
+    if (!initialized && errorCode === "TIMEOUT") {
       console.error(
         "The simulator is taking too long to initialize. Please try again after the simulator is ready.",
       );
@@ -56,12 +65,12 @@ export async function startAction(options: StartActionOptions) {
     return;
   }
 
-  if (options.restart) {
+  if (resetAccounts) {
     // Initialize the database
     console.log("Initializing the database...");
     try {
       //remove everything from the database
-      await clearDatabaseTables();
+      await clearAccountsAndTransactionsDatabase();
 
       const {createResponse, tablesResponse} = await initializeDatabase();
       if (!createResponse || !tablesResponse) {
@@ -72,7 +81,10 @@ export async function startAction(options: StartActionOptions) {
       console.error(error);
       return;
     }
+    console.log("Database successfully reset...");
+  }
 
+  if (resetValidators) {
     // Initializing validators
     console.log("Initializing validators...");
     try {
@@ -85,6 +97,7 @@ export async function startAction(options: StartActionOptions) {
       console.error(error);
       return;
     }
+    console.log("New random validators successfully created...");
   }
 
   // Simulator ready
