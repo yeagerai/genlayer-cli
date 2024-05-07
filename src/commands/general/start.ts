@@ -4,7 +4,7 @@ import {
   waitForSimulatorToBeReady,
   deleteAllValidators,
   createRandomValidators,
-  clearDatabaseTables,
+  clearAccountsAndTransactionsDatabase,
   initializeDatabase,
   getFrontendUrl,
   openFrontend,
@@ -61,7 +61,7 @@ export async function startAction(options: StartActionOptions) {
     console.log("Initializing the database...");
     try {
       //remove everything from the database
-      await clearDatabaseTables();
+      await clearAccountsAndTransactionsDatabase();
 
       const {createResponse, tablesResponse} = await initializeDatabase();
       if (!createResponse || !tablesResponse) {

@@ -168,8 +168,8 @@ export async function waitForSimulatorToBeReady(
   return {initialized: false, error: "TIMEOUT"};
 }
 
-export function clearDatabaseTables(): Promise<any> {
-  return rpcClient.request({method: "clear_tables", params: []});
+export function clearAccountsAndTransactionsDatabase(): Promise<any> {
+  return rpcClient.request({method: "clear_account_and_transactions_tables", params: []});
 }
 
 type InitializeDatabaseResultType = {
