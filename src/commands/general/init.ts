@@ -100,7 +100,9 @@ export async function initAction(options: InitActionOptions) {
 
   // Gather the API Keys
   const aiProvidersEnvVars: Record<string, string> = {};
-  const configurableAiProviders = selectedLlmProviders.filter((provider: string) => provider !== "ollama");
+  const configurableAiProviders = selectedLlmProviders.filter(
+    (provider: AiProviders) => AI_PROVIDERS_CONFIG[provider].envVar,
+  );
   for (let i = 0; i < configurableAiProviders.length; i++) {
     const provider = configurableAiProviders[i];
     const providerConfig = AI_PROVIDERS_CONFIG[provider];
@@ -119,7 +121,7 @@ export async function initAction(options: InitActionOptions) {
     ];
 
     const apiKeyAnswer = await inquirer.prompt(questions);
-    aiProvidersEnvVars[providerConfig.envVar] = apiKeyAnswer[providerConfig.cliOptionValue];
+    aiProvidersEnvVars[providerConfig.envVar!] = apiKeyAnswer[providerConfig.cliOptionValue];
   }
 
   console.log("Configuring GenLayer Simulator environment...");
