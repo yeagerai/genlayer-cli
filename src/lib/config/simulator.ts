@@ -3,7 +3,7 @@ export const DEFAULT_REPO_GH_URL = "https://github.com/yeagerai/genlayer-simulat
 export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
   darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker compose build && docker compose up"'`,
   win32: `start cmd.exe /c "cd /d ${simulatorLocation} && docker compose build && docker compose up && pause"`,
-  linux: `x-terminal-emulator -e bash -c 'cd ${simulatorLocation} && docker compose build && docker compose up; echo "Press enter to exit"; read'`,
+  linux: `x-terminal-emulator -e bash -c 'cd ${simulatorLocation} && docker-compose build && docker-compose up; echo "Press enter to exit"; read'`,
 });
 export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
   darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker exec ollama ollama pull llama2"'`,
