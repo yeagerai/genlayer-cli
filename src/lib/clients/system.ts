@@ -13,7 +13,6 @@ export async function checkCommand(command: string, toolName: string): Promise<v
   if (stderr) {
     throw new MissingRequirementError(toolName);
   }
-  console.log(`${toolName} is installed.`);
 }
 
 type ExecuteCommandResult = {
