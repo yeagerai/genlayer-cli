@@ -162,7 +162,7 @@ export async function initAction(options: InitActionOptions) {
 
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
-    console.log("Pulling llama2 from Ollama...");
+    console.log("Pulling llama3 from Ollama...");
     await pullOllamaModel();
   }
 
@@ -188,7 +188,7 @@ export async function initAction(options: InitActionOptions) {
     //remove all validators
     await deleteAllValidators();
     // create random validators
-    await createRandomValidators();
+    await createRandomValidators(Number(options.numValidators));
   } catch (error) {
     console.error("Unable to initialize the validators.");
     console.error(error);

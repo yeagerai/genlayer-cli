@@ -159,7 +159,12 @@ export async function waitForSimulatorToBeReady(
       return waitForSimulatorToBeReady(retries - 1);
     }
   } catch (error: any) {
-    if ((error.message.includes("ECONNREFUSED") || error.message.includes("socket hang up")) && retries > 0) {
+    if (
+      (error.message.includes("ECONNRESET") ||
+        error.message.includes("ECONNREFUSED") ||
+        error.message.includes("socket hang up")) &&
+      retries > 0
+    ) {
       await sleep(STARTING_TIMEOUT_WAIT_CYLCE * 2);
       return waitForSimulatorToBeReady(retries - 1);
     }
@@ -184,8 +189,8 @@ export async function initializeDatabase(): Promise<InitializeDatabaseResultType
   return {createResponse, tablesResponse};
 }
 
-export function createRandomValidators(): Promise<any> {
-  return rpcClient.request({method: "create_random_validators", params: [10, 1, 10]});
+export function createRandomValidators(numValidators: number): Promise<any> {
+  return rpcClient.request({method: "create_random_validators", params: [numValidators, 1, 10]});
 }
 
 export function deleteAllValidators(): Promise<any> {

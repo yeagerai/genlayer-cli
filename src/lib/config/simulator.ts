@@ -6,9 +6,9 @@ export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
   linux: `x-terminal-emulator -e bash -c 'cd ${simulatorLocation} && docker compose build && docker compose up; echo "Press enter to exit"; read'`,
 });
 export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
-  darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker exec ollama ollama pull llama2"'`,
-  win32: `start cmd.exe /c "cd /d ${simulatorLocation} && docker exec ollama ollama pull llama2"`,
-  linux: `x-terminal-emulator -e bash -c 'cd ${simulatorLocation} && docker exec ollama ollama pull llama2'`,
+  darwin: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,
+  win32: `cd /d ${simulatorLocation} && docker exec ollama ollama pull llama3`,
+  linux: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,
 });
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;
 export type RunningPlatform = (typeof AVAILABLE_PLATFORMS)[number];
@@ -23,7 +23,7 @@ export type AiProvidersConfigType = {
 
 export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
   ollama: {
-    name: "Ollama (This will download and run a local instance of Llama 2)",
+    name: "Ollama (This will download and run a local instance of Llama 3)",
     cliOptionValue: "ollama",
   },
   openai: {
