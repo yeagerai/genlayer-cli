@@ -13,17 +13,18 @@ import {
 export interface StartActionOptions {
   resetAccounts: string;
   resetValidators: string;
+  numValidators: number;
 }
 
 export async function startAction(options: StartActionOptions) {
-  const {resetAccounts, resetValidators} = options;
+  const {resetAccounts, resetValidators, numValidators} = options;
 
   const restartAccountsHintText = resetAccounts
     ? "restarting the accounts and transactions database"
     : "keeping the accounts and transactions records";
 
   const restartValidatorsHintText = resetValidators
-    ? "and creating new random validators"
+    ? `and creating new ${numValidators} random validators`
     : "and keeping the existing validators";
 
   console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
@@ -91,7 +92,7 @@ export async function startAction(options: StartActionOptions) {
       //remove all validators
       await deleteAllValidators();
       // create random validators
-      await createRandomValidators();
+      await createRandomValidators(Number(options.numValidators));
     } catch (error) {
       console.error("Unable to initialize the validators.");
       console.error(error);
