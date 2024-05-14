@@ -160,7 +160,8 @@ export async function waitForSimulatorToBeReady(
     }
   } catch (error: any) {
     if (
-      (error.message.includes("ECONNRESET") ||
+      (error.name === "FetchError" ||
+        error.message.includes("ECONNRESET") ||
         error.message.includes("ECONNREFUSED") ||
         error.message.includes("socket hang up")) &&
       retries > 0
