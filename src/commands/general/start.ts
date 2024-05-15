@@ -99,7 +99,7 @@ export async function startAction(options: StartActionOptions) {
           type: "checkbox",
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
-          choices: getAiProvidersOptions(true),
+          choices: getAiProvidersOptions(false),
           validate: function (answer: string[]) {
             if (answer.length < 1) {
               return "You must choose at least one option.";
