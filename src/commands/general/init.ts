@@ -84,7 +84,7 @@ export async function initAction(options: InitActionOptions) {
       type: "checkbox",
       name: "selectedLlmProviders",
       message: "Select which LLM providers do you want to use:",
-      choices: getAiProvidersOptions(),
+      choices: getAiProvidersOptions(true),
       validate: function (answer: string[]) {
         if (answer.length < 1) {
           return "You must choose at least one option.";
@@ -188,7 +188,7 @@ export async function initAction(options: InitActionOptions) {
     //remove all validators
     await deleteAllValidators();
     // create random validators
-    await createRandomValidators(Number(options.numValidators));
+    await createRandomValidators(Number(options.numValidators), selectedLlmProviders);
   } catch (error) {
     console.error("Unable to initialize the validators.");
     console.error(error);

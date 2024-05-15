@@ -1,3 +1,5 @@
+import inquirer from "inquirer";
+
 import {
   updateSimulator,
   runSimulator,
@@ -8,6 +10,7 @@ import {
   initializeDatabase,
   getFrontendUrl,
   openFrontend,
+  getAiProvidersOptions,
 } from "@/lib/services/simulator";
 
 export interface StartActionOptions {
@@ -91,8 +94,26 @@ export async function startAction(options: StartActionOptions) {
     try {
       //remove all validators
       await deleteAllValidators();
+      const questions = [
+        {
+          type: "checkbox",
+          name: "selectedLlmProviders",
+          message: "Select which LLM providers do you want to use:",
+          choices: getAiProvidersOptions(true),
+          validate: function (answer: string[]) {
+            if (answer.length < 1) {
+              return "You must choose at least one option.";
+            }
+            return true;
+          },
+        },
+      ];
+
+      // Since ollama runs locally we can run it here and then look for the other providers
+      const llmProvidersAnswer = await inquirer.prompt(questions);
+
       // create random validators
-      await createRandomValidators(Number(options.numValidators));
+      await createRandomValidators(Number(options.numValidators), llmProvidersAnswer.selectedLlmProviders);
     } catch (error) {
       console.error("Unable to initialize the validators.");
       console.error(error);
