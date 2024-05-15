@@ -1,3 +1,5 @@
+import inquirer from "inquirer";
+
 import {
   updateSimulator,
   runSimulator,
@@ -8,22 +10,24 @@ import {
   initializeDatabase,
   getFrontendUrl,
   openFrontend,
+  getAiProvidersOptions,
 } from "@/lib/services/simulator";
 
 export interface StartActionOptions {
   resetAccounts: string;
   resetValidators: string;
+  numValidators: number;
 }
 
 export async function startAction(options: StartActionOptions) {
-  const {resetAccounts, resetValidators} = options;
+  const {resetAccounts, resetValidators, numValidators} = options;
 
   const restartAccountsHintText = resetAccounts
     ? "restarting the accounts and transactions database"
     : "keeping the accounts and transactions records";
 
   const restartValidatorsHintText = resetValidators
-    ? "and creating new random validators"
+    ? `and creating new ${numValidators} random validators`
     : "and keeping the existing validators";
 
   console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
@@ -90,8 +94,26 @@ export async function startAction(options: StartActionOptions) {
     try {
       //remove all validators
       await deleteAllValidators();
+      const questions = [
+        {
+          type: "checkbox",
+          name: "selectedLlmProviders",
+          message: "Select which LLM providers do you want to use:",
+          choices: getAiProvidersOptions(false),
+          validate: function (answer: string[]) {
+            if (answer.length < 1) {
+              return "You must choose at least one option.";
+            }
+            return true;
+          },
+        },
+      ];
+
+      // Since ollama runs locally we can run it here and then look for the other providers
+      const llmProvidersAnswer = await inquirer.prompt(questions);
+
       // create random validators
-      await createRandomValidators();
+      await createRandomValidators(Number(options.numValidators), llmProvidersAnswer.selectedLlmProviders);
     } catch (error) {
       console.error("Unable to initialize the validators.");
       console.error(error);

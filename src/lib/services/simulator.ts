@@ -10,6 +10,7 @@ import {
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
+  AiProviders,
 } from "@/lib/config/simulator";
 import {
   checkCommand,
@@ -160,7 +161,8 @@ export async function waitForSimulatorToBeReady(
     }
   } catch (error: any) {
     if (
-      (error.message.includes("ECONNRESET") ||
+      (error.name === "FetchError" ||
+        error.message.includes("ECONNRESET") ||
         error.message.includes("ECONNREFUSED") ||
         error.message.includes("socket hang up")) &&
       retries > 0
@@ -189,17 +191,23 @@ export async function initializeDatabase(): Promise<InitializeDatabaseResultType
   return {createResponse, tablesResponse};
 }
 
-export function createRandomValidators(numValidators: number): Promise<any> {
-  return rpcClient.request({method: "create_random_validators", params: [numValidators, 1, 10]});
+export function createRandomValidators(numValidators: number, llmProviders: AiProviders[]): Promise<any> {
+  return rpcClient.request({
+    method: "create_random_validators",
+    params: [numValidators, 1, 10, llmProviders],
+  });
 }
 
 export function deleteAllValidators(): Promise<any> {
   return rpcClient.request({method: "delete_all_validators", params: []});
 }
 
-export function getAiProvidersOptions(): Array<{name: string; value: string}> {
+export function getAiProvidersOptions(withHint: boolean = true): Array<{name: string; value: string}> {
   return Object.values(AI_PROVIDERS_CONFIG).map(providerConfig => {
-    return {name: providerConfig.name, value: providerConfig.cliOptionValue};
+    return {
+      name: `${providerConfig.name}${withHint ? ` ${providerConfig.hint}` : ""}`,
+      value: providerConfig.cliOptionValue,
+    };
   });
 }
 
