@@ -45,6 +45,9 @@ export async function initAction(options: InitActionOptions) {
     const {git, docker} = await checkRequirements();
     const errorMessage = getRequirementsErrorMessage({git, docker});
     if (errorMessage) {
+      console.log(
+        "There was a problem running the docker service. Please start the docker service and try again.",
+      );
       console.error(errorMessage);
       return;
     }
