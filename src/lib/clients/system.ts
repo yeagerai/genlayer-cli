@@ -20,32 +20,20 @@ type ExecuteCommandResult = {
   stderr: string;
 };
 
-type ExecuteCommandInNewTerminalInput = {
+type ExecuteCommandByPlatformInput = {
   [key in RunningPlatform]: string;
 };
 
 export function executeCommand(
-  cmdsByPlatform: ExecuteCommandInNewTerminalInput,
-  toolName: string,
-): Promise<ExecuteCommandResult> {
-  try {
-    const runningPlatform = getPlatform();
-    const command = cmdsByPlatform[runningPlatform];
-    return asyncExec(command);
-  } catch (error: any) {
-    throw new Error(`Error executing ${toolName}: ${error.message}`);
-  }
-}
-
-export function executeCommandInNewTerminal(
-  cmdsByPlatform: ExecuteCommandInNewTerminalInput,
-): PromiseWithChild<{stdout: string; stderr: string}> {
+  cmdsByPlatform: ExecuteCommandByPlatformInput,
+  toolName?: string,
+): PromiseWithChild<ExecuteCommandResult> {
   const runningPlatform = getPlatform();
   const command = cmdsByPlatform[runningPlatform];
   try {
     return asyncExec(command);
   } catch (error: any) {
-    throw new Error(`Error executing command ${command}`);
+    throw new Error(`Error executing ${toolName || command}: ${error.message}`);
   }
 }
 
