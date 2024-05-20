@@ -63,8 +63,6 @@ export async function initAction(options: InitActionOptions) {
     return;
   }
 
-  return;
-
   // Ask for confirmation on downloading the GenLayer Simulator from GitHub
   const answers = await inquirer.prompt([
     {
