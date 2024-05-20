@@ -6,19 +6,14 @@ import {rpcClient} from "@/lib/clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
   DEFAULT_RUN_SIMULATOR_COMMAND,
+  DEFAULT_RUN_DOCKER_COMMAND,
   DEFAULT_PULL_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
   AiProviders,
 } from "@/lib/config/simulator";
-import {
-  checkCommand,
-  getHomeDirectory,
-  executeCommand,
-  executeCommandInNewTerminal,
-  openUrl,
-} from "@/lib/clients/system";
+import {checkCommand, getHomeDirectory, executeCommand, openUrl} from "@/lib/clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 // Private helper functions
@@ -80,9 +75,17 @@ export async function checkRequirements(): Promise<Record<string, boolean>> {
   try {
     await checkCommand("docker --version", "docker");
     requirementsInstalled.docker = true;
-  } catch (error) {
+  } catch (error: any) {
     if (!(error instanceof MissingRequirementError)) {
       throw error;
+    }
+  }
+
+  if (requirementsInstalled.docker) {
+    try {
+      await checkCommand("docker ps", "docker");
+    } catch (error: any) {
+      await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
     }
   }
 
@@ -121,7 +124,7 @@ export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
 export async function pullOllamaModel(): Promise<boolean> {
   const simulatorLocation = getSimulatorLocation();
   const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(simulatorLocation);
-  await executeCommandInNewTerminal(cmdsByPlatform);
+  await executeCommand(cmdsByPlatform);
   return true;
 }
 
@@ -137,7 +140,7 @@ export async function configSimulator(newConfig: Record<string, string>): Promis
 export function runSimulator(): Promise<{stdout: string; stderr: string}> {
   const simulatorLocation = getSimulatorLocation();
   const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
-  return executeCommandInNewTerminal(commandsByPlatform);
+  return executeCommand(commandsByPlatform);
 }
 
 type WaitForSimulatorToBeReadyResultType = {

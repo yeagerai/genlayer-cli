@@ -10,6 +10,12 @@ export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
   win32: `cd /d ${simulatorLocation} && docker exec ollama ollama pull llama3`,
   linux: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,
 });
+export const DEFAULT_RUN_DOCKER_COMMAND = {
+  darwin: "open -a Docker",
+  win32: 'start "" "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"',
+  linux: "systemctl start docker",
+};
+
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;
 export type RunningPlatform = (typeof AVAILABLE_PLATFORMS)[number];
 export const STARTING_TIMEOUT_WAIT_CYLCE = 2000;
