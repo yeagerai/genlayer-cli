@@ -14,7 +14,7 @@ export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
 export const DEFAULT_RUN_DOCKER_COMMAND = {
   darwin: "open -a Docker",
   win32: 'start "" "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"',
-  linux: "systemctl start docker",
+  linux: "sudo systemctl start docker",
 };
 
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;
