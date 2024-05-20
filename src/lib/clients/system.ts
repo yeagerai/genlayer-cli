@@ -33,7 +33,7 @@ export function executeCommand(
   try {
     return asyncExec(command);
   } catch (error: any) {
-    throw new Error(`Error executing ${toolName || command}: ${error.message}`);
+    throw new Error(`Error executing ${toolName || command}: ${error.message}.`);
   }
 }
 
@@ -44,11 +44,57 @@ export function getHomeDirectory(): string {
 function getPlatform(): RunningPlatform {
   const currentPlatform = process.platform as RunningPlatform;
   if (!AVAILABLE_PLATFORMS.includes(currentPlatform)) {
-    throw new Error(`Unsupported platform: ${currentPlatform}`);
+    throw new Error(`Unsupported platform: ${currentPlatform}.`);
   }
   return currentPlatform;
 }
 
 export function openUrl(url: string): Promise<ChildProcess> {
   return open(url);
+}
+
+export async function listDockerContainers(): Promise<string[]> {
+  try {
+    const dockerResponse = await asyncExec("docker ps -a --format '{{.Names}}'");
+    const dockerContainers = dockerResponse.stdout.split("\n");
+    return dockerContainers;
+  } catch (error) {
+    throw new Error("Error listing Docker containers.");
+  }
+  return [];
+}
+
+export async function listDockerImages(): Promise<string[]> {
+  try {
+    const dockerResponse = await asyncExec("docker images --format '{{.Repository}}'");
+    const dockerImages = dockerResponse.stdout.split("\n");
+    return dockerImages;
+  } catch (error) {
+    throw new Error("Error listing Docker images.");
+  }
+  return [];
+}
+
+export async function stopDockerContainer(containerName: string): Promise<void> {
+  try {
+    await asyncExec(`docker stop ${containerName}`);
+  } catch (error) {
+    throw new Error(`Error stopping Docker container ${containerName}.`);
+  }
+}
+
+export async function removeDockerContainer(containerName: string) {
+  try {
+    await asyncExec(`docker rm ${containerName}`);
+  } catch (error) {
+    throw new Error(`Error removing container ${containerName}.`);
+  }
+}
+
+export async function removeDockerImage(imageName: string) {
+  try {
+    await asyncExec(`docker rmi ${imageName}`);
+  } catch (error) {
+    throw new Error(`Error removing image ${imageName}.`);
+  }
 }

@@ -17,6 +17,8 @@ import {
   getSimulatorLocation,
   getFrontendUrl,
   openFrontend,
+  resetDockerContainers,
+  resetDockerImages,
 } from "@/lib/services/simulator";
 export interface InitActionOptions {
   numValidators: number;
@@ -50,6 +52,18 @@ export async function initAction(options: InitActionOptions) {
     console.error(error);
     return;
   }
+
+  // Reset Docker containers and images
+  console.log(`Resetting Docker containers and images...`);
+  try {
+    await resetDockerContainers();
+    await resetDockerImages();
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
+  return;
 
   // Ask for confirmation on downloading the GenLayer Simulator from GitHub
   const answers = await inquirer.prompt([
