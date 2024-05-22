@@ -5,7 +5,9 @@ import * as path from "path";
 import {rpcClient} from "@/lib/clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
+  DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   DEFAULT_RUN_SIMULATOR_COMMAND,
+  DEFAULT_RUN_DOCKER_COMMAND,
   DEFAULT_PULL_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
@@ -16,8 +18,12 @@ import {
   checkCommand,
   getHomeDirectory,
   executeCommand,
-  executeCommandInNewTerminal,
   openUrl,
+  listDockerContainers,
+  stopDockerContainer,
+  removeDockerContainer,
+  listDockerImages,
+  removeDockerImage,
 } from "@/lib/clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
@@ -80,9 +86,17 @@ export async function checkRequirements(): Promise<Record<string, boolean>> {
   try {
     await checkCommand("docker --version", "docker");
     requirementsInstalled.docker = true;
-  } catch (error) {
+  } catch (error: any) {
     if (!(error instanceof MissingRequirementError)) {
       throw error;
+    }
+  }
+
+  if (requirementsInstalled.docker) {
+    try {
+      await checkCommand("docker ps", "docker");
+    } catch (error: any) {
+      await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
     }
   }
 
@@ -121,7 +135,7 @@ export async function updateSimulator(): Promise<DownloadSimulatorResultType> {
 export async function pullOllamaModel(): Promise<boolean> {
   const simulatorLocation = getSimulatorLocation();
   const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(simulatorLocation);
-  await executeCommandInNewTerminal(cmdsByPlatform);
+  await executeCommand(cmdsByPlatform);
   return true;
 }
 
@@ -137,7 +151,7 @@ export async function configSimulator(newConfig: Record<string, string>): Promis
 export function runSimulator(): Promise<{stdout: string; stderr: string}> {
   const simulatorLocation = getSimulatorLocation();
   const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
-  return executeCommandInNewTerminal(commandsByPlatform);
+  return executeCommand(commandsByPlatform);
 }
 
 type WaitForSimulatorToBeReadyResultType = {
@@ -218,5 +232,34 @@ export function getFrontendUrl(): string {
 
 export async function openFrontend(): Promise<boolean> {
   await openUrl(getFrontendUrl());
+  return true;
+}
+
+export async function resetDockerContainers(): Promise<boolean> {
+  const containers = await listDockerContainers();
+  const genlayerContainers = containers.filter((container: string) =>
+    container.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+  );
+  const containersStopPromises = genlayerContainers.map((container: string) =>
+    stopDockerContainer(container),
+  );
+  await Promise.all(containersStopPromises);
+
+  const containersRemovePromises = genlayerContainers.map((container: string) =>
+    removeDockerContainer(container),
+  );
+  await Promise.all(containersRemovePromises);
+
+  return true;
+}
+
+export async function resetDockerImages(): Promise<boolean> {
+  const images = await listDockerImages();
+  const genlayerImages = images.filter((image: string) =>
+    image.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+  );
+  const imagesRemovePromises = genlayerImages.map((image: string) => removeDockerImage(image));
+  await Promise.all(imagesRemovePromises);
+
   return true;
 }
