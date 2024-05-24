@@ -29,10 +29,12 @@ Contributions to the GenLayer CLI are welcome! Please feel free to fork the repo
 ### Running the CLI from the repository
 
 First, install the dependencies and start the build process
+
 ```bash
 npm install
 npm run dev
 ```
+
 This will continuously rebuild the CLI from the source
 
 Then in another window execute the CLI commands like so:
@@ -40,6 +42,32 @@ Then in another window execute the CLI commands like so:
 ```bash
 node dist/index.js init
 ```
+
+## Testing
+
+### Overview
+
+The GenLayer CLI uses Jest in combination with ts-jest to handle testing of TypeScript files. The configuration is tailored to support ES Modules (ESM), aligning with the latest JavaScript standards and ensuring compatibility with modern tooling and Node.js features.
+
+### Running Tests
+
+To run the tests, use the following command:
+
+```bash
+npm run test
+```
+
+This command sets the appropriate Node.js options to handle ES Modules and watches for changes in the test files, making it suitable for development.
+
+### Test Configuration
+
+Our `jest.config.js` is set up as follows:
+
+- ES Module Support: Configured to treat .ts files as ES Modules.
+- Test Environment: Uses Node.js as the testing environment.
+- Transformation: Utilizes ts-jest with an ESM preset to process TypeScript files.
+
+Tests are located in the tests/ directory and should be named using the following pattern: [filename].test.ts. When writing tests, you can use all Jest functionalities such as describe, test, expect, and Jest mocks for testing asynchronous functions, component interactions, or API calls.
 
 ## License
 
