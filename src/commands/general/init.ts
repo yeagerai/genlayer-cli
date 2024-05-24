@@ -1,23 +1,7 @@
 import inquirer from "inquirer";
 
-import {AI_PROVIDERS_CONFIG, AiProviders} from "@/lib/config/simulator";
-import {
-  initializeDatabase,
-  checkRequirements,
-  downloadSimulator,
-  configSimulator,
-  runSimulator,
-  waitForSimulatorToBeReady,
-  updateSimulator,
-  clearAccountsAndTransactionsDatabase,
-  createRandomValidators,
-  deleteAllValidators,
-  pullOllamaModel,
-  getAiProvidersOptions,
-  getSimulatorLocation,
-  getFrontendUrl,
-  openFrontend,
-} from "@/lib/services/simulator";
+import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
+import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 export interface InitActionOptions {
   numValidators: number;
 }
@@ -35,12 +19,12 @@ function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): st
   return "";
 }
 
-export async function initAction(options: InitActionOptions) {
+export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   console.log(`Initializing GenLayer CLI with ${options.numValidators} validators`);
 
   // Check if git and docker are installed
   try {
-    const {git, docker} = await checkRequirements();
+    const {git, docker} = await simulatorService.checkRequirements();
     const errorMessage = getRequirementsErrorMessage({git, docker});
     if (errorMessage) {
       console.error(errorMessage);
@@ -56,7 +40,7 @@ export async function initAction(options: InitActionOptions) {
     {
       type: "confirm",
       name: "confirmDownload",
-      message: `This action is going to download the GenLayer Simulator from GitHub into "${getSimulatorLocation()}". Do you want to continue?`,
+      message: `This action is going to download the GenLayer Simulator from GitHub into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
       default: true,
     },
   ]);
@@ -69,9 +53,9 @@ export async function initAction(options: InitActionOptions) {
   // Download the GenLayer Simulator from GitHub
   console.log(`Downloading GenLayer Simulator from GitHub...`);
   try {
-    const {wasInstalled} = await downloadSimulator();
+    const {wasInstalled} = await simulatorService.downloadSimulator();
     if (wasInstalled) {
-      await updateSimulator();
+      await simulatorService.updateSimulator();
     }
   } catch (error) {
     console.error(error);
@@ -84,7 +68,7 @@ export async function initAction(options: InitActionOptions) {
       type: "checkbox",
       name: "selectedLlmProviders",
       message: "Select which LLM providers do you want to use:",
-      choices: getAiProvidersOptions(true),
+      choices: simulatorService.getAiProvidersOptions(true),
       validate: function (answer: string[]) {
         if (answer.length < 1) {
           return "You must choose at least one option.";
@@ -126,7 +110,7 @@ export async function initAction(options: InitActionOptions) {
 
   console.log("Configuring GenLayer Simulator environment...");
   try {
-    await configSimulator(aiProvidersEnvVars);
+    await simulatorService.configSimulator(aiProvidersEnvVars);
   } catch (error) {
     console.error(error);
     return;
@@ -135,14 +119,15 @@ export async function initAction(options: InitActionOptions) {
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {
-    runSimulator();
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    simulatorService.runSimulator();
   } catch (error) {
     console.error(error);
     return;
   }
 
   try {
-    const {initialized, errorCode, errorMessage} = await waitForSimulatorToBeReady();
+    const {initialized, errorCode, errorMessage} = await simulatorService.waitForSimulatorToBeReady();
     if (!initialized && errorCode === "ERROR") {
       console.log(errorMessage);
       console.error("Unable to initialize the GenLayer simulator. Please try again.");
@@ -163,16 +148,16 @@ export async function initAction(options: InitActionOptions) {
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
     console.log("Pulling llama3 from Ollama...");
-    await pullOllamaModel();
+    await simulatorService.pullOllamaModel();
   }
 
   // Initialize the database
   console.log("Initializing the database...");
   try {
     //remove everything from the database
-    await clearAccountsAndTransactionsDatabase();
+    await simulatorService.clearAccountsAndTransactionsDatabase();
 
-    const {createResponse, tablesResponse} = await initializeDatabase();
+    const {createResponse, tablesResponse} = await simulatorService.initializeDatabase();
     if (!createResponse || !tablesResponse) {
       console.error("Unable to initialize the database. Please try again.");
       return;
@@ -186,9 +171,9 @@ export async function initAction(options: InitActionOptions) {
   console.log("Initializing validators...");
   try {
     //remove all validators
-    await deleteAllValidators();
+    await simulatorService.deleteAllValidators();
     // create random validators
-    await createRandomValidators(Number(options.numValidators), selectedLlmProviders);
+    await simulatorService.createRandomValidators(Number(options.numValidators), selectedLlmProviders);
   } catch (error) {
     console.error("Unable to initialize the validators.");
     console.error(error);
@@ -197,10 +182,11 @@ export async function initAction(options: InitActionOptions) {
 
   // Simulator ready
   console.log(
-    `GenLayer simulator initialized successfully! Go to ${getFrontendUrl()} in your browser to access it.`,
+    `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
   );
   try {
-    openFrontend();
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    simulatorService.openFrontend();
   } catch (error) {
     console.error(error);
   }

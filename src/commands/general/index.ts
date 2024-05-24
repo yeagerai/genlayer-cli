@@ -1,14 +1,16 @@
 import {Command} from "commander";
 
-import {initAction} from "./init";
-import {startAction} from "./start";
+import simulatorService from "../../lib/services/simulator";
+
+import {initAction, InitActionOptions} from "./init";
+import {startAction, StartActionOptions} from "./start";
 
 export function initializeGeneralCommands(program: Command) {
   program
     .command("init")
     .description("Initialize the GenLayer Environment")
     .option("-n, --numValidators <numValidators>", "Number of validators", "5")
-    .action(initAction);
+    .action((options: InitActionOptions) => initAction(options, simulatorService));
 
   program
     .command("up")
@@ -16,7 +18,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--no-reset-accounts", "Don't restart the database for accouts and transactions", true)
     .option("--reset-validators", "Remove all current validators and create new random ones", false)
     .option("--numValidators <numValidators>", "Number of validators", "5")
-    .action(startAction);
+    .action((options: StartActionOptions) => startAction(options, simulatorService));
 
   return program;
 }
