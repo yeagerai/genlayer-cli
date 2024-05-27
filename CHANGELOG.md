@@ -1,5 +1,12 @@
 
 
+## 0.0.31 (2024-05-27)
+
+
+### Bug Fixes
+
+* handle Fetch Error (Mac M3) ([#36](https://github.com/yeagerai/genlayer-cli/issues/36)) ([deae77a](https://github.com/yeagerai/genlayer-cli/commit/deae77a7c5a0f00694d2aa94f26d3e3be67e0178))
+
 ## 0.0.30 (2024-05-22)
 
 ## 0.0.29 (2024-05-15)
