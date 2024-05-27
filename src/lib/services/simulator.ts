@@ -158,6 +158,7 @@ export class SimulatorService implements ISimulatorService {
     } catch (error: any) {
       if (
         (error.name === "FetchError" ||
+          error.message.includes("Fetch Error") ||
           error.message.includes("ECONNRESET") ||
           error.message.includes("ECONNREFUSED") ||
           error.message.includes("socket hang up")) &&
