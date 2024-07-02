@@ -112,12 +112,12 @@ export class SimulatorService implements ISimulatorService {
     return {wasInstalled: false};
   }
 
-  public async updateSimulator(): Promise<DownloadSimulatorResultType> {
+  public async updateSimulator(): Promise<boolean> {
     const simulatorLocation = this.getSimulatorLocation();
     const gitCommand = `git -C  "${simulatorLocation}" pull`;
     const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
     await executeCommand(cmdsByPlatform, "git");
-    return {wasInstalled: false};
+    return true;
   }
 
   public async pullOllamaModel(): Promise<boolean> {
@@ -139,6 +139,7 @@ export class SimulatorService implements ISimulatorService {
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
     const simulatorLocation = this.getSimulatorLocation();
     const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
+    console.log("🚀 ~ SimulatorService ~ runSimulator ~ commandsByPlatform:", commandsByPlatform);
     return executeCommandInNewTerminal(commandsByPlatform);
   }
 
