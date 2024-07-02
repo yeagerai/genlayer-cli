@@ -120,7 +120,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   console.log("Running the GenLayer Simulator...");
   try {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    simulatorService.runSimulator();
+    await simulatorService.runSimulator();
   } catch (error) {
     console.error(error);
     return;
