@@ -112,8 +112,22 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(new Error("Error"));
   });
 
+  test("if reset is not confirmed, abort", async () => {
+    // Given
+    inquirerPrompt.mockResolvedValue({confirmReset: false});
+    simServCheckRequirements.mockResolvedValue({git: true, docker: true});
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenNthCalledWith(1, "Aborted!");
+  });
+
   test("if resetDockerContainers fail, then the execution aborts", async () => {
     // Given
+    inquirerPrompt.mockResolvedValue({confirmReset: true});
     simServResetDockerContainers.mockRejectedValue(new Error("Error"));
 
     // When
@@ -126,6 +140,7 @@ describe("init action", () => {
 
   test("if resetDockerImages fail, then the execution aborts", async () => {
     // Given
+    inquirerPrompt.mockResolvedValue({confirmReset: true});
     simServResetDockerImages.mockRejectedValue(new Error("Error"));
 
     // When
@@ -138,7 +153,7 @@ describe("init action", () => {
 
   test("if download is not confirmed, abort", async () => {
     // Given
-    inquirerPrompt.mockResolvedValue({confirmDownload: false});
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: false});
     simServCheckRequirements.mockResolvedValue({git: true, docker: true});
 
     // When
@@ -151,7 +166,7 @@ describe("init action", () => {
 
   test("if not already installed, it should download and install the simulator", async () => {
     // Given
-    inquirerPrompt.mockResolvedValue({confirmDownload: true, selectedLlmProviders: []});
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
 
@@ -165,7 +180,7 @@ describe("init action", () => {
 
   test("if already installed, it should update the simulator", async () => {
     // Given
-    inquirerPrompt.mockResolvedValue({confirmDownload: true, selectedLlmProviders: []});
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServDownloadSimulator.mockResolvedValue({wasInstalled: true});
     simServUpdateSimulator.mockResolvedValue(true);
     simServConfigSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
@@ -181,6 +196,7 @@ describe("init action", () => {
   test("should prompt for LLM providers and call configSimulator with selected providers", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -197,7 +213,7 @@ describe("init action", () => {
     await initAction({numValidators: 5}, simulatorService);
 
     // Then
-    expect(inquirerPrompt).toHaveBeenNthCalledWith(2, [
+    expect(inquirerPrompt).toHaveBeenNthCalledWith(3, [
       {
         type: "checkbox",
         name: "selectedLlmProviders",
@@ -217,7 +233,7 @@ describe("init action", () => {
 
   test("if configSimulator fails, then the execution aborts", async () => {
     // Given
-    inquirerPrompt.mockResolvedValue({confirmDownload: true, selectedLlmProviders: []});
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServConfigSimulator.mockRejectedValue(new Error("Error"));
 
     // When
@@ -230,7 +246,7 @@ describe("init action", () => {
 
   test("if runSimulator fails, then the execution aborts", async () => {
     // Given
-    inquirerPrompt.mockResolvedValue({confirmDownload: true, selectedLlmProviders: []});
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServRunSimulator.mockRejectedValue(new Error("Error"));
 
     // When
@@ -244,6 +260,7 @@ describe("init action", () => {
   test("should run the simulator after all configurations", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -267,6 +284,7 @@ describe("init action", () => {
   test("should abort if waiting for the simulator returns ERROR", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -295,6 +313,7 @@ describe("init action", () => {
   test("should abort if waiting for the simulator returns TIMEOUT", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -324,6 +343,7 @@ describe("init action", () => {
   test("should abort if waiting for the simulator throws an error", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -347,6 +367,7 @@ describe("init action", () => {
   test("should pull llama3 from Ollama if ollama is in providers", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai", "ollama"],
       openai: "API_KEY1",
@@ -376,6 +397,7 @@ describe("init action", () => {
   test("shouldn't pull llama3 from Ollama if ollama is not in providers", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -403,6 +425,7 @@ describe("init action", () => {
   test("should abort if clear accounts and transactions throws an error", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -430,6 +453,7 @@ describe("init action", () => {
   test("should abort if initialize database throws an error", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -458,6 +482,7 @@ describe("init action", () => {
   test("should abort if database create db is not successful", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -486,6 +511,7 @@ describe("init action", () => {
   test("should abort if database table creation is not successful", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -514,6 +540,7 @@ describe("init action", () => {
   test("should abort if deleteAllValidators throws an error", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -543,6 +570,7 @@ describe("init action", () => {
   test("should abort if createRandomValidators throws an error", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
@@ -573,6 +601,7 @@ describe("init action", () => {
   test("should open the frontend if everything went well", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
       confirmDownload: true,
       selectedLlmProviders: ["openai", "heuristai"],
       openai: "API_KEY1",
