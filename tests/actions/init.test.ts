@@ -14,6 +14,8 @@ describe("init action", () => {
   let inquirerPrompt: jest.Mock<any>;
 
   let simServCheckRequirements: jest.Mock<any>;
+  let simServResetDockerContainers: jest.Mock<any>;
+  let simServResetDockerImages: jest.Mock<any>;
   let simServDownloadSimulator: jest.Mock<any>;
   let simServUpdateSimulator: jest.Mock<any>;
   let simServgetAiProvidersOptions: jest.Mock<any>;
@@ -36,6 +38,8 @@ describe("init action", () => {
     inquirerPrompt = jest.spyOn(inquirer, "prompt") as jest.Mock<any>;
 
     simServCheckRequirements = jest.spyOn(simulatorService, "checkRequirements") as jest.Mock<any>;
+    simServResetDockerContainers = jest.spyOn(simulatorService, "resetDockerContainers") as jest.Mock<any>;
+    simServResetDockerImages = jest.spyOn(simulatorService, "resetDockerImages") as jest.Mock<any>;
     simServDownloadSimulator = jest.spyOn(simulatorService, "downloadSimulator") as jest.Mock<any>;
     simServUpdateSimulator = jest.spyOn(simulatorService, "updateSimulator") as jest.Mock<any>;
     simServConfigSimulator = jest.spyOn(simulatorService, "configSimulator") as jest.Mock<any>;
@@ -99,6 +103,30 @@ describe("init action", () => {
   test("if check requirements fail, then the execution aborts", async () => {
     // Given
     simServCheckRequirements.mockRejectedValue(new Error("Error"));
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(new Error("Error"));
+  });
+
+  test("if resetDockerContainers fail, then the execution aborts", async () => {
+    // Given
+    simServResetDockerContainers.mockRejectedValue(new Error("Error"));
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(new Error("Error"));
+  });
+
+  test("if resetDockerImages fail, then the execution aborts", async () => {
+    // Given
+    simServResetDockerImages.mockRejectedValue(new Error("Error"));
 
     // When
     await initAction(defaultActionOptions, simulatorService);
