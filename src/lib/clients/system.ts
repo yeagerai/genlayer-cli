@@ -3,7 +3,7 @@ import {ChildProcess, PromiseWithChild, exec} from "child_process";
 import os from "os";
 import open from "open";
 
-import {RunningPlatform, AVAILABLE_PLATFORMS} from "@/lib/config/simulator";
+import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 const asyncExec = util.promisify(exec);

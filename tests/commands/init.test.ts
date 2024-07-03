@@ -1,19 +1,26 @@
-import {program} from "commander";
-
+import {Command} from "commander";
+import {jest} from "@jest/globals";
 import {initializeGeneralCommands} from "../../src/commands/general";
 import {getCommand, getCommandOption} from "../utils";
 
 jest.mock("inquirer", () => ({
-  prompt: jest.fn().mockResolvedValue({}),
+  prompt: jest.fn(() => {}),
 }));
 const action = jest.fn();
 
 describe("init command", () => {
-  initializeGeneralCommands(program);
-  const initCommand = getCommand("init");
-  initCommand?.action(action);
+  let initCommand: Command;
+  let program: Command;
 
   beforeEach(() => {
+    program = new Command();
+    initializeGeneralCommands(program);
+
+    initCommand = getCommand(program, "init");
+    initCommand?.action(async args => {
+      action(args);
+    });
+
     jest.clearAllMocks();
   });
 
@@ -21,11 +28,11 @@ describe("init command", () => {
     jest.restoreAllMocks();
   });
 
-  test("doesn't have required arguments nor options", () => {
+  test("doesn't have required arguments nor options", async () => {
     expect(() => program.parse(["node", "test", "init"])).not.toThrow();
   });
 
-  test("option -n, --numValidators is accepted", () => {
+  test("option -n, --numValidators is accepted", async () => {
     expect(() => program.parse(["node", "test", "init", "-n", "10"])).not.toThrow();
     expect(() => program.parse(["node", "test", "init", "--numValidators", "10"])).not.toThrow();
   });
@@ -46,10 +53,11 @@ describe("init command", () => {
     );
   });
 
-  test("action is called", () => {
+  test("action is called", async () => {
     // Given When
     program.parse(["node", "test", "init"]);
     // Then
     expect(action).toHaveBeenCalledTimes(1);
+    expect(action).toHaveBeenCalledWith({numValidators: "5"});
   });
 });

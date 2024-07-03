@@ -1,6 +1,6 @@
-import {Command, Option, program} from "commander";
+import {Command, Option} from "commander";
 
-export function getCommand(commandName: string): Command {
+export function getCommand(program: Command, commandName: string): Command {
   const command = program.commands.find(command => command.name() === commandName);
   if (!command) {
     throw new Error(`Command ${commandName} not found`);
