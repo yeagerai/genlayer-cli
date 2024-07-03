@@ -5,7 +5,9 @@ import * as path from "path";
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
   DEFAULT_REPO_GH_URL,
+  DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   DEFAULT_RUN_SIMULATOR_COMMAND,
+  DEFAULT_RUN_DOCKER_COMMAND,
   DEFAULT_PULL_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
@@ -16,8 +18,12 @@ import {
   checkCommand,
   getHomeDirectory,
   executeCommand,
-  executeCommandInNewTerminal,
   openUrl,
+  listDockerContainers,
+  stopDockerContainer,
+  removeDockerContainer,
+  listDockerImages,
+  removeDockerImage,
 } from "../clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
@@ -86,9 +92,17 @@ export class SimulatorService implements ISimulatorService {
     try {
       await checkCommand("docker --version", "docker");
       requirementsInstalled.docker = true;
-    } catch (error) {
+    } catch (error: any) {
       if (!(error instanceof MissingRequirementError)) {
         throw error;
+      }
+    }
+
+    if (requirementsInstalled.docker) {
+      try {
+        await checkCommand("docker ps", "docker");
+      } catch (error: any) {
+        await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
       }
     }
 
@@ -123,7 +137,7 @@ export class SimulatorService implements ISimulatorService {
   public async pullOllamaModel(): Promise<boolean> {
     const simulatorLocation = this.getSimulatorLocation();
     const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(simulatorLocation);
-    await executeCommandInNewTerminal(cmdsByPlatform);
+    await executeCommand(cmdsByPlatform);
     return true;
   }
 
@@ -139,8 +153,7 @@ export class SimulatorService implements ISimulatorService {
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
     const simulatorLocation = this.getSimulatorLocation();
     const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
-    console.log("🚀 ~ SimulatorService ~ runSimulator ~ commandsByPlatform:", commandsByPlatform);
-    return executeCommandInNewTerminal(commandsByPlatform);
+    return executeCommand(commandsByPlatform);
   }
 
   public async waitForSimulatorToBeReady(
@@ -211,6 +224,35 @@ export class SimulatorService implements ISimulatorService {
 
   public async openFrontend(): Promise<boolean> {
     await openUrl(this.getFrontendUrl());
+    return true;
+  }
+
+  public async resetDockerContainers(): Promise<boolean> {
+    const containers = await listDockerContainers();
+    const genlayerContainers = containers.filter((container: string) =>
+      container.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    );
+    const containersStopPromises = genlayerContainers.map((container: string) =>
+      stopDockerContainer(container),
+    );
+    await Promise.all(containersStopPromises);
+
+    const containersRemovePromises = genlayerContainers.map((container: string) =>
+      removeDockerContainer(container),
+    );
+    await Promise.all(containersRemovePromises);
+
+    return true;
+  }
+
+  public async resetDockerImages(): Promise<boolean> {
+    const images = await listDockerImages();
+    const genlayerImages = images.filter((image: string) =>
+      image.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    );
+    const imagesRemovePromises = genlayerImages.map((image: string) => removeDockerImage(image));
+    await Promise.all(imagesRemovePromises);
+
     return true;
   }
 }

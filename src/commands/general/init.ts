@@ -41,8 +41,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   // Reset Docker containers and images
   console.log(`Resetting Docker containers and images...`);
   try {
-    await resetDockerContainers();
-    await resetDockerImages();
+    await simulatorService.resetDockerContainers();
+    await simulatorService.resetDockerImages();
   } catch (error) {
     console.error(error);
     return;

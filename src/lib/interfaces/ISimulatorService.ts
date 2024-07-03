@@ -18,6 +18,8 @@ export interface ISimulatorService {
   getAiProvidersOptions(withHint: boolean): Array<{name: string; value: string}>;
   getFrontendUrl(): string;
   openFrontend(): Promise<boolean>;
+  resetDockerContainers(): Promise<boolean>;
+  resetDockerImages(): Promise<boolean>;
 }
 
 export type DownloadSimulatorResultType = {

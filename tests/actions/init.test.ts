@@ -117,8 +117,8 @@ describe("init action", () => {
     await initAction(defaultActionOptions, simulatorService);
 
     // Then
-    expect(log).toHaveBeenCalledTimes(2);
-    expect(log).toHaveBeenNthCalledWith(2, "Aborted!");
+    expect(log).toHaveBeenCalledTimes(3);
+    expect(log).toHaveBeenNthCalledWith(3, "Aborted!");
   });
 
   test("if not already installed, it should download and install the simulator", async () => {
