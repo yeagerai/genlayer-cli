@@ -4,6 +4,7 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 export interface InitActionOptions {
   numValidators: number;
+  branch: string;
 }
 
 function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
@@ -68,7 +69,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     {
       type: "confirm",
       name: "confirmDownload",
-      message: `This action is going to download the GenLayer Simulator from GitHub into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
+      message: `This action is going to download the GenLayer Simulator from GitHub (branch ${options.branch}) into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
       default: true,
     },
   ]);
@@ -81,9 +82,9 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   // Download the GenLayer Simulator from GitHub
   console.log(`Downloading GenLayer Simulator from GitHub...`);
   try {
-    const {wasInstalled} = await simulatorService.downloadSimulator();
+    const {wasInstalled} = await simulatorService.downloadSimulator(options.branch);
     if (wasInstalled) {
-      await simulatorService.updateSimulator();
+      await simulatorService.updateSimulator(options.branch);
     }
   } catch (error) {
     console.error(error);
