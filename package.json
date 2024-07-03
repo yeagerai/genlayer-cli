@@ -10,7 +10,8 @@
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "dev": "cross-env NODE_ENV=development node esbuild.config.js",
     "build": "cross-env NODE_ENV=production node esbuild.config.js",
-    "release": "release-it --ci"
+    "release": "release-it --ci",
+    "release-beta": "release-it --ci --preRelease=beta"
   },
   "repository": {
     "type": "git",
