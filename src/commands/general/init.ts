@@ -180,22 +180,6 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     await simulatorService.pullOllamaModel();
   }
 
-  // Initialize the database
-  console.log("Initializing the database...");
-  try {
-    //remove everything from the database
-    await simulatorService.clearAccountsAndTransactionsDatabase();
-
-    const {createResponse, tablesResponse} = await simulatorService.initializeDatabase();
-    if (!createResponse || !tablesResponse) {
-      console.error("Unable to initialize the database. Please try again.");
-      return;
-    }
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-
   // Initializing validators
   console.log("Initializing validators...");
   try {

@@ -23,8 +23,6 @@ describe("init action", () => {
   let simServRunSimulator: jest.Mock<any>;
   let simServWaitForSimulator: jest.Mock<any>;
   let simServPullOllamaModel: jest.Mock<any>;
-  let simServClearAccAndTxsDb: jest.Mock<any>;
-  let simServInitializeDatabase: jest.Mock<any>;
   let simServDeleteAllValidators: jest.Mock<any>;
   let simServCreateRandomValidators: jest.Mock<any>;
   let simServOpenFrontend: jest.Mock<any>;
@@ -47,11 +45,6 @@ describe("init action", () => {
     simServRunSimulator = jest.spyOn(simulatorService, "runSimulator") as jest.Mock<any>;
     simServWaitForSimulator = jest.spyOn(simulatorService, "waitForSimulatorToBeReady") as jest.Mock<any>;
     simServPullOllamaModel = jest.spyOn(simulatorService, "pullOllamaModel") as jest.Mock<any>;
-    simServClearAccAndTxsDb = jest.spyOn(
-      simulatorService,
-      "clearAccountsAndTransactionsDatabase",
-    ) as jest.Mock<any>;
-    simServInitializeDatabase = jest.spyOn(simulatorService, "initializeDatabase") as jest.Mock<any>;
     simServDeleteAllValidators = jest.spyOn(simulatorService, "deleteAllValidators") as jest.Mock<any>;
     simServCreateRandomValidators = jest.spyOn(simulatorService, "createRandomValidators") as jest.Mock<any>;
     simServOpenFrontend = jest.spyOn(simulatorService, "openFrontend") as jest.Mock<any>;
@@ -385,7 +378,7 @@ describe("init action", () => {
       initialized: true,
     });
     simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockRejectedValue(new Error("Error")); // This will stop the execution
+    simServDeleteAllValidators.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -413,128 +406,13 @@ describe("init action", () => {
       initialized: true,
     });
     simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockRejectedValue(new Error("Error")); // This will stop the execution
+    simServDeleteAllValidators.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
     await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simServPullOllamaModel).not.toHaveBeenCalled();
-  });
-
-  test("should abort if clear accounts and transactions throws an error", async () => {
-    // Given
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      {name: "OpenAI", value: "openai"},
-      {name: "Heurist", value: "heuristai"},
-    ]);
-    simServConfigSimulator.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: true,
-    });
-    simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockRejectedValue(new Error("Error"));
-
-    // When
-    await initAction(defaultActionOptions, simulatorService);
-
-    // Then
-    expect(error).toHaveBeenCalledWith(new Error("Error"));
-  });
-
-  test("should abort if initialize database throws an error", async () => {
-    // Given
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      {name: "OpenAI", value: "openai"},
-      {name: "Heurist", value: "heuristai"},
-    ]);
-    simServConfigSimulator.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: true,
-    });
-    simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockRejectedValue(new Error("Error"));
-
-    // When
-    await initAction(defaultActionOptions, simulatorService);
-
-    // Then
-    expect(error).toHaveBeenCalledWith(new Error("Error"));
-  });
-
-  test("should abort if database create db is not successful", async () => {
-    // Given
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      {name: "OpenAI", value: "openai"},
-      {name: "Heurist", value: "heuristai"},
-    ]);
-    simServConfigSimulator.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: true,
-    });
-    simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockResolvedValue({createResponse: false, tablesResponse: true});
-
-    // When
-    await initAction(defaultActionOptions, simulatorService);
-
-    // Then
-    expect(error).toHaveBeenCalledWith("Unable to initialize the database. Please try again.");
-  });
-
-  test("should abort if database table creation is not successful", async () => {
-    // Given
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      {name: "OpenAI", value: "openai"},
-      {name: "Heurist", value: "heuristai"},
-    ]);
-    simServConfigSimulator.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: true,
-    });
-    simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockResolvedValue({createResponse: true, tablesResponse: false});
-
-    // When
-    await initAction(defaultActionOptions, simulatorService);
-
-    // Then
-    expect(error).toHaveBeenCalledWith("Unable to initialize the database. Please try again.");
   });
 
   test("should abort if deleteAllValidators throws an error", async () => {
@@ -556,8 +434,6 @@ describe("init action", () => {
       initialized: true,
     });
     simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockResolvedValue({createResponse: true, tablesResponse: true});
     simServDeleteAllValidators.mockRejectedValue(new Error("Error"));
 
     // When
@@ -586,8 +462,6 @@ describe("init action", () => {
       initialized: true,
     });
     simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockResolvedValue({createResponse: true, tablesResponse: true});
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockRejectedValue(new Error("Error"));
 
@@ -617,8 +491,6 @@ describe("init action", () => {
       initialized: true,
     });
     simServPullOllamaModel.mockResolvedValue(true);
-    simServClearAccAndTxsDb.mockResolvedValue(true);
-    simServInitializeDatabase.mockResolvedValue({createResponse: true, tablesResponse: true});
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
