@@ -20,8 +20,6 @@ function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): st
 }
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
-  console.log(`Initializing GenLayer CLI with ${options.numValidators} validators`);
-
   // Check if git and docker are installed
   try {
     const {git, docker} = await simulatorService.checkRequirements();
@@ -37,6 +35,23 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     console.error(error);
     return;
   }
+
+  // Ask for confirmation on reseting the GenLayer Simulator from GitHub
+  const resetAnswers = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirmReset",
+      message: `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, and validators). Do you want to continue?`,
+      default: true,
+    },
+  ]);
+
+  if (!resetAnswers.confirmReset) {
+    console.log("Aborted!");
+    return;
+  }
+
+  console.log(`Initializing GenLayer CLI with ${options.numValidators} validators`);
 
   // Reset Docker containers and images
   console.log(`Resetting Docker containers and images...`);
