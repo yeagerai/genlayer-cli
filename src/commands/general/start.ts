@@ -6,10 +6,11 @@ export interface StartActionOptions {
   resetAccounts: string;
   resetValidators: string;
   numValidators: number;
+  branch: string;
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetAccounts, resetValidators, numValidators} = options;
+  const {resetAccounts, resetValidators, numValidators, branch} = options;
 
   const restartAccountsHintText = resetAccounts
     ? "restarting the accounts and transactions database"
@@ -24,7 +25,7 @@ export async function startAction(options: StartActionOptions, simulatorService:
   // Update the simulator to the latest version
   console.log(`Updating GenLayer Simulator...`);
   try {
-    await simulatorService.updateSimulator();
+    await simulatorService.updateSimulator(branch);
   } catch (error) {
     console.error(error);
     return;
@@ -33,7 +34,7 @@ export async function startAction(options: StartActionOptions, simulatorService:
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {
-    simulatorService.runSimulator();
+    await simulatorService.runSimulator();
   } catch (error) {
     console.error(error);
     return;

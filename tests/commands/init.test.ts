@@ -32,15 +32,24 @@ describe("init command", () => {
     expect(() => program.parse(["node", "test", "init"])).not.toThrow();
   });
 
-  test("option -n, --numValidators is accepted", async () => {
-    expect(() => program.parse(["node", "test", "init", "-n", "10"])).not.toThrow();
+  test("option --numValidators is accepted", async () => {
     expect(() => program.parse(["node", "test", "init", "--numValidators", "10"])).not.toThrow();
   });
 
-  test("option -n, --numValidators default value is 5", async () => {
+  test("option --numValidators default value is 5", async () => {
     // Given // When
     const numValidatorsOption = getCommandOption(initCommand, "--numValidators");
     expect(numValidatorsOption?.defaultValue).toBe("5");
+  });
+
+  test("option --branch is accepted", async () => {
+    expect(() => program.parse(["node", "test", "init", "--branch", "example"])).not.toThrow();
+  });
+
+  test("option --branch default value is main", async () => {
+    // Given // When
+    const numValidatorsOption = getCommandOption(initCommand, "--branch");
+    expect(numValidatorsOption?.defaultValue).toBe("main");
   });
 
   test("random option is not accepted", async () => {
@@ -58,6 +67,6 @@ describe("init command", () => {
     program.parse(["node", "test", "init"]);
     // Then
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({numValidators: "5"});
+    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main"});
   });
 });

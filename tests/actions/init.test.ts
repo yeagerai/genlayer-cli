@@ -6,7 +6,7 @@ import simulatorService from "../../src/lib/services/simulator";
 import {initAction} from "../../src/commands/general/init";
 
 // Default options for the action
-const defaultActionOptions = {numValidators: 5};
+const defaultActionOptions = {numValidators: 5, branch: "main"};
 
 describe("init action", () => {
   let error: jest.Mock<any>;
@@ -171,7 +171,7 @@ describe("init action", () => {
     simServConfigSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simulatorService.downloadSimulator).toHaveBeenCalled();
@@ -186,7 +186,7 @@ describe("init action", () => {
     simServConfigSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simulatorService.downloadSimulator).toHaveBeenCalled();
@@ -210,7 +210,7 @@ describe("init action", () => {
     simServRunSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(inquirerPrompt).toHaveBeenNthCalledWith(3, [
@@ -237,7 +237,7 @@ describe("init action", () => {
     simServConfigSimulator.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledTimes(1);
@@ -250,7 +250,7 @@ describe("init action", () => {
     simServRunSimulator.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledTimes(1);
@@ -275,7 +275,7 @@ describe("init action", () => {
     simServWaitForSimulator.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simulatorService.runSimulator).toHaveBeenCalled();
@@ -303,7 +303,7 @@ describe("init action", () => {
     });
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(log).toHaveBeenCalledWith("errorMessage");
@@ -332,7 +332,7 @@ describe("init action", () => {
     });
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith(
@@ -358,7 +358,7 @@ describe("init action", () => {
     simServWaitForSimulator.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith(new Error("Error"));
@@ -388,7 +388,7 @@ describe("init action", () => {
     simServClearAccAndTxsDb.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simServPullOllamaModel).toHaveBeenCalled();
@@ -416,7 +416,7 @@ describe("init action", () => {
     simServClearAccAndTxsDb.mockRejectedValue(new Error("Error")); // This will stop the execution
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(simServPullOllamaModel).not.toHaveBeenCalled();
@@ -444,7 +444,7 @@ describe("init action", () => {
     simServClearAccAndTxsDb.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith(new Error("Error"));
@@ -473,7 +473,7 @@ describe("init action", () => {
     simServInitializeDatabase.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith(new Error("Error"));
@@ -502,7 +502,7 @@ describe("init action", () => {
     simServInitializeDatabase.mockResolvedValue({createResponse: false, tablesResponse: true});
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith("Unable to initialize the database. Please try again.");
@@ -531,7 +531,7 @@ describe("init action", () => {
     simServInitializeDatabase.mockResolvedValue({createResponse: true, tablesResponse: false});
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith("Unable to initialize the database. Please try again.");
@@ -561,7 +561,7 @@ describe("init action", () => {
     simServDeleteAllValidators.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith("Unable to initialize the validators.");
@@ -592,7 +592,7 @@ describe("init action", () => {
     simServCreateRandomValidators.mockRejectedValue(new Error("Error"));
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     expect(error).toHaveBeenCalledWith("Unable to initialize the validators.");
@@ -625,7 +625,7 @@ describe("init action", () => {
     simServRedEnvConfigVariable.mockReturnValue("8080");
 
     // When
-    await initAction({numValidators: 5}, simulatorService);
+    await initAction(defaultActionOptions, simulatorService);
 
     // Then
     const frontendUrl = simulatorService.getFrontendUrl();

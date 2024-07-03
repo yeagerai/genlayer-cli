@@ -5,8 +5,8 @@ export interface ISimulatorService {
   readEnvConfigValue(key: string): string;
   addConfigToEnvFile(newConfig: Record<string, string>): void;
   checkRequirements(): Promise<Record<string, boolean>>;
-  downloadSimulator(): Promise<DownloadSimulatorResultType>;
-  updateSimulator(): Promise<boolean>;
+  downloadSimulator(branch?: string): Promise<DownloadSimulatorResultType>;
+  updateSimulator(branch?: string): Promise<boolean>;
   pullOllamaModel(): Promise<boolean>;
   configSimulator(newConfig: Record<string, string>): Promise<boolean>;
   runSimulator(): Promise<{stdout: string; stderr: string}>;

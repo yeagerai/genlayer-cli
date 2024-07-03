@@ -109,11 +109,11 @@ export class SimulatorService implements ISimulatorService {
     return requirementsInstalled;
   }
 
-  public async downloadSimulator(): Promise<DownloadSimulatorResultType> {
+  public async downloadSimulator(branch: string = "main"): Promise<DownloadSimulatorResultType> {
     const simulatorLocation = this.getSimulatorLocation();
 
     try {
-      const gitCommand = `git clone ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`;
+      const gitCommand = `git clone -b ${branch} ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`;
       const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
       await executeCommand(cmdsByPlatform, "git");
     } catch (error: any) {
@@ -126,11 +126,27 @@ export class SimulatorService implements ISimulatorService {
     return {wasInstalled: false};
   }
 
-  public async updateSimulator(): Promise<boolean> {
+  public async updateSimulator(branch: string = "main"): Promise<boolean> {
     const simulatorLocation = this.getSimulatorLocation();
-    const gitCommand = `git -C  "${simulatorLocation}" pull`;
-    const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
-    await executeCommand(cmdsByPlatform, "git");
+    const gitCleanCommand = `git -C  "${simulatorLocation}" clean -f`;
+    const cleanCmdsByPlatform = {darwin: gitCleanCommand, win32: gitCleanCommand, linux: gitCleanCommand};
+    await executeCommand(cleanCmdsByPlatform, "git");
+
+    const gitFetchCommand = `git -C  "${simulatorLocation}" fetch`;
+    const fetchCmdsByPlatform = {darwin: gitFetchCommand, win32: gitFetchCommand, linux: gitFetchCommand};
+    await executeCommand(fetchCmdsByPlatform, "git");
+
+    const gitCheckoutCommand = `git -C  "${simulatorLocation}" checkout ${branch}`;
+    const checkoutCmdsByPlatform = {
+      darwin: gitCheckoutCommand,
+      win32: gitCheckoutCommand,
+      linux: gitCheckoutCommand,
+    };
+    await executeCommand(checkoutCmdsByPlatform, "git");
+
+    const gitPullCommand = `git -C  "${simulatorLocation}" pull`;
+    const pullCmdsByPlatform = {darwin: gitPullCommand, win32: gitPullCommand, linux: gitPullCommand};
+    await executeCommand(pullCmdsByPlatform, "git");
     return true;
   }
 
