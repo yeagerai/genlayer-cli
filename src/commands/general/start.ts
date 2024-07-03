@@ -3,24 +3,19 @@ import inquirer from "inquirer";
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 
 export interface StartActionOptions {
-  resetAccounts: string;
   resetValidators: string;
   numValidators: number;
   branch: string;
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetAccounts, resetValidators, numValidators, branch} = options;
-
-  const restartAccountsHintText = resetAccounts
-    ? "restarting the accounts and transactions database"
-    : "keeping the accounts and transactions records";
+  const {resetValidators, numValidators, branch} = options;
 
   const restartValidatorsHintText = resetValidators
-    ? `and creating new ${numValidators} random validators`
-    : "and keeping the existing validators";
+    ? `creating new ${numValidators} random validators`
+    : "keeping the existing validators";
 
-  console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
+  console.log(`Starting GenLayer simulator ${restartValidatorsHintText}`);
 
   // Update the simulator to the latest version
   console.log(`Updating GenLayer Simulator...`);
@@ -57,25 +52,6 @@ export async function startAction(options: StartActionOptions, simulatorService:
   } catch (error) {
     console.error(error);
     return;
-  }
-
-  if (resetAccounts) {
-    // Initialize the database
-    console.log("Initializing the database...");
-    try {
-      //remove everything from the database
-      await simulatorService.clearAccountsAndTransactionsDatabase();
-
-      const {createResponse, tablesResponse} = await simulatorService.initializeDatabase();
-      if (!createResponse || !tablesResponse) {
-        console.error("Unable to initialize the database. Please try again.");
-        return;
-      }
-    } catch (error) {
-      console.error(error);
-      return;
-    }
-    console.log("Database successfully reset...");
   }
 
   if (resetValidators) {
