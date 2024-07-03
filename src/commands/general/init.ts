@@ -27,9 +27,22 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     const {git, docker} = await simulatorService.checkRequirements();
     const errorMessage = getRequirementsErrorMessage({git, docker});
     if (errorMessage) {
+      console.log(
+        "There was a problem running the docker service. Please start the docker service and try again.",
+      );
       console.error(errorMessage);
       return;
     }
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
+  // Reset Docker containers and images
+  console.log(`Resetting Docker containers and images...`);
+  try {
+    await resetDockerContainers();
+    await resetDockerImages();
   } catch (error) {
     console.error(error);
     return;
