@@ -11,8 +11,6 @@ export interface ISimulatorService {
   configSimulator(newConfig: Record<string, string>): Promise<boolean>;
   runSimulator(): Promise<{stdout: string; stderr: string}>;
   waitForSimulatorToBeReady(retries?: number): Promise<WaitForSimulatorToBeReadyResultType>;
-  clearAccountsAndTransactionsDatabase(): Promise<any>;
-  initializeDatabase(): Promise<InitializeDatabaseResultType>;
   createRandomValidators(numValidators: number, llmProviders: AiProviders[]): Promise<any>;
   deleteAllValidators(): Promise<any>;
   getAiProvidersOptions(withHint: boolean): Array<{name: string; value: string}>;

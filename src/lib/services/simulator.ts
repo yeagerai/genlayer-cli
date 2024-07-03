@@ -178,7 +178,9 @@ export class SimulatorService implements ISimulatorService {
     console.log("Waiting for the simulator to start up...");
     try {
       const response = await rpcClient.request({method: "ping", params: []});
-      if (response && response.result.status === "OK") {
+
+      //Compatibility with current simulator version
+      if (response && (response.result.status === "OK" || response.result.data.status === "OK")) {
         return {initialized: true};
       }
       if (retries > 0) {
@@ -201,16 +203,6 @@ export class SimulatorService implements ISimulatorService {
     }
 
     return {initialized: false, errorCode: "TIMEOUT"};
-  }
-
-  public clearAccountsAndTransactionsDatabase(): Promise<any> {
-    return rpcClient.request({method: "clear_account_and_transactions_tables", params: []});
-  }
-
-  public async initializeDatabase(): Promise<InitializeDatabaseResultType> {
-    const createResponse = await rpcClient.request({method: "create_db", params: []});
-    const tablesResponse = await rpcClient.request({method: "create_tables", params: []});
-    return {createResponse, tablesResponse};
   }
 
   public createRandomValidators(numValidators: number, llmProviders: AiProviders[]): Promise<any> {
