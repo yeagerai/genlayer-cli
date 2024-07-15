@@ -1,41 +1,26 @@
 import inquirer from "inquirer";
 
-import {
-  updateSimulator,
-  runSimulator,
-  waitForSimulatorToBeReady,
-  deleteAllValidators,
-  createRandomValidators,
-  clearAccountsAndTransactionsDatabase,
-  initializeDatabase,
-  getFrontendUrl,
-  openFrontend,
-  getAiProvidersOptions,
-} from "@/lib/services/simulator";
+import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 
 export interface StartActionOptions {
-  resetAccounts: string;
   resetValidators: string;
   numValidators: number;
+  branch: string;
 }
 
-export async function startAction(options: StartActionOptions) {
-  const {resetAccounts, resetValidators, numValidators} = options;
-
-  const restartAccountsHintText = resetAccounts
-    ? "restarting the accounts and transactions database"
-    : "keeping the accounts and transactions records";
+export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
+  const {resetValidators, numValidators, branch} = options;
 
   const restartValidatorsHintText = resetValidators
-    ? `and creating new ${numValidators} random validators`
-    : "and keeping the existing validators";
+    ? `creating new ${numValidators} random validators`
+    : "keeping the existing validators";
 
-  console.log(`Starting GenLayer simulator ${restartAccountsHintText} ${restartValidatorsHintText}`);
+  console.log(`Starting GenLayer simulator ${restartValidatorsHintText}`);
 
   // Update the simulator to the latest version
   console.log(`Updating GenLayer Simulator...`);
   try {
-    await updateSimulator();
+    await simulatorService.updateSimulator(branch);
   } catch (error) {
     console.error(error);
     return;
@@ -44,14 +29,14 @@ export async function startAction(options: StartActionOptions) {
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {
-    runSimulator();
+    await simulatorService.runSimulator();
   } catch (error) {
     console.error(error);
     return;
   }
 
   try {
-    const {initialized, errorCode, errorMessage} = await waitForSimulatorToBeReady();
+    const {initialized, errorCode, errorMessage} = await simulatorService.waitForSimulatorToBeReady();
     if (!initialized && errorCode === "ERROR") {
       console.log(errorMessage);
       console.error("Unable to initialize the GenLayer simulator. Please try again.");
@@ -69,37 +54,18 @@ export async function startAction(options: StartActionOptions) {
     return;
   }
 
-  if (resetAccounts) {
-    // Initialize the database
-    console.log("Initializing the database...");
-    try {
-      //remove everything from the database
-      await clearAccountsAndTransactionsDatabase();
-
-      const {createResponse, tablesResponse} = await initializeDatabase();
-      if (!createResponse || !tablesResponse) {
-        console.error("Unable to initialize the database. Please try again.");
-        return;
-      }
-    } catch (error) {
-      console.error(error);
-      return;
-    }
-    console.log("Database successfully reset...");
-  }
-
   if (resetValidators) {
     // Initializing validators
     console.log("Initializing validators...");
     try {
       //remove all validators
-      await deleteAllValidators();
+      await simulatorService.deleteAllValidators();
       const questions = [
         {
           type: "checkbox",
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
-          choices: getAiProvidersOptions(false),
+          choices: simulatorService.getAiProvidersOptions(false),
           validate: function (answer: string[]) {
             if (answer.length < 1) {
               return "You must choose at least one option.";
@@ -113,7 +79,10 @@ export async function startAction(options: StartActionOptions) {
       const llmProvidersAnswer = await inquirer.prompt(questions);
 
       // create random validators
-      await createRandomValidators(Number(options.numValidators), llmProvidersAnswer.selectedLlmProviders);
+      await simulatorService.createRandomValidators(
+        Number(options.numValidators),
+        llmProvidersAnswer.selectedLlmProviders,
+      );
     } catch (error) {
       console.error("Unable to initialize the validators.");
       console.error(error);
@@ -124,10 +93,10 @@ export async function startAction(options: StartActionOptions) {
 
   // Simulator ready
   console.log(
-    `GenLayer simulator initialized successfully! Go to ${getFrontendUrl()} in your browser to access it.`,
+    `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
   );
   try {
-    openFrontend();
+    simulatorService.openFrontend();
   } catch (error) {
     console.error(error);
   }
