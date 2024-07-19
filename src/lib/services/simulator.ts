@@ -129,7 +129,6 @@ export class SimulatorService implements ISimulatorService {
     const requirementsInstalled = {
       git: false,
       docker: false,
-      node: false,
     };
 
     try {
@@ -151,20 +150,18 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.checkDockerVersion("26.0.0");
-      requirementsInstalled.docker = true;
+      await this.checkDockerVersion("25.0.0");
     } catch (error: any) {
-      console.error(error.message);
+      // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
         throw error;
       }
     }
 
     try {
-      await this.checkNodeVersion("20.0.0");
-      requirementsInstalled.node = true;
+      await this.checkNodeVersion("21.0.0");
     } catch (error: any) {
-      console.error(error.message);
+      // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
         throw error;
       }
