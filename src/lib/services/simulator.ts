@@ -150,7 +150,7 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.checkDockerVersion("25.0.0");
+      await this.checkDockerVersion("26.0.0");
     } catch (error: any) {
       // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
@@ -159,7 +159,7 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.checkNodeVersion("21.0.0");
+      await this.checkNodeVersion("20.0.0");
     } catch (error: any) {
       // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {

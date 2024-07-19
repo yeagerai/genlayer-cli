@@ -20,6 +20,7 @@ function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): st
   return "";
 }
 
+// TODO: improve error handling
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   // Check if git and docker are installed
   try {
