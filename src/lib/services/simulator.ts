@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
+import {exec} from "child_process";
+import * as semver from "semver";
 
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
@@ -75,10 +77,59 @@ export class SimulatorService implements ISimulatorService {
     fs.writeFileSync(envFilePath, updatedConfig);
   }
 
+  private async getDockerVersion(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      exec("docker --version", (error, stdout, stderr) => {
+        if (error) {
+          reject(`Error getting Docker version: ${stderr}`);
+        } else {
+          const versionMatch = stdout.match(/(\d+\.\d+\.\d+)/);
+          if (versionMatch) {
+            resolve(versionMatch[1]);
+          } else {
+            reject("Could not parse Docker version");
+          }
+        }
+      });
+    });
+  }
+
+  private async checkDockerVersion(minVersion: string): Promise<void> {
+    const dockerVersion = await this.getDockerVersion();
+    if (!semver.satisfies(dockerVersion, `>=${minVersion}`)) {
+      throw new Error(`Docker version ${minVersion} or higher is required. You have ${dockerVersion}.`);
+    }
+  }
+
+  private async getNodeVersion(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      exec("node --version", (error, stdout, stderr) => {
+        if (error) {
+          reject(`Error getting Node.js version: ${stderr}`);
+        } else {
+          const versionMatch = stdout.match(/v(\d+\.\d+\.\d+)/);
+          if (versionMatch) {
+            resolve(versionMatch[1]);
+          } else {
+            reject("Could not parse Node.js version");
+          }
+        }
+      });
+    });
+  }
+
+  private async checkNodeVersion(minVersion: string): Promise<void> {
+    const nodeVersion = await this.getNodeVersion();
+    if (!semver.satisfies(nodeVersion, `>=${minVersion}`)) {
+      throw new Error(`Node.js version ${minVersion} or higher is required. You have ${nodeVersion}.`);
+    }
+  }
+
   public async checkRequirements(): Promise<Record<string, boolean>> {
     const requirementsInstalled = {
       git: false,
       docker: false,
+      node: false,
     };
 
     try {
@@ -89,10 +140,31 @@ export class SimulatorService implements ISimulatorService {
         throw error;
       }
     }
+
     try {
       await checkCommand("docker --version", "docker");
       requirementsInstalled.docker = true;
     } catch (error: any) {
+      if (!(error instanceof MissingRequirementError)) {
+        throw error;
+      }
+    }
+
+    try {
+      await this.checkDockerVersion("26.0.0");
+      requirementsInstalled.docker = true;
+    } catch (error: any) {
+      console.error(error.message);
+      if (!(error instanceof MissingRequirementError)) {
+        throw error;
+      }
+    }
+
+    try {
+      await this.checkNodeVersion("20.0.0");
+      requirementsInstalled.node = true;
+    } catch (error: any) {
+      console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
         throw error;
       }
