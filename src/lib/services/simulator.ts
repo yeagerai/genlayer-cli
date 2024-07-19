@@ -15,6 +15,7 @@ import {
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
   AiProviders,
+  VERSION_REQUIREMENTS,
 } from "../config/simulator";
 import {
   checkCommand,
@@ -150,7 +151,7 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.checkDockerVersion("26.0.0");
+      await this.checkDockerVersion(VERSION_REQUIREMENTS.docker);
     } catch (error: any) {
       // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
@@ -159,7 +160,7 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.checkNodeVersion("20.0.0");
+      await this.checkNodeVersion(VERSION_REQUIREMENTS.node);
     } catch (error: any) {
       // console.error(error.message);
       if (!(error instanceof MissingRequirementError)) {
