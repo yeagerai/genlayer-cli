@@ -2,9 +2,11 @@ import util from "node:util";
 import {ChildProcess, PromiseWithChild, exec} from "child_process";
 import os from "os";
 import open from "open";
+import * as semver from "semver";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
+import {VersionRequiredError} from "../errors/versionRequired";
 
 const asyncExec = util.promisify(exec);
 
@@ -51,6 +53,37 @@ function getPlatform(): RunningPlatform {
 
 export function openUrl(url: string): Promise<ChildProcess> {
   return open(url);
+}
+
+export async function getVersion(toolName: string): Promise<string> {
+  try {
+    const toolResponse = await asyncExec(`${toolName} --version`);
+
+    if (toolResponse.stderr) {
+      throw new Error(toolResponse.stderr);
+    }
+
+    try {
+      const versionMatch = toolResponse.stdout.match(/(\d+\.\d+\.\d+)/);
+      if (versionMatch) {
+        return versionMatch[1];
+      }
+    } catch (err) {
+      throw new Error(`Could not parse ${toolName} version.`);
+    }
+  } catch (error) {
+    throw new Error(`Error getting ${toolName} version.`);
+  }
+
+  return "";
+}
+
+export async function checkVersion(minVersion: string, toolName: string): Promise<void> {
+  const version = await getVersion(toolName);
+  
+  if (!semver.satisfies(version, `>=${minVersion}`)) {
+    throw new VersionRequiredError(toolName, minVersion);
+  }
 }
 
 export async function listDockerContainers(): Promise<string[]> {

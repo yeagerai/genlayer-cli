@@ -19,7 +19,7 @@ export const DEFAULT_RUN_DOCKER_COMMAND = {
 
 export const VERSION_REQUIREMENTS = {
   docker: "25.0.0",
-  node: "20.0.0",
+  node: "18.0.0",
 };
 
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;

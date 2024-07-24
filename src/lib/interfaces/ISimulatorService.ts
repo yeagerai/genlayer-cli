@@ -4,7 +4,10 @@ export interface ISimulatorService {
   getSimulatorLocation(): string;
   readEnvConfigValue(key: string): string;
   addConfigToEnvFile(newConfig: Record<string, string>): void;
-  checkRequirements(): Promise<Record<string, boolean>>;
+  checkRequirements(): Promise<{
+    requirementsInstalled: Record<string, boolean>;
+    missingVersions: Record<string, string>;
+  }>;
   downloadSimulator(branch?: string): Promise<DownloadSimulatorResultType>;
   updateSimulator(branch?: string): Promise<boolean>;
   pullOllamaModel(): Promise<boolean>;

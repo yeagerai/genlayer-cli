@@ -7,25 +7,40 @@ export interface InitActionOptions {
   branch: string;
 }
 
-function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
-  if (!git && !docker) {
-    return "Git and Docker are not installed. Please install them and try again.\n";
+function getRequirementsErrorMessage(
+  {git: gitInstalled, docker: dockerInstalled}: Record<string, boolean>,
+  {docker: missingDockerVersion, node: missingNodeVersion}: Record<string, string>,
+): string {
+  let message = "";
+
+  // Installation error messages
+  if (!gitInstalled && !dockerInstalled) {
+    message +=  "Git and Docker are not installed. Please install them and try again.\n";
   }
-  if (!git) {
-    return "Git is not installed. Please install Git and try again.\n";
+  if (!gitInstalled) {
+    message +=  "Git is not installed. Please install Git and try again.\n";
   }
-  if (!docker) {
-    return "Docker is not installed. Please install Docker and try again.\n";
+  if (!dockerInstalled) {
+    message +=  "Docker is not installed. Please install Docker and try again.\n";
   }
-  return "";
+
+  // Version error messages
+  if (missingDockerVersion && dockerInstalled) {
+    message += `Docker version ${missingDockerVersion} or higher is required. Please update Docker and try again.\n`;
+  }
+  if (missingNodeVersion) {
+    message += `Node version ${missingNodeVersion} or higher is required. Please update Node and try again.\n`;
+  }
+
+  return message;
 }
 
-// TODO: improve error handling
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   // Check if git and docker are installed
   try {
-    const {git, docker} = await simulatorService.checkRequirements();
-    const errorMessage = getRequirementsErrorMessage({git, docker});
+    const {requirementsInstalled, missingVersions} = await simulatorService.checkRequirements();
+    const errorMessage = getRequirementsErrorMessage(requirementsInstalled, missingVersions);
+
     if (errorMessage) {
       console.log(
         "There was a problem running the docker service. Please start the docker service and try again.",
