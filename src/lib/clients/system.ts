@@ -2,7 +2,6 @@ import util from "node:util";
 import {ChildProcess, PromiseWithChild, exec} from "child_process";
 import os from "os";
 import open from "open";
-import * as semver from "semver";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
@@ -76,14 +75,6 @@ export async function getVersion(toolName: string): Promise<string> {
   }
 
   return "";
-}
-
-export async function checkVersion(minVersion: string, toolName: string): Promise<void> {
-  const version = await getVersion(toolName);
-  
-  if (!semver.satisfies(version, `>=${minVersion}`)) {
-    throw new VersionRequiredError(toolName, minVersion);
-  }
 }
 
 export async function listDockerContainers(): Promise<string[]> {
