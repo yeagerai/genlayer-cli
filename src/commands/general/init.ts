@@ -42,9 +42,6 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     const requirementErrorMessage = getRequirementsErrorMessage(requirementsInstalled);
 
     if (requirementErrorMessage) {
-      console.log(
-        "There was a problem running the docker service. Please start the docker service and try again.",
-      );
       console.error(requirementErrorMessage);
       return;
     }
