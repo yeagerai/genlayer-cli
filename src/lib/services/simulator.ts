@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
+import * as semver from "semver";
 
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
@@ -13,9 +14,11 @@ import {
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
   AiProviders,
+  VERSION_REQUIREMENTS,
 } from "../config/simulator";
 import {
   checkCommand,
+  getVersion,
   getHomeDirectory,
   executeCommand,
   openUrl,
@@ -33,6 +36,7 @@ import {
   WaitForSimulatorToBeReadyResultType,
   InitializeDatabaseResultType,
 } from "../interfaces/ISimulatorService";
+import {VersionRequiredError} from "../errors/versionRequired";
 
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
@@ -75,7 +79,7 @@ export class SimulatorService implements ISimulatorService {
     fs.writeFileSync(envFilePath, updatedConfig);
   }
 
-  public async checkRequirements(): Promise<Record<string, boolean>> {
+  public async checkInstallRequirements(): Promise<Record<string, boolean>> {
     const requirementsInstalled = {
       git: false,
       docker: false,
@@ -89,6 +93,7 @@ export class SimulatorService implements ISimulatorService {
         throw error;
       }
     }
+
     try {
       await checkCommand("docker --version", "docker");
       requirementsInstalled.docker = true;
@@ -107,6 +112,41 @@ export class SimulatorService implements ISimulatorService {
     }
 
     return requirementsInstalled;
+  }
+
+  public async checkVersionRequirements(): Promise<Record<string, string>> {
+    const missingVersions = {
+      docker: '',
+      node: '',
+    };
+
+    try {
+      await this.checkVersion(VERSION_REQUIREMENTS.node, "node");
+    } catch (error: any) {
+      missingVersions.node = VERSION_REQUIREMENTS.node;
+      if (!(error instanceof VersionRequiredError)) {
+        throw error;
+      }
+    }
+
+    try {
+      await this.checkVersion(VERSION_REQUIREMENTS.docker, "docker");
+    } catch (error: any) {
+      missingVersions.docker = VERSION_REQUIREMENTS.docker;
+      if (!(error instanceof VersionRequiredError)) {
+        throw error;
+      }
+    }
+
+    return missingVersions;
+  }
+
+  public async checkVersion(minVersion: string, toolName: string): Promise<void> {
+    const version = await getVersion(toolName);
+
+    if (!semver.satisfies(version, `>=${minVersion}`)) {
+      throw new VersionRequiredError(toolName, minVersion);
+    }
   }
 
   public async downloadSimulator(branch: string = "main"): Promise<DownloadSimulatorResultType> {
