@@ -116,14 +116,14 @@ export class SimulatorService implements ISimulatorService {
 
   public async checkVersionRequirements(): Promise<Record<string, string>> {
     const missingVersions = {
-      docker: VERSION_REQUIREMENTS.docker,
-      node: VERSION_REQUIREMENTS.node,
+      docker: '',
+      node: '',
     };
 
     try {
       await this.checkVersion(VERSION_REQUIREMENTS.node, "node");
-      missingVersions.node = "";
     } catch (error: any) {
+      missingVersions.node = VERSION_REQUIREMENTS.node;
       if (!(error instanceof VersionRequiredError)) {
         throw error;
       }
@@ -131,8 +131,8 @@ export class SimulatorService implements ISimulatorService {
 
     try {
       await this.checkVersion(VERSION_REQUIREMENTS.docker, "docker");
-      missingVersions.docker = "";
     } catch (error: any) {
+      missingVersions.docker = VERSION_REQUIREMENTS.docker;
       if (!(error instanceof VersionRequiredError)) {
         throw error;
       }
