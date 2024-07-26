@@ -36,19 +36,30 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 }
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
-  // Check if requirements are installed and if the versions are correct
+  // Check if requirements are installed
   try {
     const requirementsInstalled = await simulatorService.checkInstallRequirements();
     const requirementErrorMessage = getRequirementsErrorMessage(requirementsInstalled);
 
-    const missingVersions = await simulatorService.checkVersionRequirements();
-    const versionErrorMessage = getVersionErrorMessage(missingVersions);
-
-    if (requirementErrorMessage || versionErrorMessage) {
+    if (requirementErrorMessage) {
       console.log(
         "There was a problem running the docker service. Please start the docker service and try again.",
       );
-      console.error(requirementErrorMessage || versionErrorMessage);
+      console.error(requirementErrorMessage);
+      return;
+    }
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
+  // Check if the versions are correct
+  try {
+    const missingVersions = await simulatorService.checkVersionRequirements();
+    const versionErrorMessage = getVersionErrorMessage(missingVersions);
+
+    if (versionErrorMessage) {
+      console.error(versionErrorMessage);
       return;
     }
   } catch (error) {
