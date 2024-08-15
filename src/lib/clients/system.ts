@@ -5,7 +5,6 @@ import open from "open";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
-import {VersionRequiredError} from "../errors/versionRequired";
 
 const asyncExec = util.promisify(exec);
 
