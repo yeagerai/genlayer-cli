@@ -34,7 +34,6 @@ import {
   ISimulatorService,
   DownloadSimulatorResultType,
   WaitForSimulatorToBeReadyResultType,
-  InitializeDatabaseResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
 
@@ -116,8 +115,8 @@ export class SimulatorService implements ISimulatorService {
 
   public async checkVersionRequirements(): Promise<Record<string, string>> {
     const missingVersions = {
-      docker: '',
-      node: '',
+      docker: "",
+      node: "",
     };
 
     try {
