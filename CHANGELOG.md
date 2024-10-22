@@ -1,5 +1,12 @@
 
 
+## 0.0.33 (2024-10-22)
+
+
+### Bug Fixes
+
+* response check ([#78](https://github.com/yeagerai/genlayer-cli/issues/78)) ([09c824f](https://github.com/yeagerai/genlayer-cli/commit/09c824f8b7ac1fff5355317d046752fbf58ab162))
+
 ## 0.0.32 (2024-07-15)
 
 ## 0.0.32-beta.2 (2024-07-03)
