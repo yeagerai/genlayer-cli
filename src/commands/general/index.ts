@@ -11,6 +11,7 @@ export function initializeGeneralCommands(program: Command) {
     .description("Initialize the GenLayer Environment")
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--branch <branch>", "Branch", "main")
+    .option("--location <folder>", "Location where it will be installed", __dirname)
     .action((options: InitActionOptions) => initAction(options, simulatorService));
 
   program
@@ -19,6 +20,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--reset-validators", "Remove all current validators and create new random ones", false)
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--branch <branch>", "Branch", "main")
+    .option("--location <folder>", "Location where it will be installed", __dirname)
     .action((options: StartActionOptions) => startAction(options, simulatorService));
 
   return program;

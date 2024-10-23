@@ -5,8 +5,9 @@ import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import {initAction} from "../../src/commands/general/init";
 
+const __dirname = "/current-dir";
 // Default options for the action
-const defaultActionOptions = {numValidators: 5, branch: "main"};
+const defaultActionOptions = {numValidators: 5, branch: "main", location: __dirname};
 
 describe("init action", () => {
   let error: jest.Mock<any>;
@@ -36,8 +37,14 @@ describe("init action", () => {
     log = jest.spyOn(console, "log").mockImplementation(() => {}) as jest.Mock<any>;
     inquirerPrompt = jest.spyOn(inquirer, "prompt") as jest.Mock<any>;
 
-    simServCheckInstallRequirements = jest.spyOn(simulatorService, "checkInstallRequirements") as jest.Mock<any>;
-    simServCheckVersionRequirements = jest.spyOn(simulatorService, "checkVersionRequirements") as jest.Mock<any>;
+    simServCheckInstallRequirements = jest.spyOn(
+      simulatorService,
+      "checkInstallRequirements",
+    ) as jest.Mock<any>;
+    simServCheckVersionRequirements = jest.spyOn(
+      simulatorService,
+      "checkVersionRequirements",
+    ) as jest.Mock<any>;
     simServResetDockerContainers = jest.spyOn(simulatorService, "resetDockerContainers") as jest.Mock<any>;
     simServResetDockerImages = jest.spyOn(simulatorService, "resetDockerImages") as jest.Mock<any>;
     simServDownloadSimulator = jest.spyOn(simulatorService, "downloadSimulator") as jest.Mock<any>;

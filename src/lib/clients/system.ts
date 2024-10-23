@@ -1,6 +1,5 @@
 import util from "node:util";
 import {ChildProcess, PromiseWithChild, exec} from "child_process";
-import os from "os";
 import open from "open";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
@@ -35,10 +34,6 @@ export function executeCommand(
   } catch (error: any) {
     throw new Error(`Error executing ${toolName || command}: ${error.message}.`);
   }
-}
-
-export function getHomeDirectory(): string {
-  return os.homedir();
 }
 
 function getPlatform(): RunningPlatform {
