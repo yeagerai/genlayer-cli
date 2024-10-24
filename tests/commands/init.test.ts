@@ -6,7 +6,7 @@ import {getCommand, getCommandOption} from "../utils";
 jest.mock("inquirer", () => ({
   prompt: jest.fn(() => {}),
 }));
-const action = jest.fn();process.cwd()
+const action = jest.fn();
 
 describe("init command", () => {
   let initCommand: Command;
