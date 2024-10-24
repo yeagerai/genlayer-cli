@@ -7,6 +7,7 @@ jest.mock("inquirer", () => ({
   prompt: jest.fn(() => {}),
 }));
 const action = jest.fn();
+const defaultUserDirectory = `${process.cwd()}/genlayer-simulator`;
 
 describe("init command", () => {
   let initCommand: Command;
@@ -59,7 +60,7 @@ describe("init command", () => {
   test("option --location default value is user's current directory", async () => {
     // Given // When
     const locationOption = getCommandOption(initCommand, "--location");
-    expect(locationOption?.defaultValue).toBe(__dirname);
+    expect(locationOption?.defaultValue).toBe(defaultUserDirectory);
   });
 
   test("random option is not accepted", async () => {
@@ -77,6 +78,6 @@ describe("init command", () => {
     program.parse(["node", "test", "init"]);
     // Then
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main", location: __dirname});
+    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main", location: defaultUserDirectory});
   });
 });
