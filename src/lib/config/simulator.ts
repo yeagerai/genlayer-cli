@@ -17,6 +17,11 @@ export const DEFAULT_RUN_DOCKER_COMMAND = {
   linux: "sudo systemctl start docker",
 };
 
+export const VERSION_REQUIREMENTS = {
+  docker: "25.0.0",
+  node: "18.0.0",
+};
+
 export const AVAILABLE_PLATFORMS = ["darwin", "win32", "linux"] as const;
 export type RunningPlatform = (typeof AVAILABLE_PLATFORMS)[number];
 export const STARTING_TIMEOUT_WAIT_CYLCE = 2000;

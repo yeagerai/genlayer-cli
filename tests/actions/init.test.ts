@@ -13,7 +13,8 @@ describe("init action", () => {
   let log: jest.Mock<any>;
   let inquirerPrompt: jest.Mock<any>;
 
-  let simServCheckRequirements: jest.Mock<any>;
+  let simServCheckInstallRequirements: jest.Mock<any>;
+  let simServCheckVersionRequirements: jest.Mock<any>;
   let simServResetDockerContainers: jest.Mock<any>;
   let simServResetDockerImages: jest.Mock<any>;
   let simServDownloadSimulator: jest.Mock<any>;
@@ -35,7 +36,8 @@ describe("init action", () => {
     log = jest.spyOn(console, "log").mockImplementation(() => {}) as jest.Mock<any>;
     inquirerPrompt = jest.spyOn(inquirer, "prompt") as jest.Mock<any>;
 
-    simServCheckRequirements = jest.spyOn(simulatorService, "checkRequirements") as jest.Mock<any>;
+    simServCheckInstallRequirements = jest.spyOn(simulatorService, "checkInstallRequirements") as jest.Mock<any>;
+    simServCheckVersionRequirements = jest.spyOn(simulatorService, "checkVersionRequirements") as jest.Mock<any>;
     simServResetDockerContainers = jest.spyOn(simulatorService, "resetDockerContainers") as jest.Mock<any>;
     simServResetDockerImages = jest.spyOn(simulatorService, "resetDockerImages") as jest.Mock<any>;
     simServDownloadSimulator = jest.spyOn(simulatorService, "downloadSimulator") as jest.Mock<any>;
@@ -57,7 +59,7 @@ describe("init action", () => {
 
   test("if both requirements are missing, then the execution fails", async () => {
     // Given
-    simServCheckRequirements.mockResolvedValue({git: false, docker: false});
+    simServCheckInstallRequirements.mockResolvedValue({git: false, docker: false});
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -71,7 +73,7 @@ describe("init action", () => {
 
   test("if only docker is missing, then the execution fails", async () => {
     // Given
-    simServCheckRequirements.mockResolvedValue({git: true, docker: false});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: false});
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -83,7 +85,7 @@ describe("init action", () => {
 
   test("if only git is missing, then the execution fails", async () => {
     // Given
-    simServCheckRequirements.mockResolvedValue({git: false, docker: true});
+    simServCheckInstallRequirements.mockResolvedValue({git: false, docker: true});
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -93,9 +95,69 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith("Git is not installed. Please install Git and try again.\n");
   });
 
-  test("if check requirements fail, then the execution aborts", async () => {
+  test("if check install requirements fail, then the execution aborts", async () => {
     // Given
-    simServCheckRequirements.mockRejectedValue(new Error("Error"));
+    simServCheckInstallRequirements.mockRejectedValue(new Error("Error"));
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(new Error("Error"));
+  });
+
+  test("if both versions are too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+
+    // Given
+    simServCheckVersionRequirements.mockResolvedValue({node: mockVersionNumber, docker: mockVersionNumber});
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\nNode version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`,
+    );
+  });
+
+  test("if only docker version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+
+    // Given
+    simServCheckVersionRequirements.mockResolvedValue({node: "", docker: mockVersionNumber});
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`,
+    );
+  });
+
+  test("if only node version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+
+    // Given
+    simServCheckVersionRequirements.mockResolvedValue({node: mockVersionNumber, docker: ""});
+
+    // When
+    await initAction(defaultActionOptions, simulatorService);
+
+    // Then
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`,
+    );
+  });
+
+  test("if check version requirements fail, then the execution aborts", async () => {
+    // Given
+    simServCheckVersionRequirements.mockRejectedValue(new Error("Error"));
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -108,7 +170,7 @@ describe("init action", () => {
   test("if reset is not confirmed, abort", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({confirmReset: false});
-    simServCheckRequirements.mockResolvedValue({git: true, docker: true});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
 
     // When
     await initAction(defaultActionOptions, simulatorService);
@@ -147,7 +209,7 @@ describe("init action", () => {
   test("if download is not confirmed, abort", async () => {
     // Given
     inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: false});
-    simServCheckRequirements.mockResolvedValue({git: true, docker: true});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
 
     // When
     await initAction(defaultActionOptions, simulatorService);

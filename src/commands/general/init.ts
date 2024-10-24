@@ -17,19 +17,46 @@ function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): st
   if (!docker) {
     return "Docker is not installed. Please install Docker and try again.\n";
   }
+
   return "";
 }
 
+function getVersionErrorMessage({docker, node}: Record<string, string>): string {
+  let message = "";
+
+  if (docker) {
+    message += `Docker version ${docker} or higher is required. Please update Docker and try again.\n`;
+  }
+
+  if (node) {
+    message += `Node version ${node} or higher is required. Please update Node and try again.\n`;
+  }
+
+  return message;
+}
+
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
-  // Check if git and docker are installed
+  // Check if requirements are installed
   try {
-    const {git, docker} = await simulatorService.checkRequirements();
-    const errorMessage = getRequirementsErrorMessage({git, docker});
-    if (errorMessage) {
-      console.log(
-        "There was a problem running the docker service. Please start the docker service and try again.",
-      );
-      console.error(errorMessage);
+    const requirementsInstalled = await simulatorService.checkInstallRequirements();
+    const requirementErrorMessage = getRequirementsErrorMessage(requirementsInstalled);
+
+    if (requirementErrorMessage) {
+      console.error(requirementErrorMessage);
+      return;
+    }
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
+  // Check if the versions are correct
+  try {
+    const missingVersions = await simulatorService.checkVersionRequirements();
+    const versionErrorMessage = getVersionErrorMessage(missingVersions);
+
+    if (versionErrorMessage) {
+      console.error(versionErrorMessage);
       return;
     }
   } catch (error) {
