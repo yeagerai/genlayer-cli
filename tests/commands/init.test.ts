@@ -62,6 +62,7 @@ describe("init command", () => {
     expect(locationOption?.defaultValue).toBe(process.cwd());
   });
 
+
   test("random option is not accepted", async () => {
     initCommand?.exitOverride();
     expect(() => program.parse(["node", "test", "init", "-random"])).toThrow(
@@ -78,5 +79,6 @@ describe("init command", () => {
     // Then
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main", location: process.cwd()});
+
   });
 });

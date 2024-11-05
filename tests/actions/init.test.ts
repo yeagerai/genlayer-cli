@@ -9,6 +9,7 @@ const __dirname = "/current-dir";
 // Default options for the action
 const defaultActionOptions = {numValidators: 5, branch: "main", location: __dirname};
 
+
 describe("init action", () => {
   let error: jest.Mock<any>;
   let log: jest.Mock<any>;
@@ -45,6 +46,7 @@ describe("init action", () => {
       simulatorService,
       "checkVersionRequirements",
     ) as jest.Mock<any>;
+
     simServResetDockerContainers = jest.spyOn(simulatorService, "resetDockerContainers") as jest.Mock<any>;
     simServResetDockerImages = jest.spyOn(simulatorService, "resetDockerImages") as jest.Mock<any>;
     simServDownloadSimulator = jest.spyOn(simulatorService, "downloadSimulator") as jest.Mock<any>;

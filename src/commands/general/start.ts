@@ -14,6 +14,7 @@ export async function startAction(options: StartActionOptions, simulatorService:
   // Update simulator location with user input
   simulatorService.setSimulatorLocation(location);
 
+
   const restartValidatorsHintText = resetValidators
     ? `creating new ${numValidators} random validators`
     : "keeping the existing validators";
@@ -100,6 +101,7 @@ export async function startAction(options: StartActionOptions, simulatorService:
   );
   try {
     await simulatorService.openFrontend();
+
   } catch (error) {
     console.error(error);
   }

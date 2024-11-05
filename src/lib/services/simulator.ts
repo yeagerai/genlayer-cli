@@ -109,6 +109,7 @@ export class SimulatorService implements ISimulatorService {
       }
     }
 
+
     if (requirementsInstalled.docker) {
       try {
         await checkCommand("docker ps", "docker");
