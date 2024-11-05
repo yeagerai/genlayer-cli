@@ -3,7 +3,7 @@ import inquirer from "inquirer";
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 
 export interface StartActionOptions {
-  resetValidators: string;
+  resetValidators: boolean;
   numValidators: number;
   branch: string;
 }
