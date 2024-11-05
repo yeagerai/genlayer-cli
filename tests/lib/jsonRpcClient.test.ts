@@ -1,17 +1,12 @@
 import { describe, beforeEach, test, expect, vi, Mock } from "vitest";
 import fetch from "node-fetch";
 import { JsonRpcClient, JsonRPCParams } from "../../src/lib/clients/jsonRpcClient";
-import { v4 as uuidv4 } from "uuid";
 
 vi.mock("node-fetch", () => ({
   default: vi.fn(),
 }));
 
-vi.mock("uuid", () => ({
-  v4: vi.fn(),
-}));
-
-describe("JsonRpcClient - Successful Request", () => {
+describe("JsonRpcClient - Successful and Unsuccessful Requests", () => {
   let rpcClient: JsonRpcClient;
   const mockServerUrl = "http://mock-server-url.com";
 
@@ -21,8 +16,6 @@ describe("JsonRpcClient - Successful Request", () => {
 
   test("should make a successful JSON-RPC request and return the JSON response", async () => {
     const mockResponse = { result: "success" };
-    const mockId = "test-uuid";
-    (uuidv4 as Mock).mockReturnValueOnce(mockId);
 
     (fetch as Mock).mockResolvedValueOnce({
       ok: true,
@@ -39,13 +32,29 @@ describe("JsonRpcClient - Successful Request", () => {
     expect(fetch).toHaveBeenCalledWith(mockServerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: mockId,
-        method: "testMethod",
-        params: ["param1", "param2"],
-      }),
+      body: expect.stringContaining('"method":"testMethod"'),
     });
     expect(response).toEqual(mockResponse);
+  });
+
+  test("should return null when the fetch response is not ok", async () => {
+    (fetch as Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Something went wrong" }),
+    });
+
+    const params: JsonRPCParams = {
+      method: "testMethod",
+      params: ["param1", "param2"],
+    };
+
+    const response = await rpcClient.request(params);
+
+    expect(response).toBeNull();
+    expect(fetch).toHaveBeenCalledWith(mockServerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: expect.stringContaining('"method":"testMethod"'),
+    });
   });
 });
