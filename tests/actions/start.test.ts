@@ -18,8 +18,6 @@ describe("startAction - Additional Tests", () => {
   beforeEach(() => {
     logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    // Spy on inquirer.prompt directly
     promptSpy = vi.spyOn(inquirer, "prompt");
 
     simulatorService = {
@@ -101,21 +99,16 @@ describe("startAction - Additional Tests", () => {
   });
 
   test("prompts for LLM providers and validates at least one option is selected", async () => {
-    // Spy on the getAiProvidersOptions method to check if options are correctly retrieved
     const aiProviders = simulatorService.getAiProvidersOptions(false);
     expect(aiProviders).toEqual([
       { name: "Provider A", value: "providerA" },
       { name: "Provider B", value: "providerB" },
     ]);
 
-    // Mock inquirer prompt with validation for `selectedLlmProviders`
     promptSpy.mockImplementation(async (questions: any) => {
       const validateFunction = questions[0].validate;
 
-      // Trigger validation error by passing an empty array
       expect(validateFunction([])).toBe("You must choose at least one option.");
-
-      // Pass a non-empty array to satisfy validation
       expect(validateFunction(["providerA"])).toBe(true);
 
       return { selectedLlmProviders: ["providerA"] };
@@ -129,7 +122,6 @@ describe("startAction - Additional Tests", () => {
   });
 
   test("logs specific message if waitForSimulatorToBeReady returns TIMEOUT errorCode", async () => {
-    // Mock waitForSimulatorToBeReady to simulate a TIMEOUT error
     (simulatorService.waitForSimulatorToBeReady as Mock).mockResolvedValue({
       initialized: false,
       errorCode: "TIMEOUT",
@@ -144,7 +136,6 @@ describe("startAction - Additional Tests", () => {
   });
 
   test("logs error message if simulator fails to initialize with ERROR code", async () => {
-    // Mock waitForSimulatorToBeReady to simulate an ERROR during initialization
     (simulatorService.waitForSimulatorToBeReady as Mock).mockResolvedValue({
       initialized: false,
       errorCode: "ERROR",
@@ -153,36 +144,27 @@ describe("startAction - Additional Tests", () => {
 
     await startAction(defaultOptions, simulatorService);
 
-    // Check that the specific error message is logged
     expect(logSpy).toHaveBeenCalledWith("Initialization failed");
     expect(errorSpy).toHaveBeenCalledWith("Unable to initialize the GenLayer simulator. Please try again.");
   });
 
   test("catches and logs error if waitForSimulatorToBeReady throws an exception", async () => {
     const errorMsg = new Error("Unexpected initialization error");
-
-    // Mock waitForSimulatorToBeReady to throw an error
     (simulatorService.waitForSimulatorToBeReady as Mock).mockRejectedValueOnce(errorMsg);
 
     await startAction(defaultOptions, simulatorService);
 
-    // Verify that the error is caught and logged
     expect(errorSpy).toHaveBeenCalledWith(errorMsg);
   });
 
   test("catches and logs error if openFrontend throws an exception", async () => {
     const errorMsg = new Error("Failed to open frontend");
-
-    // Mock openFrontend to throw an error
     (simulatorService.openFrontend as Mock).mockImplementationOnce(() => {
       throw errorMsg;
     });
 
     await startAction(defaultOptions, simulatorService);
 
-    // Verify that the error is caught and logged
     expect(errorSpy).toHaveBeenCalledWith(errorMsg);
   });
-
-
 });
