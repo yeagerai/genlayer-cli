@@ -1,4 +1,3 @@
-/* eslint-disable import/no-named-as-default-member */
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
