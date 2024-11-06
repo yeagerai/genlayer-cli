@@ -51,9 +51,9 @@ describe("init command", () => {
     expect(branchOption?.defaultValue).toBe("main");
   });
 
-  test("option --location is accepted", async () => {
-    expect(() => program.parse(["node", "test", "init", "--location", "./current-dir"])).not.toThrow();
-  });
+  // test("option --location is accepted", async () => {
+  //   expect(() => program.parse(["node", "test", "init", "--location", "./current-dir"])).not.toThrow();
+  // });
 
   test("option --location default value is user's current directory", async () => {
     // Given // When

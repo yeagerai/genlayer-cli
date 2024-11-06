@@ -2,8 +2,12 @@ import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import { initAction } from "../../src/commands/general/init";
+import { tmpdir } from "os";
+import {mkdtempSync} from "fs";
+import {join} from "path";
 
-const defaultActionOptions = { numValidators: 5, branch: "main", location: process.cwd() };
+const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -23,7 +27,7 @@ describe("init action", () => {
   let simServDeleteAllValidators: ReturnType<any>;
   let simServCreateRandomValidators: ReturnType<any>;
   let simServOpenFrontend: ReturnType<any>;
-  let simServRedEnvConfigVariable: ReturnType<any>;
+  let simGetSimulatorUrl: ReturnType<any>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -45,6 +49,7 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
+    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
   });
 
   afterEach(() => {
@@ -162,7 +167,7 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
-    simServRedEnvConfigVariable.mockReturnValue("8080");
+    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
 
     await initAction(defaultActionOptions, simulatorService);
 
