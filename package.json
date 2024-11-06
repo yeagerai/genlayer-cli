@@ -25,7 +25,7 @@
     "cli"
   ],
   "author": "GenLayer",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/yeagerai/genlayer-cli/issues"
   },

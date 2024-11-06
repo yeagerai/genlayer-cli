@@ -1,9 +1,8 @@
 import {AiProviders} from "../config/simulator";
 
 export interface ISimulatorService {
+  setSimulatorLocation(location: string): void;
   getSimulatorLocation(): string;
-  readEnvConfigValue(key: string): string;
-  addConfigToEnvFile(newConfig: Record<string, string>): void;
   checkInstallRequirements(): Promise<Record<string, boolean>>;
   checkVersionRequirements(): Promise<Record<string, string>>;
   downloadSimulator(branch?: string): Promise<DownloadSimulatorResultType>;

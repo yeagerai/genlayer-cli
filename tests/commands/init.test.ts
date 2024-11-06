@@ -52,6 +52,17 @@ describe("init command", () => {
     expect(numValidatorsOption?.defaultValue).toBe("main");
   });
 
+  test("option --location is accepted", async () => {
+    expect(() => program.parse(["node", "test", "init", "--location", "./current-dir"])).not.toThrow();
+  });
+
+  test("option --location default value is user's current directory", async () => {
+    // Given // When
+    const locationOption = getCommandOption(initCommand, "--location");
+    expect(locationOption?.defaultValue).toBe(process.cwd());
+  });
+
+
   test("random option is not accepted", async () => {
     initCommand?.exitOverride();
     expect(() => program.parse(["node", "test", "init", "-random"])).toThrow(
@@ -67,6 +78,7 @@ describe("init command", () => {
     program.parse(["node", "test", "init"]);
     // Then
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main"});
+    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main", location: process.cwd()});
+
   });
 });
