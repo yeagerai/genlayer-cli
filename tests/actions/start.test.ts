@@ -13,6 +13,7 @@ describe("startAction - Additional Tests", () => {
     resetValidators: false,
     numValidators: 5,
     branch: "main",
+    location: ''
   };
 
   beforeEach(() => {
@@ -27,6 +28,7 @@ describe("startAction - Additional Tests", () => {
       deleteAllValidators: vi.fn().mockResolvedValue(undefined),
       createRandomValidators: vi.fn().mockResolvedValue(undefined),
       openFrontend: vi.fn().mockResolvedValue(undefined),
+      setSimulatorLocation: vi.fn().mockResolvedValue(undefined),
       getAiProvidersOptions: vi.fn(() => [
         { name: "Provider A", value: "providerA" },
         { name: "Provider B", value: "providerB" },
@@ -75,7 +77,7 @@ describe("startAction - Additional Tests", () => {
     expect(simulatorService.waitForSimulatorToBeReady).not.toHaveBeenCalled();
   });
 
-  test("handles resetValidators correctly by deleting and creating new validators", async () => {
+  test("handles resetfValidators correctly by deleting and creating new validators", async () => {
     promptSpy.mockResolvedValueOnce({ selectedLlmProviders: ["providerA"] });
     const optionsWithReset: StartActionOptions = { ...defaultOptions, resetValidators: true };
 
