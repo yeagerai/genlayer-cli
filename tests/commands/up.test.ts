@@ -69,7 +69,7 @@ describe("up command", () => {
   test("action is called with default options", async () => {
     program.parse(["node", "test", "up"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main" });
+    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main", location: process.cwd() });
   });
 
   test("action is called with custom options", async () => {
@@ -88,6 +88,7 @@ describe("up command", () => {
       resetValidators: true,
       numValidators: "10",
       branch: "development",
+      location: process.cwd(),
     });
   });
 });
