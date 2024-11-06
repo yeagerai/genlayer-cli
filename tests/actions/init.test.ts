@@ -100,6 +100,32 @@ describe("init action", () => {
     );
   });
 
+  test("if only docker version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+    simServCheckVersionRequirements.mockResolvedValue({
+      docker: mockVersionNumber,
+    });
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(error).toHaveBeenCalledWith(
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`
+    );
+  });
+
+  test("if only node version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+    simServCheckVersionRequirements.mockResolvedValue({
+      node: mockVersionNumber
+    });
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(error).toHaveBeenCalledWith(
+      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
+    );
+  });
+
   test("if reset is not confirmed, abort", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: false });
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
