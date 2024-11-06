@@ -3,7 +3,7 @@ import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import { initAction } from "../../src/commands/general/init";
 
-const defaultActionOptions = { numValidators: 5, branch: "main" };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: process.cwd() };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -45,7 +45,6 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
-    simServRedEnvConfigVariable = vi.spyOn(simulatorService, "readEnvConfigValue");
   });
 
   afterEach(() => {
