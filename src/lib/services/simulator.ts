@@ -19,7 +19,6 @@ import {
 import {
   checkCommand,
   getVersion,
-  getHomeDirectory,
   executeCommand,
   openUrl,
   listDockerContainers,
@@ -34,7 +33,6 @@ import {
   ISimulatorService,
   DownloadSimulatorResultType,
   WaitForSimulatorToBeReadyResultType,
-  InitializeDatabaseResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
 
@@ -43,21 +41,29 @@ function sleep(millliseconds: number): Promise<void> {
 }
 
 export class SimulatorService implements ISimulatorService {
-  public getSimulatorLocation(): string {
-    return path.join(getHomeDirectory(), "genlayer-simulator");
+  public simulatorLocation: string;
+
+  constructor() {
+    this.simulatorLocation = "";
   }
 
-  public readEnvConfigValue(key: string): string {
-    const simulatorLocation = this.getSimulatorLocation();
-    const envFilePath = path.join(simulatorLocation, ".env");
+  public setSimulatorLocation(location: string): void {
+    this.simulatorLocation = location;
+  }
+
+  public getSimulatorLocation(): string {
+    return this.simulatorLocation;
+  }
+
+  private readEnvConfigValue(key: string): string {
+    const envFilePath = path.join(this.simulatorLocation, ".env");
     // Transform the config string to object
     const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
     return envConfig[key];
   }
 
-  public addConfigToEnvFile(newConfig: Record<string, string>): void {
-    const simulatorLocation = this.getSimulatorLocation();
-    const envFilePath = path.join(simulatorLocation, ".env");
+  private addConfigToEnvFile(newConfig: Record<string, string>): void {
+    const envFilePath = path.join(this.simulatorLocation, ".env");
 
     // Create a backup of the original .env file
     fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
@@ -103,6 +109,7 @@ export class SimulatorService implements ISimulatorService {
       }
     }
 
+
     if (requirementsInstalled.docker) {
       try {
         await checkCommand("docker ps", "docker");
@@ -116,8 +123,8 @@ export class SimulatorService implements ISimulatorService {
 
   public async checkVersionRequirements(): Promise<Record<string, string>> {
     const missingVersions = {
-      docker: '',
-      node: '',
+      docker: "",
+      node: "",
     };
 
     try {
@@ -150,14 +157,12 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async downloadSimulator(branch: string = "main"): Promise<DownloadSimulatorResultType> {
-    const simulatorLocation = this.getSimulatorLocation();
-
     try {
-      const gitCommand = `git clone -b ${branch} ${DEFAULT_REPO_GH_URL} ${simulatorLocation}`;
+      const gitCommand = `git clone -b ${branch} ${DEFAULT_REPO_GH_URL} ${this.simulatorLocation}`;
       const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
       await executeCommand(cmdsByPlatform, "git");
     } catch (error: any) {
-      const simulatorLocationExists = fs.existsSync(simulatorLocation);
+      const simulatorLocationExists = fs.existsSync(this.simulatorLocation);
       if (simulatorLocationExists) {
         return {wasInstalled: true};
       }
@@ -167,16 +172,15 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async updateSimulator(branch: string = "main"): Promise<boolean> {
-    const simulatorLocation = this.getSimulatorLocation();
-    const gitCleanCommand = `git -C  "${simulatorLocation}" clean -f`;
+    const gitCleanCommand = `git -C  "${this.simulatorLocation}" clean -f`;
     const cleanCmdsByPlatform = {darwin: gitCleanCommand, win32: gitCleanCommand, linux: gitCleanCommand};
     await executeCommand(cleanCmdsByPlatform, "git");
 
-    const gitFetchCommand = `git -C  "${simulatorLocation}" fetch`;
+    const gitFetchCommand = `git -C  "${this.simulatorLocation}" fetch`;
     const fetchCmdsByPlatform = {darwin: gitFetchCommand, win32: gitFetchCommand, linux: gitFetchCommand};
     await executeCommand(fetchCmdsByPlatform, "git");
 
-    const gitCheckoutCommand = `git -C  "${simulatorLocation}" checkout ${branch}`;
+    const gitCheckoutCommand = `git -C  "${this.simulatorLocation}" checkout ${branch}`;
     const checkoutCmdsByPlatform = {
       darwin: gitCheckoutCommand,
       win32: gitCheckoutCommand,
@@ -184,31 +188,28 @@ export class SimulatorService implements ISimulatorService {
     };
     await executeCommand(checkoutCmdsByPlatform, "git");
 
-    const gitPullCommand = `git -C  "${simulatorLocation}" pull`;
+    const gitPullCommand = `git -C  "${this.simulatorLocation}" pull`;
     const pullCmdsByPlatform = {darwin: gitPullCommand, win32: gitPullCommand, linux: gitPullCommand};
     await executeCommand(pullCmdsByPlatform, "git");
     return true;
   }
 
   public async pullOllamaModel(): Promise<boolean> {
-    const simulatorLocation = this.getSimulatorLocation();
-    const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(simulatorLocation);
+    const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(this.simulatorLocation);
     await executeCommand(cmdsByPlatform);
     return true;
   }
 
   public async configSimulator(newConfig: Record<string, string>): Promise<boolean> {
-    const simulatorLocation = this.getSimulatorLocation();
-    const envExample = path.join(simulatorLocation, ".env.example");
-    const envFilePath = path.join(simulatorLocation, ".env");
+    const envExample = path.join(this.simulatorLocation, ".env.example");
+    const envFilePath = path.join(this.simulatorLocation, ".env");
     fs.copyFileSync(envExample, envFilePath);
     this.addConfigToEnvFile(newConfig);
     return true;
   }
 
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
-    const simulatorLocation = this.getSimulatorLocation();
-    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorLocation);
+    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.simulatorLocation);
     return executeCommand(commandsByPlatform);
   }
 
@@ -220,7 +221,7 @@ export class SimulatorService implements ISimulatorService {
       const response = await rpcClient.request({method: "ping", params: []});
 
       //Compatibility with current simulator version
-      if (response && (response.result === "OK" || response.result.status === "OK" || response.result.data.status === "OK")) {
+      if (response && (response.result.status === "OK" || response.result.data.status === "OK")) {
         return {initialized: true};
       }
       if (retries > 0) {

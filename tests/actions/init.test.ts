@@ -2,8 +2,12 @@ import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import { initAction } from "../../src/commands/general/init";
+import { tmpdir } from "os";
+import {mkdtempSync} from "fs";
+import {join} from "path";
 
-const defaultActionOptions = { numValidators: 5, branch: "main" };
+const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -23,7 +27,7 @@ describe("init action", () => {
   let simServDeleteAllValidators: ReturnType<any>;
   let simServCreateRandomValidators: ReturnType<any>;
   let simServOpenFrontend: ReturnType<any>;
-  let simServRedEnvConfigVariable: ReturnType<any>;
+  let simGetSimulatorUrl: ReturnType<any>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -45,7 +49,7 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
-    simServRedEnvConfigVariable = vi.spyOn(simulatorService, "readEnvConfigValue");
+    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
   });
 
   afterEach(() => {
@@ -100,6 +104,32 @@ describe("init action", () => {
     );
   });
 
+  test("if only docker version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+    simServCheckVersionRequirements.mockResolvedValue({
+      docker: mockVersionNumber,
+    });
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(error).toHaveBeenCalledWith(
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`
+    );
+  });
+
+  test("if only node version is too low, then the execution fails", async () => {
+    const mockVersionNumber = "99.9.9";
+    simServCheckVersionRequirements.mockResolvedValue({
+      node: mockVersionNumber
+    });
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(error).toHaveBeenCalledWith(
+      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
+    );
+  });
+
   test("if reset is not confirmed, abort", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: false });
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
@@ -137,7 +167,7 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
-    simServRedEnvConfigVariable.mockReturnValue("8080");
+    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
 
     await initAction(defaultActionOptions, simulatorService);
 
