@@ -6,10 +6,14 @@ export interface StartActionOptions {
   resetValidators: string;
   numValidators: number;
   branch: string;
+  location: string;
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetValidators, numValidators, branch} = options;
+  const {resetValidators, numValidators, branch, location} = options;
+  // Update simulator location with user input
+  simulatorService.setSimulatorLocation(location);
+
 
   const restartValidatorsHintText = resetValidators
     ? `creating new ${numValidators} random validators`
@@ -96,7 +100,8 @@ export async function startAction(options: StartActionOptions, simulatorService:
     `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
   );
   try {
-    simulatorService.openFrontend();
+    await simulatorService.openFrontend();
+
   } catch (error) {
     console.error(error);
   }
