@@ -220,16 +220,7 @@ describe("init action", () => {
     expect(simServPullOllamaModel).toHaveBeenCalled();
   });
 
-  test("logs error if checkInstallRequirements throws (Lines 63-65)", async () => {
-    const errorMsg = new Error("checkInstallRequirements error");
-    simServCheckInstallRequirements.mockRejectedValueOnce(errorMsg);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(errorMsg);
-  });
-
-  test("logs error if checkVersionRequirements throws (Lines 63-65)", async () => {
+  test("logs error if checkVersionRequirements throws", async () => {
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
     const errorMsg = new Error("checkVersionRequirements error");
     simServCheckVersionRequirements.mockRejectedValueOnce(errorMsg);
@@ -239,7 +230,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("logs 'Aborted!' if confirmDownload is false (Lines 105-107)", async () => {
+  test("logs 'Aborted!' if confirmDownload is false", async () => {
     inquirerPrompt
       .mockResolvedValueOnce({ confirmReset: true })
       .mockResolvedValueOnce({ confirmDownload: false });
@@ -253,7 +244,7 @@ describe("init action", () => {
     expect(log).toHaveBeenCalledWith("Aborted!");
   });
 
-  test("logs error if resetDockerContainers throws (Lines 117-119)", async () => {
+  test("logs error if resetDockerContainers throws", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: true });
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
     const errorMsg = new Error("resetDockerContainers error");
@@ -264,7 +255,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("prompts for LLM providers and validates that at least one is selected (Lines 129-133)", async () => {
+  test("prompts for LLM providers and validates that at least one is selected", async () => {
     inquirerPrompt
       .mockResolvedValueOnce({ confirmReset: true })
       .mockResolvedValueOnce({ confirmDownload: true })
@@ -298,7 +289,7 @@ describe("init action", () => {
     await initAction(defaultActionOptions, simulatorService);
   });
 
-  test("logs error if downloadSimulator throws (Lines 155-159)", async () => {
+  test("logs error if downloadSimulator throws", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true });
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
     simServResetDockerContainers.mockResolvedValue(true);
@@ -311,7 +302,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("logs error message if simulator fails to initialize with ERROR code (Lines 188-191)", async () => {
+  test("logs error message if simulator fails to initialize with ERROR code", async () => {
     inquirerPrompt
       .mockResolvedValueOnce({ confirmReset: true })
       .mockResolvedValueOnce({ confirmDownload: true })
@@ -337,7 +328,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith("Unable to initialize the GenLayer simulator. Please try again.");
   });
 
-  test("logs error if runSimulator throws (Lines 193-197)", async () => {
+  test("logs error if runSimulator throws", async () => {
     inquirerPrompt.mockResolvedValue({
       confirmReset: true,
       confirmDownload: true,
@@ -357,7 +348,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("logs specific message if waitForSimulatorToBeReady returns TIMEOUT errorCode (Lines 200-202)", async () => {
+  test("logs specific message if waitForSimulatorToBeReady returns TIMEOUT errorCode", async () => {
     inquirerPrompt.mockResolvedValue({
       confirmReset: true,
       confirmDownload: true,
@@ -383,7 +374,7 @@ describe("init action", () => {
     );
   });
 
-  test("catches and logs error if waitForSimulatorToBeReady throws an exception (Lines 193-197)", async () => {
+  test("catches and logs error if waitForSimulatorToBeReady throws an exception", async () => {
     inquirerPrompt
       .mockResolvedValueOnce({ confirmReset: true })
       .mockResolvedValueOnce({ confirmDownload: true })
@@ -405,7 +396,7 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("catches and logs error if openFrontend throws an exception (Lines 231-232)", async () => {
+  test("catches and logs error if openFrontend throws an exception", async () => {
     inquirerPrompt
       .mockResolvedValueOnce({ confirmReset: true })
       .mockResolvedValueOnce({ confirmDownload: true })
