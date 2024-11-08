@@ -1,7 +1,11 @@
 
 
+## 0.1.0 (2024-11-08)
 
 
+### Features
+
+* group all non major updates ([#113](https://github.com/yeagerai/genlayer-cli/issues/113)) ([c498369](https://github.com/yeagerai/genlayer-cli/commit/c4983698ac4120e5f147bf3d529da2210d178770))
 
 ## 0.0.34 (2024-10-22)
 
