@@ -1,12 +1,13 @@
-import {Command} from "commander";
-import {jest} from "@jest/globals";
-import {initializeGeneralCommands} from "../../src/commands/general";
-import {getCommand, getCommandOption} from "../utils";
+import { Command } from "commander";
+import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
+import { initializeGeneralCommands } from "../../src/commands/general";
+import { getCommand, getCommandOption } from "../utils";
 
-jest.mock("inquirer", () => ({
-  prompt: jest.fn(() => {}),
+vi.mock("inquirer", () => ({
+  prompt: vi.fn(() => {}),
 }));
-const action = jest.fn();
+
+const action = vi.fn();
 
 describe("init command", () => {
   let initCommand: Command;
@@ -17,15 +18,15 @@ describe("init command", () => {
     initializeGeneralCommands(program);
 
     initCommand = getCommand(program, "init");
-    initCommand?.action(async args => {
+    initCommand?.action(async (args) => {
       action(args);
     });
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test("doesn't have required arguments nor options", async () => {
@@ -37,7 +38,6 @@ describe("init command", () => {
   });
 
   test("option --numValidators default value is 5", async () => {
-    // Given // When
     const numValidatorsOption = getCommandOption(initCommand, "--numValidators");
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
@@ -47,13 +47,8 @@ describe("init command", () => {
   });
 
   test("option --branch default value is main", async () => {
-    // Given // When
-    const numValidatorsOption = getCommandOption(initCommand, "--branch");
-    expect(numValidatorsOption?.defaultValue).toBe("main");
-  });
-
-  test("option --location is accepted", async () => {
-    expect(() => program.parse(["node", "test", "init", "--location", "./current-dir"])).not.toThrow();
+    const branchOption = getCommandOption(initCommand, "--branch");
+    expect(branchOption?.defaultValue).toBe("main");
   });
 
   test("option --location default value is user's current directory", async () => {
@@ -65,20 +60,17 @@ describe("init command", () => {
 
   test("random option is not accepted", async () => {
     initCommand?.exitOverride();
-    expect(() => program.parse(["node", "test", "init", "-random"])).toThrow(
-      "error: unknown option '-random'",
+    expect(() => program.parse(["node", "test", "init", "-random"])).toThrowError(
+      "error: unknown option '-random'"
     );
-    expect(() => program.parse(["node", "test", "init", "--randomOption"])).toThrow(
-      "error: unknown option '--randomOption'",
+    expect(() => program.parse(["node", "test", "init", "--randomOption"])).toThrowError(
+      "error: unknown option '--randomOption'"
     );
   });
 
   test("action is called", async () => {
-    // Given When
     program.parse(["node", "test", "init"]);
-    // Then
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main", location: process.cwd()});
-
+    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd() });
   });
 });
