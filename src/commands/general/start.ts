@@ -4,7 +4,7 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 
 export interface StartActionOptions {
   resetValidators: boolean;
-  numValidators: string;
+  numValidators: number;
   branch: string;
   location: string;
 }
