@@ -221,8 +221,8 @@ export class SimulatorService implements ISimulatorService {
       const response = await rpcClient.request({method: "ping", params: []});
 
       //Compatibility with current simulator version
-      if (response && (response.result.status === "OK" || response.result.data.status === "OK")) {
-        return {initialized: true};
+      if (response?.result?.status === "OK" || response?.result?.data?.status === "OK") {
+        return { initialized: true };
       }
       if (retries > 0) {
         await sleep(STARTING_TIMEOUT_WAIT_CYLCE);
