@@ -104,15 +104,22 @@ describe("SimulatorService - Basic Tests", () => {
     expect(fs.existsSync).toHaveBeenCalled();
   });
 
-  test("should return initialized true when simulator responds with OK", async () => {
+  test("should return initialized true when simulator responds with OK (result.status = OK)", async () => {
     vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: {status: 'OK'} });
     const result = await simulatorService.waitForSimulatorToBeReady(STARTING_TIMEOUT_ATTEMPTS);
     expect(result).toEqual({ initialized: true });
     expect(rpcClient.request).toHaveBeenCalledWith({ method: "ping", params: [] });
   });
 
-  test("should return initialized true when simulator responds with OK (different json structure)", async () => {
+  test("should return initialized true when simulator responds with OK (result.data.status = OK)", async () => {
     vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: {data: {status: 'OK'}} });
+    const result = await simulatorService.waitForSimulatorToBeReady(STARTING_TIMEOUT_ATTEMPTS);
+    expect(result).toEqual({ initialized: true });
+    expect(rpcClient.request).toHaveBeenCalledWith({ method: "ping", params: [] });
+  });
+
+  test("should return initialized true when simulator responds with OK (result = OK)", async () => {
+    vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: 'OK' });
     const result = await simulatorService.waitForSimulatorToBeReady(STARTING_TIMEOUT_ATTEMPTS);
     expect(result).toEqual({ initialized: true });
     expect(rpcClient.request).toHaveBeenCalledWith({ method: "ping", params: [] });
