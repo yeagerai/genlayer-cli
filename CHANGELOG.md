@@ -1,5 +1,12 @@
 
 
+## 0.1.4 (2024-11-12)
+
+
+### Bug Fixes
+
+* changing linux command to fix display issue and fixing waiting simulator issue ([#127](https://github.com/yeagerai/genlayer-cli/issues/127)) ([721eebf](https://github.com/yeagerai/genlayer-cli/commit/721eebfea758a0897f23afd60b5767c59d593eb1))
+
 ## 0.1.3 (2024-11-08)
 
 ## 0.1.2 (2024-11-08)
