@@ -71,6 +71,6 @@ describe("init command", () => {
   test("action is called", async () => {
     program.parse(["node", "test", "init"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd() });
+    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: false });
   });
 });

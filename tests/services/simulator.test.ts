@@ -155,7 +155,7 @@ describe("SimulatorService - Basic Tests", () => {
       stderr: "",
     });
     const result = await simulatorService.runSimulator();
-    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator");
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator", '');
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });

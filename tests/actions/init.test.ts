@@ -49,6 +49,7 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
+    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
   });
 
   afterEach(() => {
