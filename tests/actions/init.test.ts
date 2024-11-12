@@ -7,7 +7,7 @@ import {mkdtempSync} from "fs";
 import {join} from "path";
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -49,7 +49,6 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
-    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
   });
 
   afterEach(() => {

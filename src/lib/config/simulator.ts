@@ -1,10 +1,10 @@
 export const DEFAULT_JSON_RPC_URL = "http://localhost:4000/api";
 export const DEFAULT_REPO_GH_URL = "https://github.com/yeagerai/genlayer-simulator.git";
 export const DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX = "genlayer-simulator-";
-export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
-  darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker compose build && docker compose up"'`,
-  win32: `start cmd.exe /c "cd /d ${simulatorLocation} && docker compose build && docker compose up && pause"`,
-  linux: `nohup bash -c 'cd ${simulatorLocation} && docker compose build && docker compose up -d'`,
+export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string, profile: string) => ({
+  darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker compose build && docker compose ${profile} up"'`,
+  win32: `start cmd.exe /c "cd /d ${simulatorLocation} && docker compose build && docker compose ${profile} up && pause"`,
+  linux: `nohup bash -c 'cd ${simulatorLocation} && docker compose build && docker compose ${profile} up -d'`,
 });
 export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
   darwin: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,

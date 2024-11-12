@@ -6,7 +6,7 @@ export interface InitActionOptions {
   numValidators: number;
   branch: string;
   location: string;
-
+  headless: boolean;
 }
 
 function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
@@ -38,9 +38,8 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 }
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
-  // Update simulator location with user input
   simulatorService.setSimulatorLocation(options.location);
-
+  simulatorService.setProfile(options.headless);
 
   // Check if requirements are installed
   try {
