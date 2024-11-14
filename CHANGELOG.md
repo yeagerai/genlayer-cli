@@ -1,5 +1,12 @@
 
 
+## 0.2.0 (2024-11-14)
+
+
+### Features
+
+* adding headless option to cli ([#128](https://github.com/yeagerai/genlayer-cli/issues/128)) ([d9bfbc2](https://github.com/yeagerai/genlayer-cli/commit/d9bfbc2dc2bcb8a4673f419d868f2c41d8396bd8))
+
 ## 0.1.4 (2024-11-12)
 
 

@@ -7,7 +7,7 @@ import {mkdtempSync} from "fs";
 import {join} from "path";
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
 
 describe("init action", () => {
   let error: ReturnType<any>;

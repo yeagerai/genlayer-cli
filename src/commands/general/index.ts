@@ -12,6 +12,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--branch <branch>", "Branch", "main")
     .option("--location <folder>", "Location where it will be installed", process.cwd())
+    .option("--headless", "Headless mode", false)
     .action((options: InitActionOptions) => initAction(options, simulatorService));
 
   program
@@ -21,6 +22,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--branch <branch>", "Branch", "main")
     .option("--location <folder>", "Location where it will be installed", process.cwd())
+    .option("--headless", "Headless mode", false)
     .action((options: StartActionOptions) => startAction(options, simulatorService));
 
   return program;
