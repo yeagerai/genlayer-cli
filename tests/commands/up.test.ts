@@ -2,6 +2,9 @@ import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
+import simulatorService from  '../../src/lib/services/simulator'
+
+const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 
 const action = vi.fn();
 
@@ -93,5 +96,6 @@ describe("up command", () => {
       location: process.cwd(),
       headless: true,
     });
+    expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });

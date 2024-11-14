@@ -2,6 +2,9 @@ import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
+import simulatorService from  '../../src/lib/services/simulator'
+
+const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 
 vi.mock("inquirer", () => ({
   prompt: vi.fn(() => {}),
@@ -78,5 +81,6 @@ describe("init command", () => {
     program.parse(["node", "test", "init", "--headless"]);
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: true });
+    expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });
