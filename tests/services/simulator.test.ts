@@ -23,6 +23,7 @@ import {
 } from "../../src/lib/config/simulator";
 import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
+import {getCommandOption} from "@@/tests/utils";
 
 
 vi.mock("fs");
@@ -156,6 +157,19 @@ describe("SimulatorService - Basic Tests", () => {
     });
     const result = await simulatorService.runSimulator();
     const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator", '');
+    expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
+    expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
+  });
+
+  test("should execute the correct run simulator command based on headless option", async () => {
+    (executeCommand as Mock).mockResolvedValue({
+      stdout: "Simulator started",
+      stderr: "",
+    });
+    simulatorService.setComposeOptions(true)
+    const commandOption = simulatorService.getComposeOptions();
+    const result = await simulatorService.runSimulator();
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator", commandOption);
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });

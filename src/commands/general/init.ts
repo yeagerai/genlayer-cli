@@ -39,7 +39,7 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setSimulatorLocation(options.location);
-  simulatorService.setProfile(options.headless);
+  simulatorService.setComposeOptions(options.headless);
 
   // Check if requirements are installed
   try {
@@ -230,8 +230,9 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
   );
   try {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    simulatorService.openFrontend();
+    if(!options.headless){
+      await simulatorService.openFrontend();
+    }
   } catch (error) {
     console.error(error);
   }

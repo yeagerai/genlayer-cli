@@ -13,7 +13,7 @@ export interface StartActionOptions {
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
   const {resetValidators, numValidators, branch, location, headless} = options;
   // Update simulator location with user input
-  simulatorService.setProfile(headless);
+  simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);
 
 

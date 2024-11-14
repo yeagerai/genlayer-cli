@@ -73,4 +73,10 @@ describe("init command", () => {
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: false });
   });
+
+  test("option --headless is accepted", async () => {
+    program.parse(["node", "test", "init", "--headless"]);
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: true });
+  });
 });
