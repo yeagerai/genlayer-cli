@@ -34,6 +34,7 @@
   "homepage": "https://github.com/yeagerai/genlayer-cli#readme",
   "devDependencies": {
     "@release-it/conventional-changelog": "^8.0.1",
+    "@types/dockerode": "^3.3.31",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.12.7",
     "@types/sinon": "^17.0.3",
@@ -55,6 +56,7 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
+    "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
     "inquirer": "^9.2.19",
     "node-fetch": "^2.7.0",

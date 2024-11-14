@@ -1,3 +1,4 @@
+import Docker from "dockerode"
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
@@ -21,11 +22,6 @@ import {
   getVersion,
   executeCommand,
   openUrl,
-  listDockerContainers,
-  stopDockerContainer,
-  removeDockerContainer,
-  listDockerImages,
-  removeDockerImage,
 } from "../clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
@@ -35,6 +31,8 @@ import {
   WaitForSimulatorToBeReadyResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
+
+const docker = new Docker();
 
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
@@ -195,8 +193,10 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async pullOllamaModel(): Promise<boolean> {
-    const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(this.simulatorLocation);
-    await executeCommand(cmdsByPlatform);
+    const ollamaContainer = docker.getContainer("ollama");
+    await ollamaContainer.exec({
+      Cmd: ["ollama", "pull", "llama3"],
+    });
     return true;
   }
 
@@ -277,30 +277,33 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async resetDockerContainers(): Promise<boolean> {
-    const containers = await listDockerContainers();
-    const genlayerContainers = containers.filter((container: string) =>
-      container.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    const containers = await docker.listContainers({ all: true });
+    const genlayerContainers = containers.filter(container =>
+      container.Names.some(name =>
+        name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)
+      )
     );
-    const containersStopPromises = genlayerContainers.map((container: string) =>
-      stopDockerContainer(container),
-    );
-    await Promise.all(containersStopPromises);
 
-    const containersRemovePromises = genlayerContainers.map((container: string) =>
-      removeDockerContainer(container),
-    );
-    await Promise.all(containersRemovePromises);
-
+    for (const containerInfo of genlayerContainers) {
+      const container = docker.getContainer(containerInfo.Id);
+      if (containerInfo.State === "running") {
+        await container.stop();
+      }
+      await container.remove();
+    }
     return true;
   }
 
   public async resetDockerImages(): Promise<boolean> {
-    const images = await listDockerImages();
-    const genlayerImages = images.filter((image: string) =>
-      image.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    const images = await docker.listImages();
+    const genlayerImages = images.filter(image =>
+      image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX))
     );
-    const imagesRemovePromises = genlayerImages.map((image: string) => removeDockerImage(image));
-    await Promise.all(imagesRemovePromises);
+
+    for (const imageInfo of genlayerImages) {
+      const image = docker.getImage(imageInfo.Id);
+      await image.remove({force: true});
+    }
 
     return true;
   }
