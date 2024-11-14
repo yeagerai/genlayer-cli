@@ -3,6 +3,8 @@ import {AiProviders} from "../config/simulator";
 export interface ISimulatorService {
   setSimulatorLocation(location: string): void;
   getSimulatorLocation(): string;
+  setComposeOptions(headless: boolean): void;
+  getComposeOptions(): string;
   checkInstallRequirements(): Promise<Record<string, boolean>>;
   checkVersionRequirements(): Promise<Record<string, string>>;
   downloadSimulator(branch?: string): Promise<DownloadSimulatorResultType>;

@@ -41,10 +41,12 @@ function sleep(millliseconds: number): Promise<void> {
 }
 
 export class SimulatorService implements ISimulatorService {
+  private composeOptions: string
   public simulatorLocation: string;
 
   constructor() {
     this.simulatorLocation = "";
+    this.composeOptions = "";
   }
 
   public setSimulatorLocation(location: string): void {
@@ -53,6 +55,14 @@ export class SimulatorService implements ISimulatorService {
 
   public getSimulatorLocation(): string {
     return this.simulatorLocation;
+  }
+
+  public setComposeOptions(headless: boolean): void {
+    this.composeOptions = headless ? '--scale frontend=0' : '';
+  }
+
+  public getComposeOptions(): string {
+    return this.composeOptions;
   }
 
   private readEnvConfigValue(key: string): string {
@@ -209,7 +219,7 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
-    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.simulatorLocation);
+    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.simulatorLocation, this.getComposeOptions());
     return executeCommand(commandsByPlatform);
   }
 

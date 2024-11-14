@@ -2,6 +2,9 @@ import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
+import simulatorService from  '../../src/lib/services/simulator'
+
+const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 
 const action = vi.fn();
 
@@ -69,7 +72,7 @@ describe("up command", () => {
   test("action is called with default options", async () => {
     program.parse(["node", "test", "up"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main", location: process.cwd() });
+    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main", location: process.cwd(), headless: false });
   });
 
   test("action is called with custom options", async () => {
@@ -82,6 +85,8 @@ describe("up command", () => {
       "10",
       "--branch",
       "development",
+      "--headless",
+      "true"
     ]);
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({
@@ -89,6 +94,8 @@ describe("up command", () => {
       numValidators: "10",
       branch: "development",
       location: process.cwd(),
+      headless: true,
     });
+    expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });

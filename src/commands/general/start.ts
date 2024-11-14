@@ -7,11 +7,13 @@ export interface StartActionOptions {
   numValidators: number;
   branch: string;
   location: string;
+  headless: boolean;
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetValidators, numValidators, branch, location} = options;
+  const {resetValidators, numValidators, branch, location, headless} = options;
   // Update simulator location with user input
+  simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);
 
 
@@ -100,7 +102,9 @@ export async function startAction(options: StartActionOptions, simulatorService:
     `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
   );
   try {
-    await simulatorService.openFrontend();
+    if(!headless) {
+      await simulatorService.openFrontend();
+    }
 
   } catch (error) {
     console.error(error);

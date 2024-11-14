@@ -13,7 +13,8 @@ describe("startAction - Additional Tests", () => {
     resetValidators: false,
     numValidators: 5,
     branch: "main",
-    location: ''
+    location: '',
+    headless: false,
   };
 
   beforeEach(() => {
@@ -29,6 +30,7 @@ describe("startAction - Additional Tests", () => {
       createRandomValidators: vi.fn().mockResolvedValue(undefined),
       openFrontend: vi.fn().mockResolvedValue(undefined),
       setSimulatorLocation: vi.fn().mockResolvedValue(undefined),
+      setComposeOptions: vi.fn(),
       getAiProvidersOptions: vi.fn(() => [
         { name: "Provider A", value: "providerA" },
         { name: "Provider B", value: "providerB" },
