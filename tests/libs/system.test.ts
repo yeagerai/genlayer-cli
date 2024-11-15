@@ -4,12 +4,7 @@ import {
   checkCommand,
   executeCommand,
   openUrl,
-  getVersion,
-  listDockerContainers,
-  listDockerImages,
-  stopDockerContainer,
-  removeDockerContainer,
-  removeDockerImage
+  getVersion
 } from "../../src/lib/clients/system";
 import { MissingRequirementError } from "../../src/lib/errors/missingRequirement";
 import open from "open";
@@ -58,48 +53,6 @@ describe("System Functions - Success Paths", () => {
       "echo");
     expect(result.stdout).toBe("echo linux");
     platformSpy.mockRestore();
-  });
-
-  test("listDockerContainers retrieves a list of containers", async () => {
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.resolve({
-      stdout: "container1\ncontainer2",
-      stderr: ""
-    }));
-    const containers = await listDockerContainers();
-    expect(containers).toEqual(["container1", "container2"]);
-  });
-
-  test("listDockerImages retrieves a list of images", async () => {
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.resolve({
-      stdout: "image1\nimage2",
-      stderr: ""
-    }));
-    const images = await listDockerImages();
-    expect(images).toEqual(["image1", "image2"]);
-  });
-
-  test("stopDockerContainer stops a container", async () => {
-    const containerId = "container123";
-    const execMock = vi.fn().mockResolvedValue({ stdout: "", stderr: "" });
-    vi.mocked(util.promisify).mockReturnValue(execMock);
-    await stopDockerContainer(containerId);
-    expect(execMock).toHaveBeenCalledWith(`docker stop ${containerId}`);
-  });
-
-  test("removeDockerContainer removes a container", async () => {
-    const containerId = "container123";
-    const execMock = vi.fn().mockResolvedValue({ stdout: "", stderr: "" });
-    vi.mocked(util.promisify).mockReturnValue(execMock);
-    await removeDockerContainer(containerId);
-    expect(execMock).toHaveBeenCalledWith(`docker rm ${containerId}`);
-  });
-
-  test("removeDockerImage removes an image", async () => {
-    const imageId = "image123";
-    const execMock = vi.fn().mockResolvedValue({ stdout: "", stderr: "" });
-    vi.mocked(util.promisify).mockReturnValue(execMock);
-    await removeDockerImage(imageId);
-    expect(execMock).toHaveBeenCalledWith(`docker rmi ${imageId}`);
   });
 });
 
@@ -151,34 +104,6 @@ describe("System Functions - Error Paths", () => {
         darwin: "echo hello",
       },
       "echo")).rejects.toThrow("Execution failed");
-  });
-
-  test("stopDockerContainer throws an error if stopping fails", async () => {
-    const containerId = "container123";
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject(new Error("")));
-    await expect(stopDockerContainer(containerId)).rejects.toThrow("Error stopping Docker container container123");
-  });
-
-  test("removeDockerContainer throws an error if removal fails", async () => {
-    const containerId = "container123";
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject(new Error("")));
-    await expect(removeDockerContainer(containerId)).rejects.toThrow("Error removing container container123.");
-  });
-
-  test("removeDockerImage throws an error if image removal fails", async () => {
-    const imageId = "image123";
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject(new Error("")));
-    await expect(removeDockerImage(imageId)).rejects.toThrow("Error removing image image123.");
-  });
-
-  test("throws error when command fails", async () => {
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject(new Error("")));
-    await expect(listDockerContainers()).rejects.toThrow("Error listing Docker containers.");
-  });
-
-  test("throws error when command fails", async () => {
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject(new Error("")));
-    await expect(listDockerImages()).rejects.toThrow("Error listing Docker images.");
   });
 
   test("throws error when command execution fails", async () => {

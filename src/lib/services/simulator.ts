@@ -1,3 +1,4 @@
+import Docker from "dockerode"
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
@@ -9,7 +10,6 @@ import {
   DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   DEFAULT_RUN_SIMULATOR_COMMAND,
   DEFAULT_RUN_DOCKER_COMMAND,
-  DEFAULT_PULL_OLLAMA_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
   STARTING_TIMEOUT_ATTEMPTS,
   AI_PROVIDERS_CONFIG,
@@ -21,11 +21,6 @@ import {
   getVersion,
   executeCommand,
   openUrl,
-  listDockerContainers,
-  stopDockerContainer,
-  removeDockerContainer,
-  listDockerImages,
-  removeDockerImage,
 } from "../clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
@@ -36,17 +31,20 @@ import {
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
 
+
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
 }
 
 export class SimulatorService implements ISimulatorService {
   private composeOptions: string
+  private docker: Docker;
   public simulatorLocation: string;
 
   constructor() {
     this.simulatorLocation = "";
     this.composeOptions = "";
+    this.docker = new Docker();
   }
 
   public setSimulatorLocation(location: string): void {
@@ -122,7 +120,7 @@ export class SimulatorService implements ISimulatorService {
 
     if (requirementsInstalled.docker) {
       try {
-        await checkCommand("docker ps", "docker");
+        await this.docker.ping()
       } catch (error: any) {
         await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
       }
@@ -205,8 +203,10 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async pullOllamaModel(): Promise<boolean> {
-    const cmdsByPlatform = DEFAULT_PULL_OLLAMA_COMMAND(this.simulatorLocation);
-    await executeCommand(cmdsByPlatform);
+    const ollamaContainer = this.docker.getContainer("ollama");
+    await ollamaContainer.exec({
+      Cmd: ["ollama", "pull", "llama3"],
+    });
     return true;
   }
 
@@ -287,30 +287,33 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async resetDockerContainers(): Promise<boolean> {
-    const containers = await listDockerContainers();
-    const genlayerContainers = containers.filter((container: string) =>
-      container.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    const containers = await this.docker.listContainers({ all: true });
+    const genlayerContainers = containers.filter(container =>
+      container.Names.some(name =>
+        name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)
+      )
     );
-    const containersStopPromises = genlayerContainers.map((container: string) =>
-      stopDockerContainer(container),
-    );
-    await Promise.all(containersStopPromises);
 
-    const containersRemovePromises = genlayerContainers.map((container: string) =>
-      removeDockerContainer(container),
-    );
-    await Promise.all(containersRemovePromises);
-
+    for (const containerInfo of genlayerContainers) {
+      const container = this.docker.getContainer(containerInfo.Id);
+      if (containerInfo.State === "running") {
+        await container.stop();
+      }
+      await container.remove();
+    }
     return true;
   }
 
   public async resetDockerImages(): Promise<boolean> {
-    const images = await listDockerImages();
-    const genlayerImages = images.filter((image: string) =>
-      image.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX),
+    const images = await this.docker.listImages();
+    const genlayerImages = images.filter(image =>
+      image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX))
     );
-    const imagesRemovePromises = genlayerImages.map((image: string) => removeDockerImage(image));
-    await Promise.all(imagesRemovePromises);
+
+    for (const imageInfo of genlayerImages) {
+      const image = this.docker.getImage(imageInfo.Id);
+      await image.remove({force: true});
+    }
 
     return true;
   }

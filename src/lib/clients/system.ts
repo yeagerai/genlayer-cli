@@ -1,5 +1,5 @@
 import util from "node:util";
-import {ChildProcess, PromiseWithChild, exec} from "child_process";
+import {ChildProcess, exec} from "child_process";
 import open from "open";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
@@ -67,48 +67,4 @@ export async function getVersion(toolName: string): Promise<string> {
   }
 
   return "";
-}
-
-export async function listDockerContainers(): Promise<string[]> {
-  try {
-    const dockerResponse = await util.promisify(exec)("docker ps -a --format '{{.Names}}'");
-    const dockerContainers = dockerResponse.stdout.split("\n");
-    return dockerContainers;
-  } catch (error) {
-    throw new Error("Error listing Docker containers.");
-  }
-}
-
-export async function listDockerImages(): Promise<string[]> {
-  try {
-    const dockerResponse = await util.promisify(exec)("docker images --format '{{.Repository}}'");
-    const dockerImages = dockerResponse.stdout.split("\n");
-    return dockerImages;
-  } catch (error) {
-    throw new Error("Error listing Docker images.");
-  }
-}
-
-export async function stopDockerContainer(containerName: string): Promise<void> {
-  try {
-    await util.promisify(exec)(`docker stop ${containerName}`);
-  } catch (error) {
-    throw new Error(`Error stopping Docker container ${containerName}.`);
-  }
-}
-
-export async function removeDockerContainer(containerName: string) {
-  try {
-    await util.promisify(exec)(`docker rm ${containerName}`);
-  } catch (error) {
-    throw new Error(`Error removing container ${containerName}.`);
-  }
-}
-
-export async function removeDockerImage(imageName: string) {
-  try {
-    await util.promisify(exec)(`docker rmi ${imageName}`);
-  } catch (error) {
-    throw new Error(`Error removing image ${imageName}.`);
-  }
 }

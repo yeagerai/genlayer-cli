@@ -59,6 +59,20 @@ describe("startAction - Additional Tests", () => {
     expect(simulatorService.openFrontend).toHaveBeenCalled();
   });
 
+  test("runs successfully with default options and keeps existing validators (headless)", async () => {
+    await startAction({...defaultOptions, headless: true}, simulatorService);
+
+    expect(simulatorService.updateSimulator).toHaveBeenCalledWith("main");
+    expect(simulatorService.runSimulator).toHaveBeenCalled();
+    expect(simulatorService.waitForSimulatorToBeReady).toHaveBeenCalled();
+
+    expect(logSpy).toHaveBeenCalledWith("Starting GenLayer simulator keeping the existing validators");
+    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Simulator...");
+    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Simulator...");
+    expect(logSpy).toHaveBeenCalledWith("Simulator is running!");
+    expect(logSpy).toHaveBeenCalledWith("GenLayer simulator initialized successfully! ");
+  });
+
   test("logs error and stops if updateSimulator fails", async () => {
     const errorMsg = new Error("updateSimulator error");
     (simulatorService.updateSimulator as Mock).mockRejectedValueOnce(errorMsg);

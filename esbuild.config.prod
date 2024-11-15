@@ -10,6 +10,7 @@ module.exports = {
     banner: {
       js: "const _importMetaUrl=require('url').pathToFileURL(__filename)",
     },
+    external: ['ssh2'],
   },
   watch: false,
 };
