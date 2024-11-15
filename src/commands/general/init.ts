@@ -226,9 +226,9 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   }
 
   // Simulator ready
-  console.log(
-    `GenLayer simulator initialized successfully! Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`,
-  );
+  let successMessage = "GenLayer simulator initialized successfully! "
+  successMessage += options.headless ? '' :  `Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`;
+  console.log(successMessage);
   try {
     if(!options.headless){
       await simulatorService.openFrontend();

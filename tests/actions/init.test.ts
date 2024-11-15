@@ -1,10 +1,14 @@
-import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
+import {vi, describe, beforeEach, afterEach, test, expect, Mock} from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import { initAction } from "../../src/commands/general/init";
 import { tmpdir } from "os";
 import {mkdtempSync} from "fs";
 import {join} from "path";
+import Docker from "dockerode";
+
+
+vi.mock("dockerode");
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
 const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
@@ -32,6 +36,8 @@ describe("init action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    vi.mocked(Docker.prototype.ping).mockResolvedValueOnce({});
+
     error = vi.spyOn(console, "error").mockImplementation(() => {});
     log = vi.spyOn(console, "log").mockImplementation(() => {});
     inquirerPrompt = vi.spyOn(inquirer, "prompt");
@@ -50,6 +56,11 @@ describe("init action", () => {
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
     simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
+
+    simServCheckVersionRequirements.mockResolvedValue({
+      node: '',
+      docker: '',
+    });
   });
 
   afterEach(() => {
@@ -168,6 +179,8 @@ describe("init action", () => {
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
     simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -177,9 +190,42 @@ describe("init action", () => {
     );
   });
 
+  test("should open the frontend if everything went well (headless mode)", async () => {
+    inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
+      confirmDownload: true,
+      selectedLlmProviders: ["openai", "heuristai"],
+      openai: "API_KEY1",
+      heuristai: "API_KEY2",
+    });
+    simServgetAiProvidersOptions.mockReturnValue([
+      { name: "OpenAI", value: "openai" },
+      { name: "Heurist", value: "heuristai" },
+    ]);
+    simServConfigSimulator.mockResolvedValue(true);
+    simServRunSimulator.mockResolvedValue(true);
+    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServPullOllamaModel.mockResolvedValue(true);
+    simServDeleteAllValidators.mockResolvedValue(true);
+    simServCreateRandomValidators.mockResolvedValue(true);
+    simServOpenFrontend.mockResolvedValue(true);
+    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
+
+    await initAction({...defaultActionOptions, headless: true}, simulatorService);
+
+    expect(log).toHaveBeenCalledWith(
+      `GenLayer simulator initialized successfully! `
+    );
+  });
+
+
   test("if configSimulator fails, then the execution aborts", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
     simServConfigSimulator.mockRejectedValue(new Error("Error"));
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -189,6 +235,8 @@ describe("init action", () => {
   test("if runSimulator fails, then the execution aborts", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
     simServRunSimulator.mockRejectedValue(new Error("Error"));
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -214,6 +262,8 @@ describe("init action", () => {
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
 
     await initAction(defaultActionOptions, simulatorService);
 

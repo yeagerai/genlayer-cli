@@ -16,11 +16,11 @@ import {
 import {
   STARTING_TIMEOUT_ATTEMPTS,
   DEFAULT_RUN_SIMULATOR_COMMAND,
-  DEFAULT_RUN_DOCKER_COMMAND,
 } from "../../src/lib/config/simulator";
 import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
 import Docker from "dockerode";
+import {VersionRequiredError} from "../../src/lib/errors/versionRequired";
 
 vi.mock("dockerode");
 vi.mock("fs");
@@ -176,6 +176,30 @@ describe("SimulatorService - Basic Tests", () => {
     expect(result).toBe(mockResponse);
   });
 
+  test("should return node missing version", async () => {
+    const unexpectedError = new VersionRequiredError('node', VERSION_REQUIREMENTS.node);
+    vi.spyOn(simulatorService, "checkVersion")
+      .mockRejectedValueOnce(unexpectedError)
+      .mockResolvedValueOnce();
+
+    await expect(simulatorService.checkVersionRequirements()).resolves.toStrictEqual({
+      "docker": "",
+      "node": VERSION_REQUIREMENTS.node
+    })
+  });
+
+  test("should return docker missing version", async () => {
+    const unexpectedError = new VersionRequiredError('node', VERSION_REQUIREMENTS.docker);
+    vi.spyOn(simulatorService, "checkVersion")
+      .mockResolvedValueOnce()
+      .mockRejectedValueOnce(unexpectedError)
+
+    await expect(simulatorService.checkVersionRequirements()).resolves.toStrictEqual({
+      "docker": VERSION_REQUIREMENTS.docker,
+      "node": ""
+    })
+  });
+
   test("should throw an unexpected error when checking node version requirements", async () => {
     const unexpectedError = new Error("Unexpected error (node)");
     vi.spyOn(simulatorService, "checkVersion").mockRejectedValueOnce(unexpectedError);
@@ -195,31 +219,6 @@ describe("SimulatorService - Basic Tests", () => {
     const requirementsInstalled = { git: false, docker: false };
     expect(requirementsInstalled.git).toBe(false);
   });
-
-  test("should throw an unexpected error when checking docker installation requirement", async () => {
-    vi.mocked(checkCommand)
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error("Unexpected docker error"));
-    await expect(simulatorService.checkInstallRequirements()).rejects.toThrow("Unexpected docker error");
-    const requirementsInstalled = { git: false, docker: false };
-    expect(requirementsInstalled.docker).toBe(false);
-  });
-
-  // test("should stop and remove Docker containers with the specified prefix", async () => {
-  //   const mockContainers = [
-  //     DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "1",
-  //     DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "2"
-  //   ];
-  //   vi.mocked(listDockerContainers).mockResolvedValue(mockContainers);
-  //   vi.mocked(stopDockerContainer).mockResolvedValue(undefined);
-  //   vi.mocked(removeDockerContainer).mockResolvedValue(undefined);
-  //   const result = await simulatorService.resetDockerContainers();
-  //   expect(result).toBe(true);
-  //   expect(stopDockerContainer).toHaveBeenCalledWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "1");
-  //   expect(stopDockerContainer).toHaveBeenCalledWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "2");
-  //   expect(removeDockerContainer).toHaveBeenCalledWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "1");
-  //   expect(removeDockerContainer).toHaveBeenCalledWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX + "2");
-  // });
 
   test("should retry when response is not 'OK' and reach sleep path", async () => {
     vi.mocked(rpcClient.request).mockResolvedValue({ result: { status: "NOT_OK" } });
@@ -248,13 +247,8 @@ describe("SimulatorService - Basic Tests", () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error("docker ps failed"));
-    vi.mocked(executeCommand).mockResolvedValueOnce({
-      stdout: '',
-      stderr: ''
-    });
+
     const result = await simulatorService.checkInstallRequirements();
-    expect(executeCommand).toHaveBeenCalledWith(DEFAULT_RUN_DOCKER_COMMAND);
     expect(result.docker).toBe(true);
     expect(result.git).toBe(true);
   });
@@ -294,6 +288,7 @@ describe("SimulatorService - Docker Tests", () => {
   let mockListContainers: Mock;
   let mockListImages: Mock;
   let mockGetImage: Mock;
+  let mockPing: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -302,6 +297,7 @@ describe("SimulatorService - Docker Tests", () => {
     mockListContainers = vi.mocked(Docker.prototype.listContainers);
     mockListImages = vi.mocked(Docker.prototype.listImages);
     mockGetImage = vi.mocked(Docker.prototype.getImage);
+    mockPing = vi.mocked(Docker.prototype.ping);
   });
 
   test("should pull the Ollama model", async () => {
@@ -390,5 +386,14 @@ describe("SimulatorService - Docker Tests", () => {
     expect(mockGetImage).not.toHaveBeenCalledWith("image3");
     expect(mockRemove).toHaveBeenCalledTimes(2);
     expect(mockRemove).toHaveBeenCalledWith({ force: true });
+  });
+
+  test("should throw an unexpected error when checking docker installation requirement", async () => {
+    vi.mocked(checkCommand)
+      .mockResolvedValueOnce(undefined)
+    mockPing.mockRejectedValueOnce("Unexpected docker error");
+    await expect(simulatorService.checkInstallRequirements()).rejects.toThrow("Unexpected docker error");
+    const requirementsInstalled = { git: true, docker: false };
+    expect(requirementsInstalled.docker).toBe(false);
   });
 });
