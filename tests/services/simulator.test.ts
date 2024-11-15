@@ -246,7 +246,7 @@ describe("SimulatorService - Basic Tests", () => {
   test("should call executeCommand if docker ps command fails", async () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(undefined)
+      .mockRejectedValue('')
 
     const result = await simulatorService.checkInstallRequirements();
     expect(result.docker).toBe(true);

@@ -1,4 +1,4 @@
-import {vi, describe, beforeEach, afterEach, test, expect, Mock} from "vitest";
+import {vi, describe, beforeEach, afterEach, test, expect} from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
 import { initAction } from "../../src/commands/general/init";
