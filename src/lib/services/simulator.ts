@@ -31,7 +31,6 @@ import {
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
 
-const docker = new Docker();
 
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
@@ -39,11 +38,13 @@ function sleep(millliseconds: number): Promise<void> {
 
 export class SimulatorService implements ISimulatorService {
   private composeOptions: string
+  private docker: Docker;
   public simulatorLocation: string;
 
   constructor() {
     this.simulatorLocation = "";
     this.composeOptions = "";
+    this.docker = new Docker();
   }
 
   public setSimulatorLocation(location: string): void {
@@ -202,7 +203,7 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async pullOllamaModel(): Promise<boolean> {
-    const ollamaContainer = docker.getContainer("ollama");
+    const ollamaContainer = this.docker.getContainer("ollama");
     await ollamaContainer.exec({
       Cmd: ["ollama", "pull", "llama3"],
     });
@@ -286,7 +287,7 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async resetDockerContainers(): Promise<boolean> {
-    const containers = await docker.listContainers({ all: true });
+    const containers = await this.docker.listContainers({ all: true });
     const genlayerContainers = containers.filter(container =>
       container.Names.some(name =>
         name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)
@@ -294,7 +295,7 @@ export class SimulatorService implements ISimulatorService {
     );
 
     for (const containerInfo of genlayerContainers) {
-      const container = docker.getContainer(containerInfo.Id);
+      const container = this.docker.getContainer(containerInfo.Id);
       if (containerInfo.State === "running") {
         await container.stop();
       }
@@ -304,13 +305,13 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async resetDockerImages(): Promise<boolean> {
-    const images = await docker.listImages();
+    const images = await this.docker.listImages();
     const genlayerImages = images.filter(image =>
       image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX))
     );
 
     for (const imageInfo of genlayerImages) {
-      const image = docker.getImage(imageInfo.Id);
+      const image = this.docker.getImage(imageInfo.Id);
       await image.remove({force: true});
     }
 
