@@ -1,5 +1,12 @@
 
 
+## 0.3.0 (2024-11-15)
+
+
+### Features
+
+* abstract docker interaction ([#129](https://github.com/yeagerai/genlayer-cli/issues/129)) ([48985bb](https://github.com/yeagerai/genlayer-cli/commit/48985bb7ff81356c6b448996573d54472b45d58f))
+
 ## 0.2.0 (2024-11-14)
 
 
