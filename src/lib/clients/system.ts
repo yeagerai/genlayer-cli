@@ -1,5 +1,5 @@
 import util from "node:util";
-import {ChildProcess, PromiseWithChild, exec} from "child_process";
+import {ChildProcess, exec} from "child_process";
 import open from "open";
 
 import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";

@@ -5,10 +5,6 @@ import { initAction } from "../../src/commands/general/init";
 import { tmpdir } from "os";
 import {mkdtempSync} from "fs";
 import {join} from "path";
-import Docker from "dockerode";
-
-
-vi.mock("dockerode");
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
 const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
@@ -36,8 +32,6 @@ describe("init action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(Docker.prototype.ping).mockResolvedValueOnce({});
-
     error = vi.spyOn(console, "error").mockImplementation(() => {});
     log = vi.spyOn(console, "log").mockImplementation(() => {});
     inquirerPrompt = vi.spyOn(inquirer, "prompt");
@@ -61,6 +55,10 @@ describe("init action", () => {
       node: '',
       docker: '',
     });
+    simServCheckInstallRequirements.mockResolvedValue({
+      git: true,
+      docker: true,
+    })
   });
 
   afterEach(() => {

@@ -246,7 +246,7 @@ describe("SimulatorService - Basic Tests", () => {
   test("should call executeCommand if docker ps command fails", async () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
-      .mockRejectedValue('')
+
 
     const result = await simulatorService.checkInstallRequirements();
     expect(result.docker).toBe(true);
@@ -388,12 +388,20 @@ describe("SimulatorService - Docker Tests", () => {
     expect(mockRemove).toHaveBeenCalledWith({ force: true });
   });
 
+  test("should execute command when docker is installed but is not available", async () => {
+    vi.mocked(checkCommand)
+      .mockResolvedValueOnce(undefined)
+
+    mockPing.mockRejectedValueOnce("");
+    await simulatorService.checkInstallRequirements();
+    expect(executeCommand).toHaveBeenCalledTimes(1);
+  });
+
   test("should throw an unexpected error when checking docker installation requirement", async () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
+      .mockRejectedValue(undefined);
     mockPing.mockRejectedValueOnce("Unexpected docker error");
     await expect(simulatorService.checkInstallRequirements()).rejects.toThrow("Unexpected docker error");
-    const requirementsInstalled = { git: true, docker: false };
-    expect(requirementsInstalled.docker).toBe(false);
   });
 });

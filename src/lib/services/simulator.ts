@@ -109,7 +109,7 @@ export class SimulatorService implements ISimulatorService {
     }
 
     try {
-      await this.docker.ping()
+      await checkCommand("docker --version", "docker");
       requirementsInstalled.docker = true;
     } catch (error: any) {
       if (!(error instanceof MissingRequirementError)) {
@@ -120,7 +120,7 @@ export class SimulatorService implements ISimulatorService {
 
     if (requirementsInstalled.docker) {
       try {
-        await checkCommand("docker ps", "docker");
+        await this.docker.ping()
       } catch (error: any) {
         await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
       }
