@@ -218,6 +218,32 @@ describe("init action", () => {
     );
   });
 
+  test("should throw an error if validator are not initialized", async () => {
+    inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
+      confirmDownload: true,
+      selectedLlmProviders: ["openai", "heuristai"],
+      openai: "API_KEY1",
+      heuristai: "API_KEY2",
+    });
+    simServgetAiProvidersOptions.mockReturnValue([
+      { name: "OpenAI", value: "openai" },
+      { name: "Heurist", value: "heuristai" },
+    ]);
+    simServConfigSimulator.mockResolvedValue(true);
+    simServRunSimulator.mockResolvedValue(true);
+    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServPullOllamaModel.mockResolvedValue(true);
+    simServDeleteAllValidators.mockResolvedValue(true);
+    simServCreateRandomValidators.mockRejectedValue();
+    simServOpenFrontend.mockResolvedValue(true);
+
+    await initAction({...defaultActionOptions, headless: true}, simulatorService);
+
+    expect(log).toHaveBeenCalledWith('Initializing validators...');
+    expect(error).toHaveBeenCalledWith('Unable to initialize the validators.');
+  });
+
 
   test("if configSimulator fails, then the execution aborts", async () => {
     inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
