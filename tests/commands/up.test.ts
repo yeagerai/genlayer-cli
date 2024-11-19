@@ -7,6 +7,14 @@ import simulatorService from  '../../src/lib/services/simulator'
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 
 const action = vi.fn();
+const defaultOptions = {
+  resetValidators: false,
+  numValidators: "5",
+  branch: "main",
+  location: process.cwd(),
+  headless: false ,
+  resetDb: false
+}
 
 describe("up command", () => {
   let upCommand: Command;
@@ -72,7 +80,7 @@ describe("up command", () => {
   test("action is called with default options", async () => {
     program.parse(["node", "test", "up"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main", location: process.cwd(), headless: false });
+    expect(action).toHaveBeenCalledWith(defaultOptions);
   });
 
   test("action is called with custom options", async () => {
@@ -86,16 +94,12 @@ describe("up command", () => {
       "--branch",
       "development",
       "--headless",
+      "true",
+      "--reset-db",
       "true"
     ]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({
-      resetValidators: true,
-      numValidators: "10",
-      branch: "development",
-      location: process.cwd(),
-      headless: true,
-    });
+    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true, branch: 'development', numValidators: '10', resetValidators: true, resetDb: true});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });
