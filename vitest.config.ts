@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     coverage: {
-      exclude: [...configDefaults.exclude, '*.js', 'src/index.ts', 'tests/**/*.ts', 'src/types'],
+      exclude: [...configDefaults.exclude, '*.js', 'tests/**/*.ts', 'src/types'],
     }
   }
 });
