@@ -43,7 +43,6 @@ export class PlausibleService {
   saveConfig(config: Record<string, any>): void {
     try{
       fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), "utf8");
-      console.log('sucesso', CONFIG_FILE_PATH);
     }catch(error){
       console.log(error);
     }
