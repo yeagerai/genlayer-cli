@@ -1,6 +1,4 @@
 import inquirer from "inquirer";
-import path from "path";
-import fs from "fs";
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 import {PlausibleService} from "../../lib/services/plausible";
@@ -12,7 +10,6 @@ export interface InitActionOptions {
   headless: boolean;
 }
 
-const CONFIG_FILE_PATH = path.resolve(__dirname, ".genlayer-config.json");
 const plausible = new PlausibleService();
 
 
@@ -44,27 +41,13 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
   return message;
 }
 
-function loadConfig(): Record<string, any> {
-  if (fs.existsSync(CONFIG_FILE_PATH)) {
-    return JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, "utf8"));
-  }
-  return {};
-}
 
-function saveConfig(config: Record<string, any>): void {
-  try{
-    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), "utf8");
-    console.log('sucesso', CONFIG_FILE_PATH);
-  }catch(error){
-    console.log(error);
-  }
-}
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setSimulatorLocation(options.location);
   simulatorService.setComposeOptions(options.headless);
 
-  const config = loadConfig();
+  const config = plausible.loadConfig();
 
   if (config.telemetryEnabled === undefined) {
     const telemetryAnswer = await inquirer.prompt([
@@ -76,7 +59,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
       },
     ]);
     config.telemetryEnabled = telemetryAnswer.telemetryEnabled;
-    saveConfig(config);
+    plausible.saveConfig(config);
   }
 
   if (config.telemetryEnabled) {

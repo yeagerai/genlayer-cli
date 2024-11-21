@@ -1,9 +1,13 @@
 import axios from "axios";
+import fs from "fs";
+import path from "path";
 
 export interface PlausibleEvent {
   name: string;
   properties: Record<string, string | number | boolean>;
 }
+
+const CONFIG_FILE_PATH = path.resolve(__dirname, ".genlayer-config.json");
 
 export class PlausibleService {
   private apiUrl: string;
@@ -25,6 +29,22 @@ export class PlausibleService {
       console.log(`[Plausible] Event tracked: ${event.name}`);
     } catch (error) {
       console.error("[Plausible] Failed to track event:", error);
+    }
+  }
+
+  loadConfig(): Record<string, any> {
+    if (fs.existsSync(CONFIG_FILE_PATH)) {
+      return JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, "utf8"));
+    }
+    return {};
+  }
+
+  saveConfig(config: Record<string, any>): void {
+    try{
+      fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), "utf8");
+      console.log('sucesso', CONFIG_FILE_PATH);
+    }catch(error){
+      console.log(error);
     }
   }
 }
