@@ -15,7 +15,7 @@ export function withErrorTracking<T extends (...args: any[]) => Promise<any>>(
         await plausible.trackEvent({
           name: `${eventName}-error`,
           properties: {
-            message: error?.message || "Unknown error",
+            message: error?.message || error || "Unknown error",
             stack: error?.stack || "No stack trace",
           },
         });
