@@ -1,13 +1,14 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export interface PlausibleEvent {
   name: string;
   properties: Record<string, string | number | boolean>;
 }
 
-const CONFIG_FILE_PATH = path.resolve(__dirname, ".genlayer-config.json");
+const CONFIG_FILE_PATH = path.resolve(os.homedir(), ".genlayer-config.json");
 
 export class PlausibleService {
   private apiUrl: string;
