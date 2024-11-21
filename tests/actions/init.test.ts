@@ -5,11 +5,16 @@ import { initAction } from "../../src/commands/general/init";
 import { tmpdir } from "os";
 import {mkdtempSync} from "fs";
 import {join} from "path";
+import { PlausibleService } from "../../src/lib/services/plausible";
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
 const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
 
 describe("init action", () => {
+  vi.mock("../../src/lib/services/plausible");
+  const mockLoadConfig = vi.mocked(PlausibleService.prototype.loadConfig);
+
+
   let error: ReturnType<any>;
   let log: ReturnType<any>;
   let inquirerPrompt: ReturnType<any>;
@@ -51,6 +56,9 @@ describe("init action", () => {
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
     simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
 
+    mockLoadConfig.mockReturnValue({telemetryEnabled: false})
+
+
     simServCheckVersionRequirements.mockResolvedValue({
       node: '',
       docker: '',
@@ -59,6 +67,9 @@ describe("init action", () => {
       git: true,
       docker: true,
     })
+
+    inquirerPrompt.mockResolvedValue({telemetryEnabled: false});
+
   });
 
   afterEach(() => {
@@ -312,6 +323,38 @@ describe("init action", () => {
     simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(log).toHaveBeenCalledWith("Aborted!");
+  });
+
+  test("logs 'Aborted!' if confirmDownload is false when telemetry is turned on", async () => {
+    inquirerPrompt
+      .mockResolvedValueOnce({ confirmReset: true })
+      .mockResolvedValueOnce({ confirmDownload: false });
+
+    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
+    mockLoadConfig.mockReturnValue({telemetryEnabled: true})
+
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(log).toHaveBeenCalledWith("Aborted!");
+  });
+
+  test("logs 'Aborted!' if confirmDownload is false when telemetry is undefined", async () => {
+    inquirerPrompt
+      .mockResolvedValueOnce({ confirmReset: true })
+      .mockResolvedValueOnce({ confirmDownload: false });
+
+    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
+    mockLoadConfig.mockReturnValue({telemetryEnabled: undefined})
+
 
     await initAction(defaultActionOptions, simulatorService);
 
