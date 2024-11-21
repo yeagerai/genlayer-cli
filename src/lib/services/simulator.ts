@@ -30,6 +30,7 @@ import {
   WaitForSimulatorToBeReadyResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
+import {withErrorTracking} from "../errors/withErrorTracking";
 
 
 function sleep(millliseconds: number): Promise<void> {
@@ -45,6 +46,34 @@ export class SimulatorService implements ISimulatorService {
     this.simulatorLocation = "";
     this.composeOptions = "";
     this.docker = new Docker();
+
+    this.wrapMethodsWithErrorTracking();
+  }
+
+  private wrapMethodsWithErrorTracking(): void {
+    const methodsToTrack:Array<keyof SimulatorService> = [
+      "checkInstallRequirements",
+      "checkVersionRequirements",
+      "checkVersion",
+      "downloadSimulator",
+      "updateSimulator",
+      "pullOllamaModel",
+      "configSimulator",
+      "runSimulator",
+      "waitForSimulatorToBeReady",
+      "createRandomValidators",
+      "deleteAllValidators",
+      "resetDockerContainers",
+      "resetDockerImages",
+      "openFrontend",
+    ];
+
+    for (const methodName of methodsToTrack) {
+      const originalMethod = this[methodName] as (...args: any[]) => Promise<any>;
+      if (typeof originalMethod === "function") {
+        this[methodName] = withErrorTracking(originalMethod.bind(this), methodName) as any;
+      }
+    }
   }
 
   public setSimulatorLocation(location: string): void {
@@ -94,6 +123,8 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async checkInstallRequirements(): Promise<Record<string, boolean>> {
+
+
     const requirementsInstalled = {
       git: false,
       docker: false,

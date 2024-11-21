@@ -1,6 +1,9 @@
 import inquirer from "inquirer";
 
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
+import {PlausibleService} from "../../lib/services/plausible";
+import path from "path";
+import fs from "fs";
 
 export interface StartActionOptions {
   resetValidators: boolean;
@@ -9,9 +12,33 @@ export interface StartActionOptions {
   location: string;
   headless: boolean;
 }
+const CONFIG_FILE_PATH = path.resolve(__dirname, ".genlayer-config.json");
+const plausible = new PlausibleService();
+
+function loadConfig(): Record<string, any> {
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    return JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, "utf8"));
+  }
+  return {};
+}
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
   const {resetValidators, numValidators, branch, location, headless} = options;
+  const config = loadConfig();
+
+  if (config.telemetryEnabled) {
+    await plausible.trackEvent({
+      name: "start-action",
+      properties: {
+        resetValidators: options.resetValidators,
+        numValidators: options.numValidators,
+        branch: options.branch,
+        location: options.location,
+        headless: options.headless,
+      },
+    });
+  }
+
   // Update simulator location with user input
   simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);

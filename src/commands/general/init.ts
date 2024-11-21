@@ -1,13 +1,20 @@
 import inquirer from "inquirer";
-
+import path from "path";
+import fs from "fs";
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
+import {PlausibleService} from "../../lib/services/plausible";
+
 export interface InitActionOptions {
   numValidators: number;
   branch: string;
   location: string;
   headless: boolean;
 }
+
+const CONFIG_FILE_PATH = path.resolve(__dirname, ".genlayer-config.json");
+const plausible = new PlausibleService();
+
 
 function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
   if (!git && !docker) {
@@ -37,9 +44,52 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
   return message;
 }
 
+function loadConfig(): Record<string, any> {
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    return JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, "utf8"));
+  }
+  return {};
+}
+
+function saveConfig(config: Record<string, any>): void {
+  try{
+    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), "utf8");
+    console.log('sucesso', CONFIG_FILE_PATH);
+  }catch(error){
+    console.log(error);
+  }
+}
+
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setSimulatorLocation(options.location);
   simulatorService.setComposeOptions(options.headless);
+
+  const config = loadConfig();
+
+  if (config.telemetryEnabled === undefined) {
+    const telemetryAnswer = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "telemetryEnabled",
+        message: "Would you like to enable telemetry?",
+        default: true,
+      },
+    ]);
+    config.telemetryEnabled = telemetryAnswer.telemetryEnabled;
+    saveConfig(config);
+  }
+
+  if (config.telemetryEnabled) {
+    await plausible.trackEvent({
+      name: "init-action",
+      properties: {
+        numValidators: options.numValidators,
+        branch: options.branch,
+        location: options.location,
+        headless: options.headless,
+      },
+    });
+  }
 
   // Check if requirements are installed
   try {
