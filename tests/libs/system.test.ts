@@ -88,7 +88,7 @@ describe("System Functions - Error Paths", () => {
   });
 
   test("checkCommand returns false if the command does not exist", async () => {
-    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.resolve({
+    vi.mocked(util.promisify).mockReturnValueOnce(() => Promise.reject({
       stdout: "",
       stderr: "command not found"
     }));

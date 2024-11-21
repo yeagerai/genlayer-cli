@@ -237,6 +237,8 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockRejectedValue();
     simServOpenFrontend.mockResolvedValue(true);
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
 
     await initAction({...defaultActionOptions, headless: true}, simulatorService);
 
