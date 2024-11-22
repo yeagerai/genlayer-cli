@@ -7,7 +7,7 @@ import {mkdtempSync} from "fs";
 import {join} from "path";
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -188,7 +188,7 @@ describe("init action", () => {
     );
   });
 
-  test("should open the frontend if everything went well (headless mode)", async () => {
+  test("should open the frontend if everything went well (custom options)", async () => {
     inquirerPrompt.mockResolvedValue({
       confirmReset: true,
       confirmDownload: true,
@@ -211,7 +211,7 @@ describe("init action", () => {
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
-    await initAction({...defaultActionOptions, headless: true}, simulatorService);
+    await initAction({...defaultActionOptions, headless: true, resetDb: true}, simulatorService);
 
     expect(log).toHaveBeenCalledWith(
       `GenLayer simulator initialized successfully! `
@@ -235,6 +235,8 @@ describe("init action", () => {
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
     simServCreateRandomValidators.mockRejectedValue();
     simServOpenFrontend.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);

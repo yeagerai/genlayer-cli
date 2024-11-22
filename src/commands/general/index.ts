@@ -13,6 +13,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--branch <branch>", "Branch", "main")
     .option("--location <folder>", "Location where it will be installed", process.cwd())
     .option("--headless", "Headless mode", false)
+    .option("--reset-db", "Reset Database", false)
     .action((options: InitActionOptions) => initAction(options, simulatorService));
 
   program
@@ -23,6 +24,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--branch <branch>", "Branch", "main")
     .option("--location <folder>", "Location where it will be installed", process.cwd())
     .option("--headless", "Headless mode", false)
+    .option("--reset-db", "Reset Database", false)
     .action((options: StartActionOptions) => startAction(options, simulatorService));
 
   return program;

@@ -20,6 +20,7 @@ export interface ISimulatorService {
   openFrontend(): Promise<boolean>;
   resetDockerContainers(): Promise<boolean>;
   resetDockerImages(): Promise<boolean>;
+  cleanDatabase(): Promise<boolean>;
 }
 
 export type DownloadSimulatorResultType = {
