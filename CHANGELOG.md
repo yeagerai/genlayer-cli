@@ -1,5 +1,12 @@
 
 
+## 0.4.0 (2024-11-22)
+
+
+### Features
+
+* new reset db option ([#139](https://github.com/yeagerai/genlayer-cli/issues/139)) ([e3fed64](https://github.com/yeagerai/genlayer-cli/commit/e3fed6437e7313002685258aeced710a6fd63f4f))
+
 ## 0.3.0 (2024-11-15)
 
 
