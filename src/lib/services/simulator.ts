@@ -338,6 +338,17 @@ export class SimulatorService implements ISimulatorService {
 
     return true;
   }
+
+  public async cleanDatabase(): Promise<boolean> {
+
+    try {
+      await rpcClient.request({method: "sim_clearDbTables", params: [['current_state', 'transactions']]});
+    }catch (error) {
+      console.error(error);
+    }
+    return true;
+  }
+
 }
 
 export default new SimulatorService();

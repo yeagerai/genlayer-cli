@@ -9,11 +9,12 @@ export interface StartActionOptions {
   branch: string;
   location: string;
   headless: boolean;
+  resetDb: boolean
 }
 const plausible = new PlausibleService();
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetValidators, numValidators, branch, location, headless} = options;
+  const {resetValidators, numValidators, branch, location, headless, resetDb} = options;
   const config = plausible.loadConfig();
 
   if (config.telemetryEnabled) {
@@ -75,6 +76,10 @@ export async function startAction(options: StartActionOptions, simulatorService:
   } catch (error) {
     console.error(error);
     return;
+  }
+
+  if(resetDb){
+    await simulatorService.cleanDatabase()
   }
 
   if (resetValidators) {

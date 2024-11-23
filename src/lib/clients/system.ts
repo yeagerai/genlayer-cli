@@ -6,9 +6,12 @@ import {RunningPlatform, AVAILABLE_PLATFORMS} from "../config/simulator";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 export async function checkCommand(command: string, toolName: string): Promise<void> {
-  const {stderr} = await util.promisify(exec)(command);
-  if (stderr) {
-    throw new MissingRequirementError(toolName);
+  try {
+    await util.promisify(exec)(command);
+  }catch (error:any) {
+    if (error.stderr) {
+      throw new MissingRequirementError(toolName);
+    }
   }
 }
 
