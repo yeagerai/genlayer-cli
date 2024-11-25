@@ -21,11 +21,12 @@ export async function startAction(options: StartActionOptions, simulatorService:
     await plausible.trackEvent({
       name: "start-action",
       properties: {
-        resetValidators: options.resetValidators,
-        numValidators: options.numValidators,
-        branch: options.branch,
-        location: options.location,
-        headless: options.headless,
+        resetValidators,
+        numValidators,
+        branch,
+        location,
+        headless,
+        resetDb,
       },
     });
   }

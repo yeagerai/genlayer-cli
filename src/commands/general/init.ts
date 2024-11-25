@@ -71,6 +71,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
         branch: options.branch,
         location: options.location,
         headless: options.headless,
+        resetDb: options.resetDb,
       },
     });
   }
