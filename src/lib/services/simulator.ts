@@ -30,6 +30,7 @@ import {
   WaitForSimulatorToBeReadyResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
+import {wrapMethodsWithErrorTracking} from "../errors/withErrorTracking";
 
 
 function sleep(millliseconds: number): Promise<void> {
@@ -45,7 +46,25 @@ export class SimulatorService implements ISimulatorService {
     this.simulatorLocation = "";
     this.composeOptions = "";
     this.docker = new Docker();
+
+    wrapMethodsWithErrorTracking(this, [
+      "checkInstallRequirements",
+      "checkVersionRequirements",
+      "checkVersion",
+      "downloadSimulator",
+      "updateSimulator",
+      "pullOllamaModel",
+      "configSimulator",
+      "runSimulator",
+      "waitForSimulatorToBeReady",
+      "createRandomValidators",
+      "deleteAllValidators",
+      "resetDockerContainers",
+      "resetDockerImages",
+      "openFrontend",
+    ]);
   }
+
 
   public setSimulatorLocation(location: string): void {
     this.simulatorLocation = location;
@@ -94,6 +113,8 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async checkInstallRequirements(): Promise<Record<string, boolean>> {
+
+
     const requirementsInstalled = {
       git: false,
       docker: false,

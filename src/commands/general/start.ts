@@ -1,6 +1,7 @@
 import inquirer from "inquirer";
 
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
+import {PlausibleService} from "../../lib/services/plausible";
 
 export interface StartActionOptions {
   resetValidators: boolean;
@@ -10,9 +11,26 @@ export interface StartActionOptions {
   headless: boolean;
   resetDb: boolean
 }
+const plausible = new PlausibleService();
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
   const {resetValidators, numValidators, branch, location, headless, resetDb} = options;
+  const config = plausible.loadConfig();
+
+  if (config.telemetryEnabled) {
+    await plausible.trackEvent({
+      name: "start-action",
+      properties: {
+        resetValidators,
+        numValidators,
+        branch,
+        location,
+        headless,
+        resetDb,
+      },
+    });
+  }
+
   // Update simulator location with user input
   simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);

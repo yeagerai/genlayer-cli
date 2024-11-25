@@ -2,6 +2,7 @@ import { describe, beforeEach, afterEach, test, expect, vi, Mock } from "vitest"
 import inquirer from "inquirer";
 import { startAction, StartActionOptions } from "../../src/commands/general/start";
 import { ISimulatorService } from "../../src/lib/interfaces/ISimulatorService";
+import { PlausibleService } from "../../src/lib/services/plausible";
 
 describe("startAction - Additional Tests", () => {
   let simulatorService: ISimulatorService;
@@ -9,6 +10,9 @@ describe("startAction - Additional Tests", () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
   let promptSpy: ReturnType<any>;
 
+  vi.mock("../../src/lib/services/plausible");
+
+  const mockLoadConfig = vi.mocked(PlausibleService.prototype.loadConfig);
   const defaultOptions: StartActionOptions = {
     resetValidators: false,
     numValidators: 5,
@@ -22,6 +26,7 @@ describe("startAction - Additional Tests", () => {
     logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     promptSpy = vi.spyOn(inquirer, "prompt");
+    mockLoadConfig.mockReturnValue({telemetryEnabled: false})
 
     simulatorService = {
       updateSimulator: vi.fn().mockResolvedValue(undefined),
@@ -182,6 +187,19 @@ describe("startAction - Additional Tests", () => {
     (simulatorService.openFrontend as Mock).mockImplementationOnce(() => {
       throw errorMsg;
     });
+
+    await startAction(defaultOptions, simulatorService);
+
+    expect(errorSpy).toHaveBeenCalledWith(errorMsg);
+  });
+
+  test("catches and logs error if openFrontend throws an exception (telemetry enabled)", async () => {
+    const errorMsg = new Error("Failed to open frontend");
+    (simulatorService.openFrontend as Mock).mockImplementationOnce(() => {
+      throw errorMsg;
+    });
+
+    mockLoadConfig.mockReturnValueOnce({telemetryEnabled: true})
 
     await startAction(defaultOptions, simulatorService);
 

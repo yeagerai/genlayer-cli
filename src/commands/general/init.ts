@@ -1,7 +1,8 @@
 import inquirer from "inquirer";
-
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
+import {PlausibleService} from "../../lib/services/plausible";
+
 export interface InitActionOptions {
   numValidators: number;
   branch: string;
@@ -9,6 +10,9 @@ export interface InitActionOptions {
   headless: boolean;
   resetDb: boolean;
 }
+
+const plausible = new PlausibleService();
+
 
 function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
   if (!git && !docker) {
@@ -38,9 +42,39 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
   return message;
 }
 
+
+
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setSimulatorLocation(options.location);
   simulatorService.setComposeOptions(options.headless);
+
+  const config = plausible.loadConfig();
+
+  if (config.telemetryEnabled === undefined) {
+    const telemetryAnswer = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "telemetryEnabled",
+        message: "Would you like to enable telemetry?",
+        default: true,
+      },
+    ]);
+    config.telemetryEnabled = telemetryAnswer.telemetryEnabled;
+    plausible.saveConfig(config);
+  }
+
+  if (config.telemetryEnabled) {
+    await plausible.trackEvent({
+      name: "init-action",
+      properties: {
+        numValidators: options.numValidators,
+        branch: options.branch,
+        location: options.location,
+        headless: options.headless,
+        resetDb: options.resetDb,
+      },
+    });
+  }
 
   // Check if requirements are installed
   try {
