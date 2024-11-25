@@ -41,6 +41,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   simulatorService.setSimulatorLocation(options.location);
   simulatorService.setComposeOptions(options.headless);
 
+  await simulatorService.checkCliVersion();
+
   // Check if requirements are installed
   try {
     const requirementsInstalled = await simulatorService.checkInstallRequirements();
