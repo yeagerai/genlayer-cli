@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  frontend:
+    image: yeagerai/simulator-frontend:latest
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    environment:
+      - VITE_*
+    volumes:
+      - ./examples:/app/src/assets/examples
+    depends_on:
+      jsonrpc:
+        condition: service_healthy
+    expose:
+      - "${FRONTEND_PORT:-8080}"
+
+  jsonrpc:
+    image: yeagerai/simulator-jsonrpc:latest
+    environment:
+      - FLASK_SERVER_PORT=${RPCPORT:-5000}
+      - PYTHONUNBUFFERED=1
+      - RPCDEBUGPORT=${RPCDEBUGPORT:-5001}
+      - WEBREQUESTPORT=${WEBREQUESTPORT:-5002}
+      - WEBREQUESTHOST=${WEBREQUESTHOST:-localhost}
+      - WEBREQUESTPROTOCOL=${WEBREQUESTPROTOCOL:-http}
+    ports:
+      - "${RPCPORT:-5000}:${RPCPORT:-5000}"
+      - "${RPCDEBUGPORT:-5001}:${RPCDEBUGPORT:-5001}"
+    depends_on:
+      database-migration:
+        condition: service_completed_successfully
+      webrequest:
+        condition: service_healthy
+    expose:
+      - "${RPCPORT:-5000}"
+
+  webrequest:
+    image: yeagerai/simulator-webrequest:latest
+    shm_size: 2gb
+    environment:
+      - FLASK_SERVER_PORT=${WEBREQUESTPORT:-5002}
+      - WEBREQUESTSELENIUMPORT=${WEBREQUESTSELENIUMPORT:-4444}
+      - PYTHONUNBUFFERED=1
+    expose:
+      - "${WEBREQUESTPORT:-5002}:${WEBREQUESTPORT:-5002}"
+      - "${WEBREQUESTSELENIUMPORT:-4444}:${WEBREQUESTSELENIUMPORT:-4444}"
+    depends_on:
+      ollama:
+        condition: service_started
+
+  ollama:
+    image: ollama/ollama:0.3.11
+    ports:
+      - 11434:11434
+    volumes:
+      - ./.ollama:/root/.ollama
+    container_name: ollama
+    tty: true
+    restart: always
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${DBPORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${DBUSER:-postgres}
+      - POSTGRES_PASSWORD=${DBPASSWORD:-postgres}
+      - POSTGRES_DB=${DBNAME:-simulator_db}
+    healthcheck:
+      test: pg_isready -U ${DBUSER:-postgres} -d ${DBNAME:-simulator_db}
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+    # Uncomment the following lines if you want your DB to persist
+    # volumes:
+    #   - "./data/postgres:/var/lib/postgresql/data"
+
+  database-migration:
+    image: yeagerai/simulator-database-migration:latest
+    environment:
+      - DB_URL=postgresql://${DBUSER:-postgres}:${DBPASSWORD:-postgres}@postgres/${DBNAME:-simulator_db}
+      - WEBREQUESTPORT=${WEBREQUESTPORT:-5002}
+      - WEBREQUESTHOST=${WEBREQUESTHOST:-localhost}
+      - WEBREQUESTPROTOCOL=${WEBREQUESTPROTOCOL:-http}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      webrequest:
+        condition: service_healthy
