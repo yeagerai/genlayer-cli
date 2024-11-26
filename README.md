@@ -2,7 +2,7 @@
 
 ## Description
 
-The GenLayer CLI is designed to streamline the setup and local execution of the GenLayer simulator. This tool automates the process of downloading and launching the GenLayer simulator, making it easy to start simulating and testing locally with minimal setup.
+The GenLayer CLI is designed to streamline the setup and local execution of the GenLayer studio. This tool automates the process of downloading and launching the GenLayer studio, making it easy to start simulating and testing locally with minimal setup.
 
 ## Installation
 
@@ -14,13 +14,13 @@ npm install -g genlayer
 
 ## Usage
 
-To initialize and start the GenLayer simulator, run the following command:
+To initialize and start the GenLayer studio, run the following command:
 
 ```bash
 genlayer init
 ```
 
-This command will download the necessary components and start the simulator. Once initialized, you will be ready to execute further commands (to be implemented) to interact with the simulator.
+This command will download the necessary components and start the studio. Once initialized, you will be ready to execute further commands (to be implemented) to interact with the studio.
 
 ## Contributing
 
@@ -83,7 +83,7 @@ This project is licensed under the ... License - see the [LICENSE](LICENSE) file
 
 ## Further Development
 
-Further commands are planned for implementation to enhance interaction with the GenLayer simulator. Stay tuned for updates.
+Further commands are planned for implementation to enhance interaction with the GenLayer Studio. Stay tuned for updates.
 
 ## Feedback
 

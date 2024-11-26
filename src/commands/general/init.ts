@@ -70,7 +70,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  // Ask for confirmation on reseting the GenLayer Simulator from GitHub
+  // Ask for confirmation on reseting the GenLayer Studio from GitHub
   const resetAnswers = await inquirer.prompt([
     {
       type: "confirm",
@@ -97,12 +97,12 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  // Ask for confirmation on downloading the GenLayer Simulator from GitHub
+  // Ask for confirmation on downloading the GenLayer Studio from GitHub
   const answers = await inquirer.prompt([
     {
       type: "confirm",
       name: "confirmDownload",
-      message: `This action is going to download the GenLayer Simulator from GitHub (branch ${options.branch}) into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
+      message: `This action is going to download the GenLayer Studio from GitHub (branch ${options.branch}) into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
       default: true,
     },
   ]);
@@ -112,8 +112,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  // Download the GenLayer Simulator from GitHub
-  console.log(`Downloading GenLayer Simulator from GitHub...`);
+  // Download the GenLayer Studio from GitHub
+  console.log(`Downloading GenLayer Studio from GitHub...`);
   try {
     const {wasInstalled} = await simulatorService.downloadSimulator(options.branch);
     if (wasInstalled) {
@@ -170,7 +170,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     aiProvidersEnvVars[providerConfig.envVar!] = apiKeyAnswer[providerConfig.cliOptionValue];
   }
 
-  console.log("Configuring GenLayer Simulator environment...");
+  console.log("Configuring GenLayer Studio environment...");
   try {
     await simulatorService.configSimulator(aiProvidersEnvVars);
   } catch (error) {
@@ -178,8 +178,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  // Run the GenLayer Simulator
-  console.log("Running the GenLayer Simulator...");
+  // Run the GenLayer Studio
+  console.log("Running the GenLayer Studio...");
   try {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     await simulatorService.runSimulator();
@@ -192,16 +192,16 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     const {initialized, errorCode, errorMessage} = await simulatorService.waitForSimulatorToBeReady();
     if (!initialized && errorCode === "ERROR") {
       console.log(errorMessage);
-      console.error("Unable to initialize the GenLayer simulator. Please try again.");
+      console.error("Unable to initialize the GenLayer Studio. Please try again.");
       return;
     }
     if (!initialized && errorCode === "TIMEOUT") {
       console.error(
-        "The simulator is taking too long to initialize. Please try again after the simulator is ready.",
+        "The Studio is taking too long to initialize. Please try again after the Studio is ready.",
       );
       return;
     }
-    console.log("Simulator is running!");
+    console.log("Studio is running!");
   } catch (error) {
     console.error(error);
     return;
@@ -226,16 +226,18 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  if(options.resetDb){
-    await simulatorService.cleanDatabase()
+  if (options.resetDb) {
+    await simulatorService.cleanDatabase();
   }
 
-  // Simulator ready
-  let successMessage = "GenLayer simulator initialized successfully! "
-  successMessage += options.headless ? '' :  `Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`;
+  // Studio ready
+  let successMessage = "GenLayer Studio initialized successfully! ";
+  successMessage += options.headless
+    ? ""
+    : `Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`;
   console.log(successMessage);
   try {
-    if(!options.headless){
+    if (!options.headless) {
       await simulatorService.openFrontend();
     }
   } catch (error) {

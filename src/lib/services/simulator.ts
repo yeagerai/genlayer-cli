@@ -1,4 +1,4 @@
-import Docker from "dockerode"
+import Docker from "dockerode";
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
@@ -16,12 +16,7 @@ import {
   AiProviders,
   VERSION_REQUIREMENTS,
 } from "../config/simulator";
-import {
-  checkCommand,
-  getVersion,
-  executeCommand,
-  openUrl,
-} from "../clients/system";
+import {checkCommand, getVersion, executeCommand, openUrl} from "../clients/system";
 import {MissingRequirementError} from "../errors/missingRequirement";
 
 import {
@@ -31,13 +26,12 @@ import {
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
 
-
 function sleep(millliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, millliseconds));
 }
 
 export class SimulatorService implements ISimulatorService {
-  private composeOptions: string
+  private composeOptions: string;
   private docker: Docker;
   public simulatorLocation: string;
 
@@ -56,7 +50,7 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public setComposeOptions(headless: boolean): void {
-    this.composeOptions = headless ? '--scale frontend=0' : '';
+    this.composeOptions = headless ? "--scale frontend=0" : "";
   }
 
   public getComposeOptions(): string {
@@ -117,10 +111,9 @@ export class SimulatorService implements ISimulatorService {
       }
     }
 
-
     if (requirementsInstalled.docker) {
       try {
-        await this.docker.ping()
+        await this.docker.ping();
       } catch (error: any) {
         await executeCommand(DEFAULT_RUN_DOCKER_COMMAND);
       }
@@ -219,20 +212,27 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
-    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.simulatorLocation, this.getComposeOptions());
+    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(
+      this.simulatorLocation,
+      this.getComposeOptions(),
+    );
     return executeCommand(commandsByPlatform);
   }
 
   public async waitForSimulatorToBeReady(
     retries: number = STARTING_TIMEOUT_ATTEMPTS,
   ): Promise<WaitForSimulatorToBeReadyResultType> {
-    console.log("Waiting for the simulator to start up...");
+    console.log("Waiting for the Studio to start up...");
     try {
       const response = await rpcClient.request({method: "ping", params: []});
 
-      //Compatibility with current simulator version
-      if (response?.result === "OK" || response?.result?.status === "OK" || response?.result?.data?.status === "OK") {
-        return { initialized: true };
+      //Compatibility with current Studio version
+      if (
+        response?.result === "OK" ||
+        response?.result?.status === "OK" ||
+        response?.result?.data?.status === "OK"
+      ) {
+        return {initialized: true};
       }
       if (retries > 0) {
         await sleep(STARTING_TIMEOUT_WAIT_CYLCE);
@@ -287,11 +287,9 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async resetDockerContainers(): Promise<boolean> {
-    const containers = await this.docker.listContainers({ all: true });
+    const containers = await this.docker.listContainers({all: true});
     const genlayerContainers = containers.filter(container =>
-      container.Names.some(name =>
-        name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)
-      )
+      container.Names.some(name => name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)),
     );
 
     for (const containerInfo of genlayerContainers) {
@@ -307,7 +305,7 @@ export class SimulatorService implements ISimulatorService {
   public async resetDockerImages(): Promise<boolean> {
     const images = await this.docker.listImages();
     const genlayerImages = images.filter(image =>
-      image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX))
+      image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)),
     );
 
     for (const imageInfo of genlayerImages) {
@@ -319,15 +317,13 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async cleanDatabase(): Promise<boolean> {
-
     try {
-      await rpcClient.request({method: "sim_clearDbTables", params: [['current_state', 'transactions']]});
-    }catch (error) {
+      await rpcClient.request({method: "sim_clearDbTables", params: [["current_state", "transactions"]]});
+    } catch (error) {
       console.error(error);
     }
     return true;
   }
-
 }
 
 export default new SimulatorService();

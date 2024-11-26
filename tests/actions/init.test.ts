@@ -1,13 +1,19 @@
 import {vi, describe, beforeEach, afterEach, test, expect} from "vitest";
 import inquirer from "inquirer";
 import simulatorService from "../../src/lib/services/simulator";
-import { initAction } from "../../src/commands/general/init";
-import { tmpdir } from "os";
+import {initAction} from "../../src/commands/general/init";
+import {tmpdir} from "os";
 import {mkdtempSync} from "fs";
 import {join} from "path";
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false };
+const defaultActionOptions = {
+  numValidators: 5,
+  branch: "main",
+  location: tempDir,
+  headless: false,
+  resetDb: false,
+};
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -49,16 +55,16 @@ describe("init action", () => {
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
-    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
+    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl");
 
     simServCheckVersionRequirements.mockResolvedValue({
-      node: '',
-      docker: '',
+      node: "",
+      docker: "",
     });
     simServCheckInstallRequirements.mockResolvedValue({
       git: true,
       docker: true,
-    })
+    });
   });
 
   afterEach(() => {
@@ -66,17 +72,17 @@ describe("init action", () => {
   });
 
   test("if both requirements are missing, then the execution fails", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: false, docker: false });
+    simServCheckInstallRequirements.mockResolvedValue({git: false, docker: false});
 
     await initAction(defaultActionOptions, simulatorService);
 
     expect(error).toHaveBeenCalledWith(
-      "Git and Docker are not installed. Please install them and try again.\n"
+      "Git and Docker are not installed. Please install them and try again.\n",
     );
   });
 
   test("if only docker is missing, then the execution fails", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: false });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: false});
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -84,7 +90,7 @@ describe("init action", () => {
   });
 
   test("if only git is missing, then the execution fails", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: false, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: false, docker: true});
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -109,7 +115,7 @@ describe("init action", () => {
     await initAction(defaultActionOptions, simulatorService);
 
     expect(error).toHaveBeenCalledWith(
-      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\nNode version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\nNode version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`,
     );
   });
 
@@ -122,26 +128,26 @@ describe("init action", () => {
     await initAction(defaultActionOptions, simulatorService);
 
     expect(error).toHaveBeenCalledWith(
-      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`
+      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`,
     );
   });
 
   test("if only node version is too low, then the execution fails", async () => {
     const mockVersionNumber = "99.9.9";
     simServCheckVersionRequirements.mockResolvedValue({
-      node: mockVersionNumber
+      node: mockVersionNumber,
     });
 
     await initAction(defaultActionOptions, simulatorService);
 
     expect(error).toHaveBeenCalledWith(
-      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
+      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`,
     );
   });
 
   test("if reset is not confirmed, abort", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: false });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    inquirerPrompt.mockResolvedValue({confirmReset: false});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -149,7 +155,7 @@ describe("init action", () => {
   });
 
   test("if resetDockerContainers fail, then the execution aborts", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true });
+    inquirerPrompt.mockResolvedValue({confirmReset: true});
     simServResetDockerContainers.mockRejectedValue(new Error("Error"));
 
     await initAction(defaultActionOptions, simulatorService);
@@ -166,17 +172,17 @@ describe("init action", () => {
       heuristai: "API_KEY2",
     });
     simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
+      {name: "OpenAI", value: "openai"},
+      {name: "Heurist", value: "heuristai"},
     ]);
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
-    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
+    simGetSimulatorUrl.mockResolvedValue("http://localhost:8080/");
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
@@ -184,7 +190,7 @@ describe("init action", () => {
 
     const frontendUrl = simulatorService.getFrontendUrl();
     expect(log).toHaveBeenCalledWith(
-      `GenLayer simulator initialized successfully! Go to ${frontendUrl} in your browser to access it.`
+      `GenLayer Studio initialized successfully! Go to ${frontendUrl} in your browser to access it.`,
     );
   });
 
@@ -197,25 +203,23 @@ describe("init action", () => {
       heuristai: "API_KEY2",
     });
     simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
+      {name: "OpenAI", value: "openai"},
+      {name: "Heurist", value: "heuristai"},
     ]);
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
-    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
+    simGetSimulatorUrl.mockResolvedValue("http://localhost:8080/");
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
     await initAction({...defaultActionOptions, headless: true, resetDb: true}, simulatorService);
 
-    expect(log).toHaveBeenCalledWith(
-      `GenLayer simulator initialized successfully! `
-    );
+    expect(log).toHaveBeenCalledWith(`GenLayer Studio initialized successfully! `);
   });
 
   test("should throw an error if validator are not initialized", async () => {
@@ -227,12 +231,12 @@ describe("init action", () => {
       heuristai: "API_KEY2",
     });
     simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
+      {name: "OpenAI", value: "openai"},
+      {name: "Heurist", value: "heuristai"},
     ]);
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
@@ -244,13 +248,12 @@ describe("init action", () => {
 
     await initAction({...defaultActionOptions, headless: true}, simulatorService);
 
-    expect(log).toHaveBeenCalledWith('Initializing validators...');
-    expect(error).toHaveBeenCalledWith('Unable to initialize the validators.');
+    expect(log).toHaveBeenCalledWith("Initializing validators...");
+    expect(error).toHaveBeenCalledWith("Unable to initialize the validators.");
   });
 
-
   test("if configSimulator fails, then the execution aborts", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServConfigSimulator.mockRejectedValue(new Error("Error"));
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
@@ -261,7 +264,7 @@ describe("init action", () => {
   });
 
   test("if runSimulator fails, then the execution aborts", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true, selectedLlmProviders: []});
     simServRunSimulator.mockRejectedValue(new Error("Error"));
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
@@ -281,13 +284,13 @@ describe("init action", () => {
       ollama: "API_KEY3",
     });
     simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-      { name: "Ollama", value: "ollama" },
+      {name: "OpenAI", value: "openai"},
+      {name: "Heurist", value: "heuristai"},
+      {name: "Ollama", value: "ollama"},
     ]);
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
@@ -299,7 +302,7 @@ describe("init action", () => {
   });
 
   test("logs error if checkVersionRequirements throws", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     const errorMsg = new Error("checkVersionRequirements error");
     simServCheckVersionRequirements.mockRejectedValueOnce(errorMsg);
 
@@ -310,10 +313,10 @@ describe("init action", () => {
 
   test("logs 'Aborted!' if confirmDownload is false", async () => {
     inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ confirmDownload: false });
+      .mockResolvedValueOnce({confirmReset: true})
+      .mockResolvedValueOnce({confirmDownload: false});
 
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
@@ -323,8 +326,8 @@ describe("init action", () => {
   });
 
   test("logs error if resetDockerContainers throws", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    inquirerPrompt.mockResolvedValue({confirmReset: true});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     const errorMsg = new Error("resetDockerContainers error");
     simServResetDockerContainers.mockRejectedValueOnce(errorMsg);
 
@@ -335,31 +338,31 @@ describe("init action", () => {
 
   test("prompts for LLM providers and validates that at least one is selected", async () => {
     inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ confirmDownload: true })
+      .mockResolvedValueOnce({confirmReset: true})
+      .mockResolvedValueOnce({confirmDownload: true})
       .mockImplementation((questions: any) => {
         if (questions[0].type === "checkbox") {
           const validateFunction = questions[0].validate;
           expect(validateFunction([])).toBe("You must choose at least one option.");
           expect(validateFunction(["openai"])).toBe(true);
-          return Promise.resolve({ selectedLlmProviders: ["openai"] });
+          return Promise.resolve({selectedLlmProviders: ["openai"]});
         }
 
         if (questions[0].type === "input") {
           const validateFunction = questions[0].validate;
           expect(validateFunction("")).toBe("Please enter a valid API Key for OpenAI.");
           expect(validateFunction("API_KEY1")).toBe(true);
-          return Promise.resolve({ openai: "API_KEY1" });
+          return Promise.resolve({openai: "API_KEY1"});
         }
       });
 
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
@@ -368,8 +371,8 @@ describe("init action", () => {
   });
 
   test("logs error if downloadSimulator throws", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    inquirerPrompt.mockResolvedValue({confirmReset: true, confirmDownload: true});
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
     const errorMsg = new Error("downloadSimulator error");
@@ -380,30 +383,30 @@ describe("init action", () => {
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
 
-  test("logs error message if simulator fails to initialize with ERROR code", async () => {
+  test("logs error message if Studio fails to initialize with ERROR code", async () => {
     inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ confirmDownload: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
+      .mockResolvedValueOnce({confirmReset: true})
+      .mockResolvedValueOnce({confirmDownload: true})
+      .mockResolvedValueOnce({selectedLlmProviders: ["openai"]})
+      .mockResolvedValueOnce({openai: "API_KEY1"});
 
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
 
     simServWaitForSimulator.mockResolvedValue({
       initialized: false,
       errorCode: "ERROR",
-      errorMessage: "Simulator failed to initialize due to configuration error.",
+      errorMessage: "Studio failed to initialize due to configuration error.",
     });
 
     await initAction(defaultActionOptions, simulatorService);
 
-    expect(log).toHaveBeenCalledWith("Simulator failed to initialize due to configuration error.");
-    expect(error).toHaveBeenCalledWith("Unable to initialize the GenLayer simulator. Please try again.");
+    expect(log).toHaveBeenCalledWith("Studio failed to initialize due to configuration error.");
+    expect(error).toHaveBeenCalledWith("Unable to initialize the GenLayer Studio. Please try again.");
   });
 
   test("logs error if runSimulator throws", async () => {
@@ -413,10 +416,10 @@ describe("init action", () => {
       selectedLlmProviders: ["openai"],
       openai: "API_KEY1",
     });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     const errorMsg = new Error("runSimulator error");
     simServRunSimulator.mockRejectedValueOnce(errorMsg);
@@ -433,10 +436,10 @@ describe("init action", () => {
       selectedLlmProviders: ["openai"],
       openai: "API_KEY1",
     });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
     simServWaitForSimulator.mockResolvedValue({
@@ -448,25 +451,25 @@ describe("init action", () => {
     await initAction(defaultActionOptions, simulatorService);
 
     expect(error).toHaveBeenCalledWith(
-      "The simulator is taking too long to initialize. Please try again after the simulator is ready."
+      "The Studio is taking too long to initialize. Please try again after the Studio is ready.",
     );
   });
 
   test("catches and logs error if waitForSimulatorToBeReady throws an exception", async () => {
     inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ confirmDownload: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
+      .mockResolvedValueOnce({confirmReset: true})
+      .mockResolvedValueOnce({confirmDownload: true})
+      .mockResolvedValueOnce({selectedLlmProviders: ["openai"]})
+      .mockResolvedValueOnce({openai: "API_KEY1"});
 
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
 
-    const errorMsg = new Error("Unexpected simulator error");
+    const errorMsg = new Error("Unexpected Studio error");
     simServWaitForSimulator.mockRejectedValueOnce(errorMsg);
 
     await initAction(defaultActionOptions, simulatorService);
@@ -476,18 +479,18 @@ describe("init action", () => {
 
   test("catches and logs error if openFrontend throws an exception", async () => {
     inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ confirmDownload: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
+      .mockResolvedValueOnce({confirmReset: true})
+      .mockResolvedValueOnce({confirmDownload: true})
+      .mockResolvedValueOnce({selectedLlmProviders: ["openai"]})
+      .mockResolvedValueOnce({openai: "API_KEY1"});
 
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
+    simServCheckInstallRequirements.mockResolvedValue({git: true, docker: true});
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    simServDownloadSimulator.mockResolvedValue({ wasInstalled: false });
+    simServDownloadSimulator.mockResolvedValue({wasInstalled: false});
     simServConfigSimulator.mockResolvedValue(true);
     simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServWaitForSimulator.mockResolvedValue({initialized: true});
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
 

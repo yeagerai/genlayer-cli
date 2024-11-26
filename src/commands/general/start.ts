@@ -8,24 +8,23 @@ export interface StartActionOptions {
   branch: string;
   location: string;
   headless: boolean;
-  resetDb: boolean
+  resetDb: boolean;
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
   const {resetValidators, numValidators, branch, location, headless, resetDb} = options;
-  // Update simulator location with user input
+  // Update Studio location with user input
   simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);
-
 
   const restartValidatorsHintText = resetValidators
     ? `creating new ${numValidators} random validators`
     : "keeping the existing validators";
 
-  console.log(`Starting GenLayer simulator ${restartValidatorsHintText}`);
+  console.log(`Starting GenLayer Studio ${restartValidatorsHintText}`);
 
-  // Update the simulator to the latest version
-  console.log(`Updating GenLayer Simulator...`);
+  // Update the Studio to the latest version
+  console.log(`Updating GenLayer Studio...`);
   try {
     await simulatorService.updateSimulator(branch);
   } catch (error) {
@@ -33,8 +32,8 @@ export async function startAction(options: StartActionOptions, simulatorService:
     return;
   }
 
-  // Run the GenLayer Simulator
-  console.log("Running the GenLayer Simulator...");
+  // Run the GenLayer Studio
+  console.log("Running the GenLayer Studio...");
   try {
     await simulatorService.runSimulator();
   } catch (error) {
@@ -46,23 +45,23 @@ export async function startAction(options: StartActionOptions, simulatorService:
     const {initialized, errorCode, errorMessage} = await simulatorService.waitForSimulatorToBeReady();
     if (!initialized && errorCode === "ERROR") {
       console.log(errorMessage);
-      console.error("Unable to initialize the GenLayer simulator. Please try again.");
+      console.error("Unable to initialize the GenLayer Studio. Please try again.");
       return;
     }
     if (!initialized && errorCode === "TIMEOUT") {
       console.error(
-        "The simulator is taking too long to initialize. Please try again after the simulator is ready.",
+        "The Studio is taking too long to initialize. Please try again after the Studio is ready.",
       );
       return;
     }
-    console.log("Simulator is running!");
+    console.log("Studio is running!");
   } catch (error) {
     console.error(error);
     return;
   }
 
-  if(resetDb){
-    await simulatorService.cleanDatabase()
+  if (resetDb) {
+    await simulatorService.cleanDatabase();
   }
 
   if (resetValidators) {
@@ -102,15 +101,16 @@ export async function startAction(options: StartActionOptions, simulatorService:
     console.log("New random validators successfully created...");
   }
 
-  // Simulator ready
-  let successMessage = "GenLayer simulator initialized successfully! "
-  successMessage += headless ? '' :  `Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`;
+  // Studio ready
+  let successMessage = "GenLayer Studio initialized successfully! ";
+  successMessage += headless
+    ? ""
+    : `Go to ${simulatorService.getFrontendUrl()} in your browser to access it.`;
   console.log(successMessage);
   try {
-    if(!headless) {
+    if (!headless) {
       await simulatorService.openFrontend();
     }
-
   } catch (error) {
     console.error(error);
   }

@@ -1,7 +1,7 @@
-import { describe, beforeEach, afterEach, test, expect, vi, Mock } from "vitest";
+import {describe, beforeEach, afterEach, test, expect, vi, Mock} from "vitest";
 import inquirer from "inquirer";
-import { startAction, StartActionOptions } from "../../src/commands/general/start";
-import { ISimulatorService } from "../../src/lib/interfaces/ISimulatorService";
+import {startAction, StartActionOptions} from "../../src/commands/general/start";
+import {ISimulatorService} from "../../src/lib/interfaces/ISimulatorService";
 
 describe("startAction - Additional Tests", () => {
   let simulatorService: ISimulatorService;
@@ -13,9 +13,9 @@ describe("startAction - Additional Tests", () => {
     resetValidators: false,
     numValidators: 5,
     branch: "main",
-    location: '',
+    location: "",
     headless: false,
-    resetDb: false
+    resetDb: false,
   };
 
   beforeEach(() => {
@@ -26,15 +26,15 @@ describe("startAction - Additional Tests", () => {
     simulatorService = {
       updateSimulator: vi.fn().mockResolvedValue(undefined),
       runSimulator: vi.fn().mockResolvedValue(undefined),
-      waitForSimulatorToBeReady: vi.fn().mockResolvedValue({ initialized: true }),
+      waitForSimulatorToBeReady: vi.fn().mockResolvedValue({initialized: true}),
       deleteAllValidators: vi.fn().mockResolvedValue(undefined),
       createRandomValidators: vi.fn().mockResolvedValue(undefined),
       openFrontend: vi.fn().mockResolvedValue(undefined),
       setSimulatorLocation: vi.fn().mockResolvedValue(undefined),
       setComposeOptions: vi.fn(),
       getAiProvidersOptions: vi.fn(() => [
-        { name: "Provider A", value: "providerA" },
-        { name: "Provider B", value: "providerB" },
+        {name: "Provider A", value: "providerA"},
+        {name: "Provider B", value: "providerB"},
       ]),
       getFrontendUrl: vi.fn(() => "http://localhost:8080"),
       cleanDatabase: vi.fn().mockResolvedValue(undefined),
@@ -52,11 +52,13 @@ describe("startAction - Additional Tests", () => {
     expect(simulatorService.runSimulator).toHaveBeenCalled();
     expect(simulatorService.waitForSimulatorToBeReady).toHaveBeenCalled();
 
-    expect(logSpy).toHaveBeenCalledWith("Starting GenLayer simulator keeping the existing validators");
-    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Simulator is running!");
-    expect(logSpy).toHaveBeenCalledWith("GenLayer simulator initialized successfully! Go to http://localhost:8080 in your browser to access it.");
+    expect(logSpy).toHaveBeenCalledWith("Starting GenLayer Studio keeping the existing validators");
+    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Studio...");
+    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Studio...");
+    expect(logSpy).toHaveBeenCalledWith("Studio is running!");
+    expect(logSpy).toHaveBeenCalledWith(
+      "GenLayer Studio initialized successfully! Go to http://localhost:8080 in your browser to access it.",
+    );
 
     expect(simulatorService.openFrontend).toHaveBeenCalled();
   });
@@ -68,11 +70,11 @@ describe("startAction - Additional Tests", () => {
     expect(simulatorService.runSimulator).toHaveBeenCalled();
     expect(simulatorService.waitForSimulatorToBeReady).toHaveBeenCalled();
 
-    expect(logSpy).toHaveBeenCalledWith("Starting GenLayer simulator keeping the existing validators");
-    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Simulator is running!");
-    expect(logSpy).toHaveBeenCalledWith("GenLayer simulator initialized successfully! ");
+    expect(logSpy).toHaveBeenCalledWith("Starting GenLayer Studio keeping the existing validators");
+    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Studio...");
+    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Studio...");
+    expect(logSpy).toHaveBeenCalledWith("Studio is running!");
+    expect(logSpy).toHaveBeenCalledWith("GenLayer Studio initialized successfully! ");
   });
 
   test("logs error and stops if updateSimulator fails", async () => {
@@ -96,8 +98,8 @@ describe("startAction - Additional Tests", () => {
   });
 
   test("handles resetfValidators correctly by deleting and creating new validators", async () => {
-    promptSpy.mockResolvedValueOnce({ selectedLlmProviders: ["providerA"] });
-    const optionsWithReset: StartActionOptions = { ...defaultOptions, resetValidators: true };
+    promptSpy.mockResolvedValueOnce({selectedLlmProviders: ["providerA"]});
+    const optionsWithReset: StartActionOptions = {...defaultOptions, resetValidators: true};
 
     await startAction(optionsWithReset, simulatorService);
 
@@ -109,7 +111,7 @@ describe("startAction - Additional Tests", () => {
   test("logs error if deleteAllValidators fails when resetValidators is true", async () => {
     const errorMsg = new Error("deleteAllValidators error");
     (simulatorService.deleteAllValidators as Mock).mockRejectedValueOnce(errorMsg);
-    const optionsWithReset: StartActionOptions = { ...defaultOptions, resetValidators: true };
+    const optionsWithReset: StartActionOptions = {...defaultOptions, resetValidators: true};
 
     await startAction(optionsWithReset, simulatorService);
 
@@ -121,8 +123,8 @@ describe("startAction - Additional Tests", () => {
   test("prompts for LLM providers and validates at least one option is selected", async () => {
     const aiProviders = simulatorService.getAiProvidersOptions(false);
     expect(aiProviders).toEqual([
-      { name: "Provider A", value: "providerA" },
-      { name: "Provider B", value: "providerB" },
+      {name: "Provider A", value: "providerA"},
+      {name: "Provider B", value: "providerB"},
     ]);
 
     promptSpy.mockImplementation(async (questions: any) => {
@@ -131,10 +133,10 @@ describe("startAction - Additional Tests", () => {
       expect(validateFunction([])).toBe("You must choose at least one option.");
       expect(validateFunction(["providerA"])).toBe(true);
 
-      return { selectedLlmProviders: ["providerA"] };
+      return {selectedLlmProviders: ["providerA"]};
     });
 
-    const optionsWithReset: StartActionOptions = { ...defaultOptions, resetValidators: true };
+    const optionsWithReset: StartActionOptions = {...defaultOptions, resetValidators: true};
     await startAction(optionsWithReset, simulatorService);
 
     expect(promptSpy).toHaveBeenCalled();
@@ -151,11 +153,11 @@ describe("startAction - Additional Tests", () => {
     await startAction(defaultOptions, simulatorService);
 
     expect(errorSpy).toHaveBeenCalledWith(
-      "The simulator is taking too long to initialize. Please try again after the simulator is ready."
+      "The Studio is taking too long to initialize. Please try again after the Studio is ready.",
     );
   });
 
-  test("logs error message if simulator fails to initialize with ERROR code", async () => {
+  test("logs error message if Studio fails to initialize with ERROR code", async () => {
     (simulatorService.waitForSimulatorToBeReady as Mock).mockResolvedValue({
       initialized: false,
       errorCode: "ERROR",
@@ -165,7 +167,7 @@ describe("startAction - Additional Tests", () => {
     await startAction(defaultOptions, simulatorService);
 
     expect(logSpy).toHaveBeenCalledWith("Initialization failed");
-    expect(errorSpy).toHaveBeenCalledWith("Unable to initialize the GenLayer simulator. Please try again.");
+    expect(errorSpy).toHaveBeenCalledWith("Unable to initialize the GenLayer Studio. Please try again.");
   });
 
   test("catches and logs error if waitForSimulatorToBeReady throws an exception", async () => {
