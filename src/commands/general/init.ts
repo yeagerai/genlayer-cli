@@ -4,7 +4,6 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 export interface InitActionOptions {
   numValidators: number;
-  branch: string;
   location: string;
   headless: boolean;
   resetDb: boolean;

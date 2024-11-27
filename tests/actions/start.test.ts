@@ -12,8 +12,6 @@ describe("startAction - Additional Tests", () => {
   const defaultOptions: StartActionOptions = {
     resetValidators: false,
     numValidators: 5,
-    branch: "main",
-    location: '',
     headless: false,
     resetDb: false
   };
@@ -48,13 +46,10 @@ describe("startAction - Additional Tests", () => {
   test("runs successfully with default options and keeps existing validators", async () => {
     await startAction(defaultOptions, simulatorService);
 
-    expect(simulatorService.updateSimulator).toHaveBeenCalledWith("main");
     expect(simulatorService.runSimulator).toHaveBeenCalled();
     expect(simulatorService.waitForSimulatorToBeReady).toHaveBeenCalled();
 
     expect(logSpy).toHaveBeenCalledWith("Starting GenLayer simulator keeping the existing validators");
-    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Simulator...");
     expect(logSpy).toHaveBeenCalledWith("Simulator is running!");
     expect(logSpy).toHaveBeenCalledWith("GenLayer simulator initialized successfully! Go to http://localhost:8080 in your browser to access it.");
 
@@ -64,26 +59,15 @@ describe("startAction - Additional Tests", () => {
   test("runs successfully with custom options and keeps existing validators", async () => {
     await startAction({...defaultOptions, headless: true, resetDb: true}, simulatorService);
 
-    expect(simulatorService.updateSimulator).toHaveBeenCalledWith("main");
     expect(simulatorService.runSimulator).toHaveBeenCalled();
     expect(simulatorService.waitForSimulatorToBeReady).toHaveBeenCalled();
 
     expect(logSpy).toHaveBeenCalledWith("Starting GenLayer simulator keeping the existing validators");
-    expect(logSpy).toHaveBeenCalledWith("Updating GenLayer Simulator...");
-    expect(logSpy).toHaveBeenCalledWith("Running the GenLayer Simulator...");
+
     expect(logSpy).toHaveBeenCalledWith("Simulator is running!");
     expect(logSpy).toHaveBeenCalledWith("GenLayer simulator initialized successfully! ");
   });
 
-  test("logs error and stops if updateSimulator fails", async () => {
-    const errorMsg = new Error("updateSimulator error");
-    (simulatorService.updateSimulator as Mock).mockRejectedValueOnce(errorMsg);
-
-    await startAction(defaultOptions, simulatorService);
-
-    expect(errorSpy).toHaveBeenCalledWith(errorMsg);
-    expect(simulatorService.runSimulator).not.toHaveBeenCalled();
-  });
 
   test("logs error and stops if runSimulator fails", async () => {
     const errorMsg = new Error("runSimulator error");

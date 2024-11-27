@@ -5,17 +5,14 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 export interface StartActionOptions {
   resetValidators: boolean;
   numValidators: number;
-  branch: string;
-  location: string;
   headless: boolean;
   resetDb: boolean
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetValidators, numValidators, branch, location, headless, resetDb} = options;
-  // Update simulator location with user input
+  const {resetValidators, numValidators, headless, resetDb} = options;
+
   simulatorService.setComposeOptions(headless);
-  simulatorService.setSimulatorLocation(location);
 
 
   const restartValidatorsHintText = resetValidators
@@ -24,17 +21,6 @@ export async function startAction(options: StartActionOptions, simulatorService:
 
   console.log(`Starting GenLayer simulator ${restartValidatorsHintText}`);
 
-  // Update the simulator to the latest version
-  console.log(`Updating GenLayer Simulator...`);
-  try {
-    await simulatorService.updateSimulator(branch);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-
-  // Run the GenLayer Simulator
-  console.log("Running the GenLayer Simulator...");
   try {
     await simulatorService.runSimulator();
   } catch (error) {
