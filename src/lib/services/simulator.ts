@@ -40,9 +40,32 @@ export class SimulatorService implements ISimulatorService {
   public location: string;
 
   constructor() {
-    this.location = __dirname;
+    this.location = path.resolve(__dirname, '..');
     this.composeOptions = "";
     this.docker = new Docker();
+  }
+
+  public addConfigToEnvFile(newConfig: Record<string, string>): void {
+    const envFilePath = path.join(this.location, ".env");
+
+    // Create a backup of the original .env file
+    fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
+
+    // Transform the config string to object
+    const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
+    Object.keys(newConfig).forEach(key => {
+      envConfig[key] = newConfig[key];
+    });
+
+    // Transform the updated config object back into a string
+    const updatedConfig = Object.keys(envConfig)
+      .map(key => {
+        return `${key}=${envConfig[key]}`;
+      })
+      .join("\n");
+
+    // Write the new .env file
+    fs.writeFileSync(envFilePath, updatedConfig);
   }
 
   public setComposeOptions(headless: boolean): void {
@@ -121,12 +144,37 @@ export class SimulatorService implements ISimulatorService {
   }
 
   public async pullOllamaModel(): Promise<boolean> {
-    const ollamaContainer = this.docker.getContainer("ollama");
-    await ollamaContainer.exec({
-      Cmd: ["ollama", "pull", "llama3"],
-    });
-    return true;
+    try {
+      const ollamaContainer = this.docker.getContainer("ollama");
+
+      // Create the exec instance
+      const exec = await ollamaContainer.exec({
+        Cmd: ["ollama", "pull", "llama3"],
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+
+      // Start the exec instance and attach to the stream
+      const stream = await exec.start({ Detach: false, Tty: false });
+
+      // Collect and log the output
+      stream.on("data", (chunk) => {
+        console.log(chunk.toString());
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on("end", resolve);
+        stream.on("error", reject);
+      });
+
+      console.log("Command executed successfully");
+      return true;
+    } catch (error) {
+      console.error("Error executing ollama pull llama3:", error);
+      return false;
+    }
   }
+
 
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
     const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.location, this.getComposeOptions());

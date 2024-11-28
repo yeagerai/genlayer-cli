@@ -6,8 +6,11 @@ import { tmpdir } from "os";
 import {mkdtempSync} from "fs";
 import {join} from "path";
 import fs from "fs";
+import * as dotenv from "dotenv";
+
 
 vi.mock("fs");
+vi.mock("dotenv");
 
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
@@ -30,6 +33,7 @@ describe("init action", () => {
   let simServCreateRandomValidators: ReturnType<any>;
   let simServOpenFrontend: ReturnType<any>;
   let simGetSimulatorUrl: ReturnType<any>;
+  let simAddConfigToEnvFile: ReturnType<any>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -50,6 +54,7 @@ describe("init action", () => {
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
     simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
+    simAddConfigToEnvFile = vi.spyOn(simulatorService, "addConfigToEnvFile")
 
     simServCheckVersionRequirements.mockResolvedValue({
       node: '',
@@ -59,6 +64,11 @@ describe("init action", () => {
       git: true,
       docker: true,
     })
+    simAddConfigToEnvFile.mockResolvedValue(true);
+    const mockEnvContent = "FRONTEND_PORT=8080";
+    const mockEnvConfig = { FRONTEND_PORT: "8080" };
+    vi.mocked(fs.readFileSync).mockReturnValue(mockEnvContent);
+    vi.mocked(dotenv.parse).mockReturnValue(mockEnvConfig);
   });
 
   afterEach(() => {

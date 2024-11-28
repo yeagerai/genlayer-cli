@@ -8,12 +8,21 @@ services:
     environment:
       - VITE_*
     volumes:
-      - ./examples:/app/src/assets/examples
+      - ./.env:/app/.env
     depends_on:
       jsonrpc:
         condition: service_healthy
     expose:
       - "${FRONTEND_PORT:-8080}"
+    restart: always
+    security_opt:
+      - "no-new-privileges=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 
   jsonrpc:
     image: yeagerai/simulator-jsonrpc:latest
@@ -27,6 +36,14 @@ services:
     ports:
       - "${RPCPORT:-5000}:${RPCPORT:-5000}"
       - "${RPCDEBUGPORT:-5001}:${RPCDEBUGPORT:-5001}"
+    volumes:
+      - ./.env:/app/.env
+    healthcheck:
+      test: [ "CMD", "python", "backend/healthcheck.py", "--port", "${RPCPORT}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       database-migration:
         condition: service_completed_successfully
@@ -34,6 +51,16 @@ services:
         condition: service_healthy
     expose:
       - "${RPCPORT:-5000}"
+    restart: always
+    security_opt:
+      - "no-new-privileges=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: ${JSONRPC_REPLICAS:-1}
 
   webrequest:
     image: yeagerai/simulator-webrequest:latest
@@ -42,22 +69,40 @@ services:
       - FLASK_SERVER_PORT=${WEBREQUESTPORT:-5002}
       - WEBREQUESTSELENIUMPORT=${WEBREQUESTSELENIUMPORT:-4444}
       - PYTHONUNBUFFERED=1
+      - WEBREQUESTPORT=${WEBREQUESTPORT}
+      - WEBREQUESTHOST=${WEBREQUESTHOST}
+      - WEBREQUESTPROTOCOL=${WEBREQUESTPROTOCOL}
     expose:
       - "${WEBREQUESTPORT:-5002}:${WEBREQUESTPORT:-5002}"
       - "${WEBREQUESTSELENIUMPORT:-4444}:${WEBREQUESTSELENIUMPORT:-4444}"
+    volumes:
+      - ./.env:/app/webrequest/.env
     depends_on:
       ollama:
         condition: service_started
+    restart: always
+    security_opt:
+      - "no-new-privileges=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   ollama:
     image: ollama/ollama:0.3.11
     ports:
       - 11434:11434
-    volumes:
-      - ./.ollama:/root/.ollama
     container_name: ollama
     tty: true
     restart: always
+    security_opt:
+      - "no-new-privileges=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   postgres:
     image: postgres:16-alpine
@@ -72,6 +117,14 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    restart: always
+    security_opt:
+      - "no-new-privileges=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     # Uncomment the following lines if you want your DB to persist
     # volumes:

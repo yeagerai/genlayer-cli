@@ -4,7 +4,6 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 export interface InitActionOptions {
   numValidators: number;
-  location: string;
   headless: boolean;
   resetDb: boolean;
 }
@@ -135,6 +134,10 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     const apiKeyAnswer = await inquirer.prompt(questions);
     aiProvidersEnvVars[providerConfig.envVar!] = apiKeyAnswer[providerConfig.cliOptionValue];
   }
+
+  console.log("Configuring GenLayer Simulator environment...");
+  simulatorService.addConfigToEnvFile(aiProvidersEnvVars);
+
 
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");

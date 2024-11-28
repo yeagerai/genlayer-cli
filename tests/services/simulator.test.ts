@@ -12,8 +12,6 @@ import {
 import {
   DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   VERSION_REQUIREMENTS,
-} from "../../src/lib/config/simulator";
-import {
   STARTING_TIMEOUT_ATTEMPTS,
   DEFAULT_RUN_SIMULATOR_COMMAND,
 } from "../../src/lib/config/simulator";
@@ -119,8 +117,7 @@ describe("SimulatorService - Basic Tests", () => {
       stderr: "",
     });
     const result = await simulatorService.runSimulator();
-    const dirname = __dirname.replace('tests', 'src/lib')
-    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(dirname, '');
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorService.location, '');
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
@@ -133,11 +130,56 @@ describe("SimulatorService - Basic Tests", () => {
     simulatorService.setComposeOptions(true)
     const commandOption = simulatorService.getComposeOptions();
     const result = await simulatorService.runSimulator();
-    const dirname = __dirname.replace('tests', 'src/lib')
-    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(dirname, commandOption);
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorService.location, commandOption);
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
+
+  test("should create a backup of the .env file and add new config", () => {
+    const envFilePath = `/.env`;
+    const originalEnvContent = "KEY1=value1\nKEY2=value2";
+    const parsedEnvConfig = { KEY1: "value1", KEY2: "value2" };
+    const newConfig = { KEY3: "value3", KEY2: "newValue2" };
+
+    vi.mocked(fs.readFileSync).mockImplementation((filePath: any) => {
+      if (filePath === envFilePath) return originalEnvContent;
+      return "";
+    });
+
+    vi.mocked(dotenv.parse).mockReturnValue(parsedEnvConfig);
+    const writeFileSyncMock = vi.mocked(fs.writeFileSync);
+
+    simulatorService.addConfigToEnvFile(newConfig);
+
+    const expectedUpdatedContent = `KEY1=value1\nKEY2=newValue2\nKEY3=value3`;
+    expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
+  });
+
+  test("should handle empty .env file and add new config", () => {
+    const envFilePath = `/.env`;
+    const newConfig = { NEW_KEY: "newValue" };
+
+    vi.mocked(fs.readFileSync).mockReturnValue("");
+    vi.mocked(dotenv.parse).mockReturnValue({});
+    const writeFileSyncMock = vi.mocked(fs.writeFileSync);
+
+    simulatorService.addConfigToEnvFile(newConfig);
+
+    expect(writeFileSyncMock).toHaveBeenCalledWith(`${envFilePath}.bak`, "");
+    const expectedUpdatedContent = `NEW_KEY=newValue`;
+    expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
+  });
+
+  test("should throw error when .env file does not exist", () => {
+    vi.mocked(fs.readFileSync).mockImplementation(() => {
+      throw new Error("File not found");
+    });
+
+    expect(() => simulatorService.addConfigToEnvFile({ KEY: "value" })).toThrow(
+      "File not found"
+    );
+  });
+
 
   test("should open the frontend URL and return true", async () => {
     vi.spyOn(simulatorService, "getFrontendUrl").mockReturnValue("http://localhost:8080");
@@ -252,8 +294,60 @@ describe("SimulatorService - Docker Tests", () => {
     mockPing = vi.mocked(Docker.prototype.ping);
   });
 
-  test("should pull the Ollama model", async () => {
-    mockGetContainer.mockReturnValueOnce({exec: mockExec} as unknown as Docker.Container);
+  test("should handle errors during the execution of pullOllamaModel gracefully", async () => {
+    const mockExec = vi.fn();
+    const mockStart = vi.fn();
+
+    mockExec.mockResolvedValue({
+      start: mockStart,
+    });
+
+    const mockStream = {
+      on: vi.fn((event, callback) => {
+        if (event === "data") callback("Mock data chunk");
+        if (event === "error") callback(new Error("Mock error during stream"));
+      }),
+    };
+
+    mockStart.mockResolvedValue(mockStream);
+
+    mockGetContainer.mockReturnValueOnce({
+      exec: mockExec,
+    } as unknown as Docker.Container);
+
+    const result = await simulatorService.pullOllamaModel();
+
+    expect(result).toBe(false);
+    expect(mockGetContainer).toHaveBeenCalledWith("ollama");
+    expect(mockExec).toHaveBeenCalledWith({
+      Cmd: ["ollama", "pull", "llama3"],
+      AttachStdout: true,
+      AttachStderr: true,
+    });
+    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
+    expect(mockStream.on).toHaveBeenCalledWith("error", expect.any(Function));
+  });
+
+  test("should successfully execute pullOllamaModel and return true", async () => {
+    const mockExec = vi.fn();
+    const mockStart = vi.fn();
+
+    mockExec.mockResolvedValue({
+      start: mockStart,
+    });
+
+    const mockStream = {
+      on: vi.fn((event, callback) => {
+        if (event === "data") callback("Mock data chunk");
+        if (event === "end") callback();
+      }),
+    };
+
+    mockStart.mockResolvedValue(mockStream);
+
+    mockGetContainer.mockReturnValueOnce({
+      exec: mockExec,
+    } as unknown as Docker.Container);
 
     const result = await simulatorService.pullOllamaModel();
 
@@ -261,8 +355,14 @@ describe("SimulatorService - Docker Tests", () => {
     expect(mockGetContainer).toHaveBeenCalledWith("ollama");
     expect(mockExec).toHaveBeenCalledWith({
       Cmd: ["ollama", "pull", "llama3"],
+      AttachStdout: true,
+      AttachStderr: true,
     });
+    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
+    expect(mockStream.on).toHaveBeenCalledWith("data", expect.any(Function));
+    expect(mockStream.on).toHaveBeenCalledWith("end", expect.any(Function));
   });
+
 
   test("should stop and remove Docker containers with the specified prefix", async () => {
     const mockContainers = [
