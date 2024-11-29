@@ -5,6 +5,13 @@ import { getCommand, getCommandOption } from "../utils";
 import simulatorService from  '../../src/lib/services/simulator'
 
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
+const defaultOptions = {
+  numValidators: "5",
+  branch: "main",
+  location: process.cwd(),
+  headless: false,
+  resetDb: false
+}
 
 vi.mock("inquirer", () => ({
   prompt: vi.fn(() => {}),
@@ -74,13 +81,13 @@ describe("init command", () => {
   test("action is called", async () => {
     program.parse(["node", "test", "init"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: false });
+    expect(action).toHaveBeenCalledWith(defaultOptions);
   });
 
   test("option --headless is accepted", async () => {
     program.parse(["node", "test", "init", "--headless"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: true });
+    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,7 @@ describe("startAction - Additional Tests", () => {
     branch: "main",
     location: '',
     headless: false,
+    resetDb: false
   };
 
   beforeEach(() => {
@@ -37,6 +38,7 @@ describe("startAction - Additional Tests", () => {
         { name: "Provider B", value: "providerB" },
       ]),
       getFrontendUrl: vi.fn(() => "http://localhost:8080"),
+      cleanDatabase: vi.fn().mockResolvedValue(undefined),
     } as unknown as ISimulatorService;
   });
 
@@ -60,8 +62,8 @@ describe("startAction - Additional Tests", () => {
     expect(simulatorService.openFrontend).toHaveBeenCalled();
   });
 
-  test("runs successfully with default options and keeps existing validators (headless)", async () => {
-    await startAction({...defaultOptions, headless: true}, simulatorService);
+  test("runs successfully with custom options and keeps existing validators", async () => {
+    await startAction({...defaultOptions, headless: true, resetDb: true}, simulatorService);
 
     expect(simulatorService.updateSimulator).toHaveBeenCalledWith("main");
     expect(simulatorService.runSimulator).toHaveBeenCalled();

@@ -21,6 +21,7 @@ export interface ISimulatorService {
   resetDockerContainers(): Promise<boolean>;
   resetDockerImages(): Promise<boolean>;
   checkCliVersion(): Promise<void>;
+  cleanDatabase(): Promise<boolean>;
 }
 
 export type DownloadSimulatorResultType = {

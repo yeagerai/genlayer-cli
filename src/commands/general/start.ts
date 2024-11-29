@@ -8,10 +8,11 @@ export interface StartActionOptions {
   branch: string;
   location: string;
   headless: boolean;
+  resetDb: boolean
 }
 
 export async function startAction(options: StartActionOptions, simulatorService: ISimulatorService) {
-  const {resetValidators, numValidators, branch, location, headless} = options;
+  const {resetValidators, numValidators, branch, location, headless, resetDb} = options;
   // Update simulator location with user input
   simulatorService.setComposeOptions(headless);
   simulatorService.setSimulatorLocation(location);
@@ -59,6 +60,10 @@ export async function startAction(options: StartActionOptions, simulatorService:
   } catch (error) {
     console.error(error);
     return;
+  }
+
+  if(resetDb){
+    await simulatorService.cleanDatabase()
   }
 
   if (resetValidators) {

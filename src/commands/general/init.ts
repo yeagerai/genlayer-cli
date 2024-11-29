@@ -7,6 +7,7 @@ export interface InitActionOptions {
   branch: string;
   location: string;
   headless: boolean;
+  resetDb: boolean;
 }
 
 function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
@@ -225,6 +226,10 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     console.error("Unable to initialize the validators.");
     console.error(error);
     return;
+  }
+
+  if(options.resetDb){
+    await simulatorService.cleanDatabase()
   }
 
   // Simulator ready

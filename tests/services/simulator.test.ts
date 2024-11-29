@@ -289,6 +289,12 @@ describe("SimulatorService - Basic Tests", () => {
     expect(simulatorService.getAiProvidersOptions(false)).toEqual(expect.any(Array));
   });
 
+  test("clean simulator should success", async () => {
+    vi.mocked(rpcClient.request).mockResolvedValueOnce('Success');
+    await expect(simulatorService.cleanDatabase).not.toThrow();
+    expect(rpcClient.request).toHaveBeenCalledWith({ method: "sim_clearDbTables", params: [['current_state', 'transactions']] });
+  });
+
 });
 describe("SimulatorService - Docker Tests", () => {
   let mockExec: Mock;
