@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { KeypairCreator } from "./create";
+import { CreateKeypairOptions, KeypairCreator } from "./create";
 
 export function initializeKeygenCommands(program: Command) {
 
@@ -11,9 +11,10 @@ export function initializeKeygenCommands(program: Command) {
     .command("create")
     .description("Generates a new keypair and saves it to a file")
     .option("--output <path>", "Path to save the keypair", "./keypair.json")
-    .action((options: { output: string }) => {
+    .option("--overwrite", "Overwrite the existing file if it already exists", false)
+    .action((options: CreateKeypairOptions) => {
       const keypairCreator = new KeypairCreator();
-      keypairCreator.createKeypairAction({ output: options.output });
+      keypairCreator.createKeypairAction(options);
     });
 
   return program;
