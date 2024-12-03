@@ -1,5 +1,12 @@
 
 
+## 0.6.0 (2024-12-03)
+
+
+### Features
+
+* keygen create command ([#147](https://github.com/yeagerai/genlayer-cli/issues/147)) ([6168782](https://github.com/yeagerai/genlayer-cli/commit/6168782af5c028d80c2376559d3f6e5aecef2c3b))
+
 ## 0.5.1-beta.0 (2024-12-03)
 
 
