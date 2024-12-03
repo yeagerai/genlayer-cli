@@ -1,5 +1,12 @@
 
 
+## 0.5.0 (2024-12-03)
+
+
+### Features
+
+* chack cli version ([#143](https://github.com/yeagerai/genlayer-cli/issues/143)) ([00ada3b](https://github.com/yeagerai/genlayer-cli/commit/00ada3b01ab8f727dbeadc2da0b810dc4211b6c9))
+
 ## 0.4.0 (2024-11-22)
 
 
