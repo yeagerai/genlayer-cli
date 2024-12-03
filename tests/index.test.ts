@@ -13,6 +13,10 @@ vi.mock("../src/commands/general", () => ({
   initializeGeneralCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/keygen", () => ({
+  initializeKeygenCommands: vi.fn(),
+}));
+
 
 describe("CLI", () => {
   it("should initialize CLI", () => {

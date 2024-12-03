@@ -1,9 +1,8 @@
-import {Command} from "commander";
+import { Command } from "commander";
 
 import simulatorService from "../../lib/services/simulator";
-
-import {initAction, InitActionOptions} from "./init";
-import {startAction, StartActionOptions} from "./start";
+import { initAction, InitActionOptions } from "./init";
+import { startAction, StartActionOptions } from "./start";
 
 export function initializeGeneralCommands(program: Command) {
   program
