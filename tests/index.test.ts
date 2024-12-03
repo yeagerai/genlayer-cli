@@ -17,6 +17,10 @@ vi.mock("../src/commands/keygen", () => ({
   initializeKeygenCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/config", () => ({
+  initializeConfigCommands: vi.fn(),
+}));
+
 
 describe("CLI", () => {
   it("should initialize CLI", () => {
