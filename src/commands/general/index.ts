@@ -10,8 +10,6 @@ export function initializeGeneralCommands(program: Command) {
     .command("init")
     .description("Initialize the GenLayer Environment")
     .option("--numValidators <numValidators>", "Number of validators", "5")
-    .option("--branch <branch>", "Branch", "main")
-    .option("--location <folder>", "Location where it will be installed", process.cwd())
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
     .action((options: InitActionOptions) => initAction(options, simulatorService));
@@ -21,8 +19,6 @@ export function initializeGeneralCommands(program: Command) {
     .description("Starts GenLayer's simulator")
     .option("--reset-validators", "Remove all current validators and create new random ones", false)
     .option("--numValidators <numValidators>", "Number of validators", "5")
-    .option("--branch <branch>", "Branch", "main")
-    .option("--location <folder>", "Location where it will be installed", process.cwd())
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
     .action((options: StartActionOptions) => startAction(options, simulatorService));

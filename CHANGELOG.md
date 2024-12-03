@@ -1,5 +1,12 @@
 
 
+## 0.5.1-beta.0 (2024-12-03)
+
+
+### Bug Fixes
+
+* merging main and resolving conflicts ([df23e36](https://github.com/yeagerai/genlayer-cli/commit/df23e365c4f481a153ae8b39051500aaad5b8b0e))
+
 ## 0.5.0 (2024-12-03)
 
 

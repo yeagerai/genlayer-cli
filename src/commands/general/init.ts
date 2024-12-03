@@ -4,19 +4,12 @@ import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
 export interface InitActionOptions {
   numValidators: number;
-  branch: string;
-  location: string;
   headless: boolean;
   resetDb: boolean;
 }
 
-function getRequirementsErrorMessage({git, docker}: Record<string, boolean>): string {
-  if (!git && !docker) {
-    return "Git and Docker are not installed. Please install them and try again.\n";
-  }
-  if (!git) {
-    return "Git is not installed. Please install Git and try again.\n";
-  }
+function getRequirementsErrorMessage({docker}: Record<string, boolean>): string {
+
   if (!docker) {
     return "Docker is not installed. Please install Docker and try again.\n";
   }
@@ -39,7 +32,6 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 }
 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
-  simulatorService.setSimulatorLocation(options.location);
   simulatorService.setComposeOptions(options.headless);
 
   await simulatorService.checkCliVersion();
@@ -99,33 +91,6 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     return;
   }
 
-  // Ask for confirmation on downloading the GenLayer Simulator from GitHub
-  const answers = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirmDownload",
-      message: `This action is going to download the GenLayer Simulator from GitHub (branch ${options.branch}) into "${simulatorService.getSimulatorLocation()}". Do you want to continue?`,
-      default: true,
-    },
-  ]);
-
-  if (!answers.confirmDownload) {
-    console.log("Aborted!");
-    return;
-  }
-
-  // Download the GenLayer Simulator from GitHub
-  console.log(`Downloading GenLayer Simulator from GitHub...`);
-  try {
-    const {wasInstalled} = await simulatorService.downloadSimulator(options.branch);
-    if (wasInstalled) {
-      await simulatorService.updateSimulator(options.branch);
-    }
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-
   // Check LLM configuration
   const questions = [
     {
@@ -173,12 +138,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   }
 
   console.log("Configuring GenLayer Simulator environment...");
-  try {
-    await simulatorService.configSimulator(aiProvidersEnvVars);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  simulatorService.addConfigToEnvFile(aiProvidersEnvVars);
+
 
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
