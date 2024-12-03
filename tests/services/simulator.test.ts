@@ -21,7 +21,15 @@ import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
 import Docker from "dockerode";
 import {VersionRequiredError} from "../../src/lib/errors/versionRequired";
+import updateCheck from "update-check";
 
+vi.mock("../../package.json", () => ({
+  default: { version: "1.0.0", name: "genlayer" },
+}));
+
+vi.mock("update-check", () => ({
+  default: vi.fn(),
+}));
 vi.mock("dockerode");
 vi.mock("fs");
 vi.mock("path");
@@ -409,5 +417,45 @@ describe("SimulatorService - Docker Tests", () => {
       .mockRejectedValue(undefined);
     mockPing.mockRejectedValueOnce("Unexpected docker error");
     await expect(simulatorService.checkInstallRequirements()).rejects.toThrow("Unexpected docker error");
+  });
+
+  test("should warn the user when an update is available", async () => {
+    const update = { latest: "1.1.0" };
+    (updateCheck as any).mockResolvedValue(update);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      `\nA new version (${update.latest}) is available! You're using version 1.0.0.\nRun npm install -g genlayer to update\n`
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  test("should not warn the user when the CLI is up-to-date", async () => {
+    const update = { latest: "1.0.0" };
+    (updateCheck as any).mockResolvedValue(update);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  test("should handle update-check returning undefined", async () => {
+    (updateCheck as any).mockResolvedValue(undefined);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
   });
 });

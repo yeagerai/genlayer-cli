@@ -20,6 +20,7 @@ export interface ISimulatorService {
   openFrontend(): Promise<boolean>;
   resetDockerContainers(): Promise<boolean>;
   resetDockerImages(): Promise<boolean>;
+  checkCliVersion(): Promise<void>;
   cleanDatabase(): Promise<boolean>;
 }
 
