@@ -34,6 +34,8 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setComposeOptions(options.headless);
 
+  await simulatorService.checkCliVersion();
+
   // Check if requirements are installed
   try {
     const requirementsInstalled = await simulatorService.checkInstallRequirements();

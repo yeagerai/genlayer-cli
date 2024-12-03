@@ -14,6 +14,7 @@ export async function startAction(options: StartActionOptions, simulatorService:
 
   simulatorService.setComposeOptions(headless);
 
+  await simulatorService.checkCliVersion();
 
   const restartValidatorsHintText = resetValidators
     ? `creating new ${numValidators} random validators`

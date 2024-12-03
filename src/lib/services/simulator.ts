@@ -3,6 +3,8 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
 import * as semver from "semver";
+import updateCheck from "update-check";
+import pkg from '../../../package.json'
 
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
@@ -81,6 +83,13 @@ export class SimulatorService implements ISimulatorService {
     // Transform the config string to object
     const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
     return envConfig[key];
+  }
+
+  public async checkCliVersion(): Promise<void> {
+    const update = await updateCheck(pkg);
+    if (update && update.latest !== pkg.version) {
+      console.warn(`\nA new version (${update.latest}) is available! You're using version ${pkg.version}.\nRun npm install -g genlayer to update\n`);
+    }
   }
 
   public async checkInstallRequirements(): Promise<Record<string, boolean>> {

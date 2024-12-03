@@ -30,6 +30,7 @@ describe("startAction - Additional Tests", () => {
       openFrontend: vi.fn().mockResolvedValue(undefined),
       setSimulatorLocation: vi.fn().mockResolvedValue(undefined),
       setComposeOptions: vi.fn(),
+      checkCliVersion: vi.fn(),
       getAiProvidersOptions: vi.fn(() => [
         { name: "Provider A", value: "providerA" },
         { name: "Provider B", value: "providerB" },
