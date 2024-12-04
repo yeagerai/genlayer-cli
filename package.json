@@ -66,5 +66,10 @@
     "update-check": "^1.5.4",
     "uuid": "^9.0.1",
     "vitest": "^2.1.4"
+  },
+  "overrides": {
+    "vite": {
+      "rollup": "npm:@rollup/wasm-node"
+    }
   }
 }
