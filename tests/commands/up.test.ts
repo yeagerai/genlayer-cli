@@ -7,6 +7,12 @@ import simulatorService from  '../../src/lib/services/simulator'
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 
 const action = vi.fn();
+const defaultOptions = {
+  resetValidators: false,
+  numValidators: "5",
+  headless: false ,
+  resetDb: false
+}
 
 describe("up command", () => {
   let upCommand: Command;
@@ -50,14 +56,6 @@ describe("up command", () => {
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
-  test("option --branch is accepted", async () => {
-    expect(() => program.parse(["node", "test", "up", "--branch", "development"])).not.toThrow();
-  });
-
-  test("option --branch default value is main", async () => {
-    const branchOption = getCommandOption(upCommand, "--branch");
-    expect(branchOption?.defaultValue).toBe("main");
-  });
 
   test("unrecognized option is not accepted", async () => {
     upCommand?.exitOverride();
@@ -72,7 +70,7 @@ describe("up command", () => {
   test("action is called with default options", async () => {
     program.parse(["node", "test", "up"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ resetValidators: false, numValidators: "5", branch: "main", location: process.cwd(), headless: false });
+    expect(action).toHaveBeenCalledWith(defaultOptions);
   });
 
   test("action is called with custom options", async () => {
@@ -83,19 +81,13 @@ describe("up command", () => {
       "--reset-validators",
       "--numValidators",
       "10",
-      "--branch",
-      "development",
       "--headless",
+      "true",
+      "--reset-db",
       "true"
     ]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({
-      resetValidators: true,
-      numValidators: "10",
-      branch: "development",
-      location: process.cwd(),
-      headless: true,
-    });
+    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true, numValidators: '10', resetValidators: true, resetDb: true});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });

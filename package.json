@@ -1,6 +1,6 @@
 {
   "name": "genlayer",
-  "version": "0.3.0",
+  "version": "0.6.0",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
   "bin": {
@@ -13,7 +13,8 @@
     "dev": "cross-env NODE_ENV=development node esbuild.config.js",
     "build": "cross-env NODE_ENV=production node esbuild.config.js",
     "release": "release-it --ci",
-    "release-beta": "release-it --ci --preRelease=beta"
+    "release-beta": "release-it --ci --preRelease=beta",
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "repository": {
     "type": "git",
@@ -58,9 +59,11 @@
     "commander": "^12.0.0",
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
     "inquirer": "^9.2.19",
     "node-fetch": "^2.7.0",
     "open": "^10.1.0",
+    "update-check": "^1.5.4",
     "uuid": "^9.0.1",
     "vitest": "^2.1.4"
   },

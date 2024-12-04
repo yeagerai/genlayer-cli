@@ -3,10 +3,11 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
 import * as semver from "semver";
+import updateCheck from "update-check";
+import pkg from '../../../package.json'
 
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
-  DEFAULT_REPO_GH_URL,
   DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   DEFAULT_RUN_SIMULATOR_COMMAND,
   DEFAULT_RUN_DOCKER_COMMAND,
@@ -26,7 +27,6 @@ import {MissingRequirementError} from "../errors/missingRequirement";
 
 import {
   ISimulatorService,
-  DownloadSimulatorResultType,
   WaitForSimulatorToBeReadyResultType,
 } from "../interfaces/ISimulatorService";
 import {VersionRequiredError} from "../errors/versionRequired";
@@ -39,39 +39,16 @@ function sleep(millliseconds: number): Promise<void> {
 export class SimulatorService implements ISimulatorService {
   private composeOptions: string
   private docker: Docker;
-  public simulatorLocation: string;
+  public location: string;
 
   constructor() {
-    this.simulatorLocation = "";
+    this.location = path.resolve(__dirname, '..');
     this.composeOptions = "";
     this.docker = new Docker();
   }
 
-  public setSimulatorLocation(location: string): void {
-    this.simulatorLocation = location;
-  }
-
-  public getSimulatorLocation(): string {
-    return this.simulatorLocation;
-  }
-
-  public setComposeOptions(headless: boolean): void {
-    this.composeOptions = headless ? '--scale frontend=0' : '';
-  }
-
-  public getComposeOptions(): string {
-    return this.composeOptions;
-  }
-
-  private readEnvConfigValue(key: string): string {
-    const envFilePath = path.join(this.simulatorLocation, ".env");
-    // Transform the config string to object
-    const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
-    return envConfig[key];
-  }
-
-  private addConfigToEnvFile(newConfig: Record<string, string>): void {
-    const envFilePath = path.join(this.simulatorLocation, ".env");
+  public addConfigToEnvFile(newConfig: Record<string, string>): void {
+    const envFilePath = path.join(this.location, ".env");
 
     // Create a backup of the original .env file
     fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
@@ -93,20 +70,32 @@ export class SimulatorService implements ISimulatorService {
     fs.writeFileSync(envFilePath, updatedConfig);
   }
 
+  public setComposeOptions(headless: boolean): void {
+    this.composeOptions = headless ? '--scale frontend=0' : '';
+  }
+
+  public getComposeOptions(): string {
+    return this.composeOptions;
+  }
+
+  private readEnvConfigValue(key: string): string {
+    const envFilePath = path.join(this.location, ".env");
+    // Transform the config string to object
+    const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
+    return envConfig[key];
+  }
+
+  public async checkCliVersion(): Promise<void> {
+    const update = await updateCheck(pkg);
+    if (update && update.latest !== pkg.version) {
+      console.warn(`\nA new version (${update.latest}) is available! You're using version ${pkg.version}.\nRun npm install -g genlayer to update\n`);
+    }
+  }
+
   public async checkInstallRequirements(): Promise<Record<string, boolean>> {
     const requirementsInstalled = {
-      git: false,
       docker: false,
     };
-
-    try {
-      await checkCommand("git --version", "git");
-      requirementsInstalled.git = true;
-    } catch (error) {
-      if (!(error instanceof MissingRequirementError)) {
-        throw error;
-      }
-    }
 
     try {
       await checkCommand("docker --version", "docker");
@@ -116,7 +105,6 @@ export class SimulatorService implements ISimulatorService {
         throw error;
       }
     }
-
 
     if (requirementsInstalled.docker) {
       try {
@@ -164,62 +152,41 @@ export class SimulatorService implements ISimulatorService {
     }
   }
 
-  public async downloadSimulator(branch: string = "main"): Promise<DownloadSimulatorResultType> {
-    try {
-      const gitCommand = `git clone -b ${branch} ${DEFAULT_REPO_GH_URL} ${this.simulatorLocation}`;
-      const cmdsByPlatform = {darwin: gitCommand, win32: gitCommand, linux: gitCommand};
-      await executeCommand(cmdsByPlatform, "git");
-    } catch (error: any) {
-      const simulatorLocationExists = fs.existsSync(this.simulatorLocation);
-      if (simulatorLocationExists) {
-        return {wasInstalled: true};
-      }
-      throw error;
-    }
-    return {wasInstalled: false};
-  }
-
-  public async updateSimulator(branch: string = "main"): Promise<boolean> {
-    const gitCleanCommand = `git -C  "${this.simulatorLocation}" clean -f`;
-    const cleanCmdsByPlatform = {darwin: gitCleanCommand, win32: gitCleanCommand, linux: gitCleanCommand};
-    await executeCommand(cleanCmdsByPlatform, "git");
-
-    const gitFetchCommand = `git -C  "${this.simulatorLocation}" fetch`;
-    const fetchCmdsByPlatform = {darwin: gitFetchCommand, win32: gitFetchCommand, linux: gitFetchCommand};
-    await executeCommand(fetchCmdsByPlatform, "git");
-
-    const gitCheckoutCommand = `git -C  "${this.simulatorLocation}" checkout ${branch}`;
-    const checkoutCmdsByPlatform = {
-      darwin: gitCheckoutCommand,
-      win32: gitCheckoutCommand,
-      linux: gitCheckoutCommand,
-    };
-    await executeCommand(checkoutCmdsByPlatform, "git");
-
-    const gitPullCommand = `git -C  "${this.simulatorLocation}" pull`;
-    const pullCmdsByPlatform = {darwin: gitPullCommand, win32: gitPullCommand, linux: gitPullCommand};
-    await executeCommand(pullCmdsByPlatform, "git");
-    return true;
-  }
-
   public async pullOllamaModel(): Promise<boolean> {
-    const ollamaContainer = this.docker.getContainer("ollama");
-    await ollamaContainer.exec({
-      Cmd: ["ollama", "pull", "llama3"],
-    });
-    return true;
+    try {
+      const ollamaContainer = this.docker.getContainer("ollama");
+
+      // Create the exec instance
+      const exec = await ollamaContainer.exec({
+        Cmd: ["ollama", "pull", "llama3"],
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+
+      // Start the exec instance and attach to the stream
+      const stream = await exec.start({ Detach: false, Tty: false });
+
+      // Collect and log the output
+      stream.on("data", (chunk) => {
+        console.log(chunk.toString());
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on("end", resolve);
+        stream.on("error", reject);
+      });
+
+      console.log("Command executed successfully");
+      return true;
+    } catch (error) {
+      console.error("Error executing ollama pull llama3:", error);
+      return false;
+    }
   }
 
-  public async configSimulator(newConfig: Record<string, string>): Promise<boolean> {
-    const envExample = path.join(this.simulatorLocation, ".env.example");
-    const envFilePath = path.join(this.simulatorLocation, ".env");
-    fs.copyFileSync(envExample, envFilePath);
-    this.addConfigToEnvFile(newConfig);
-    return true;
-  }
 
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
-    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.simulatorLocation, this.getComposeOptions());
+    const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.location, this.getComposeOptions());
     return executeCommand(commandsByPlatform);
   }
 
@@ -317,6 +284,17 @@ export class SimulatorService implements ISimulatorService {
 
     return true;
   }
+
+  public async cleanDatabase(): Promise<boolean> {
+
+    try {
+      await rpcClient.request({method: "sim_clearDbTables", params: [['current_state', 'transactions']]});
+    }catch (error) {
+      console.error(error);
+    }
+    return true;
+  }
+
 }
 
 export default new SimulatorService();

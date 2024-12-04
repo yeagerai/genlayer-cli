@@ -1,5 +1,33 @@
 
 
+## 0.6.0 (2024-12-03)
+
+
+### Features
+
+* keygen create command ([#147](https://github.com/yeagerai/genlayer-cli/issues/147)) ([6168782](https://github.com/yeagerai/genlayer-cli/commit/6168782af5c028d80c2376559d3f6e5aecef2c3b))
+
+## 0.5.1-beta.0 (2024-12-03)
+
+
+### Bug Fixes
+
+* merging main and resolving conflicts ([df23e36](https://github.com/yeagerai/genlayer-cli/commit/df23e365c4f481a153ae8b39051500aaad5b8b0e))
+
+## 0.5.0 (2024-12-03)
+
+
+### Features
+
+* chack cli version ([#143](https://github.com/yeagerai/genlayer-cli/issues/143)) ([00ada3b](https://github.com/yeagerai/genlayer-cli/commit/00ada3b01ab8f727dbeadc2da0b810dc4211b6c9))
+
+## 0.4.0 (2024-11-22)
+
+
+### Features
+
+* new reset db option ([#139](https://github.com/yeagerai/genlayer-cli/issues/139)) ([e3fed64](https://github.com/yeagerai/genlayer-cli/commit/e3fed6437e7313002685258aeced710a6fd63f4f))
+
 ## 0.3.0 (2024-11-15)
 
 

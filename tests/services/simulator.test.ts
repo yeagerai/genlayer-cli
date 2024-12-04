@@ -12,8 +12,6 @@ import {
 import {
   DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   VERSION_REQUIREMENTS,
-} from "../../src/lib/config/simulator";
-import {
   STARTING_TIMEOUT_ATTEMPTS,
   DEFAULT_RUN_SIMULATOR_COMMAND,
 } from "../../src/lib/config/simulator";
@@ -21,7 +19,15 @@ import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
 import Docker from "dockerode";
 import {VersionRequiredError} from "../../src/lib/errors/versionRequired";
+import updateCheck from "update-check";
 
+vi.mock("../../package.json", () => ({
+  default: { version: "1.0.0", name: "genlayer" },
+}));
+
+vi.mock("update-check", () => ({
+  default: vi.fn(),
+}));
 vi.mock("dockerode");
 vi.mock("fs");
 vi.mock("path");
@@ -51,23 +57,14 @@ describe("SimulatorService - Basic Tests", () => {
     vi.mocked(path.join).mockImplementation((...args) => args.join("/"));
   });
 
-  test("should return the correct simulator location path", () => {
-    const expectedPath = "/mock/home/genlayer-simulator";
-    simulatorService.setSimulatorLocation("/mock/home/genlayer-simulator");
-    const simulatorLocation = simulatorService.getSimulatorLocation();
-    expect(simulatorLocation).toBe(expectedPath);
-  });
 
   test("should read the correct frontend URL from .env config", () => {
-    const mockEnvFilePath = "/mock/home/genlayer-simulator/.env";
     const mockEnvContent = "FRONTEND_PORT=8080";
     const mockEnvConfig = { FRONTEND_PORT: "8080" };
     vi.mocked(fs.readFileSync).mockReturnValue(mockEnvContent);
     vi.mocked(dotenv.parse).mockReturnValue(mockEnvConfig);
-    simulatorService.setSimulatorLocation("/mock/home/genlayer-simulator");
     const frontendUrl = simulatorService.getFrontendUrl();
     expect(frontendUrl).toBe("http://localhost:8080");
-    expect(fs.readFileSync).toHaveBeenCalledWith(mockEnvFilePath, "utf8");
   });
 
   test("should check version requirements and return missing versions", async () => {
@@ -87,20 +84,6 @@ describe("SimulatorService - Basic Tests", () => {
     await expect(simulatorService.checkVersion("14.0.0", "node")).rejects.toThrow();
   });
 
-  test("should download simulator if not already installed", async () => {
-    const result = await simulatorService.downloadSimulator();
-    expect(result.wasInstalled).toBe(false);
-    expect(executeCommand).toHaveBeenCalled();
-  });
-
-  test("should skip download if simulator is already installed", async () => {
-    vi.mocked(executeCommand).mockRejectedValueOnce(new Error("Mocked command error"));
-    vi.spyOn(fs, "existsSync").mockReturnValue(true);
-    const result = await simulatorService.downloadSimulator();
-    expect(result.wasInstalled).toBe(true);
-    expect(executeCommand).toHaveBeenCalled();
-    expect(fs.existsSync).toHaveBeenCalled();
-  });
 
   test("should return initialized true when simulator responds with OK (result.status = OK)", async () => {
     vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: {status: 'OK'} });
@@ -142,7 +125,7 @@ describe("SimulatorService - Basic Tests", () => {
       stderr: "",
     });
     const result = await simulatorService.runSimulator();
-    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator", '');
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorService.location, '');
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
@@ -155,10 +138,56 @@ describe("SimulatorService - Basic Tests", () => {
     simulatorService.setComposeOptions(true)
     const commandOption = simulatorService.getComposeOptions();
     const result = await simulatorService.runSimulator();
-    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND("/mock/home/genlayer-simulator", commandOption);
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorService.location, commandOption);
     expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
+
+  test("should create a backup of the .env file and add new config", () => {
+    const envFilePath = `/.env`;
+    const originalEnvContent = "KEY1=value1\nKEY2=value2";
+    const parsedEnvConfig = { KEY1: "value1", KEY2: "value2" };
+    const newConfig = { KEY3: "value3", KEY2: "newValue2" };
+
+    vi.mocked(fs.readFileSync).mockImplementation((filePath: any) => {
+      if (filePath === envFilePath) return originalEnvContent;
+      return "";
+    });
+
+    vi.mocked(dotenv.parse).mockReturnValue(parsedEnvConfig);
+    const writeFileSyncMock = vi.mocked(fs.writeFileSync);
+
+    simulatorService.addConfigToEnvFile(newConfig);
+
+    const expectedUpdatedContent = `KEY1=value1\nKEY2=newValue2\nKEY3=value3`;
+    expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
+  });
+
+  test("should handle empty .env file and add new config", () => {
+    const envFilePath = `/.env`;
+    const newConfig = { NEW_KEY: "newValue" };
+
+    vi.mocked(fs.readFileSync).mockReturnValue("");
+    vi.mocked(dotenv.parse).mockReturnValue({});
+    const writeFileSyncMock = vi.mocked(fs.writeFileSync);
+
+    simulatorService.addConfigToEnvFile(newConfig);
+
+    expect(writeFileSyncMock).toHaveBeenCalledWith(`${envFilePath}.bak`, "");
+    const expectedUpdatedContent = `NEW_KEY=newValue`;
+    expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
+  });
+
+  test("should throw error when .env file does not exist", () => {
+    vi.mocked(fs.readFileSync).mockImplementation(() => {
+      throw new Error("File not found");
+    });
+
+    expect(() => simulatorService.addConfigToEnvFile({ KEY: "value" })).toThrow(
+      "File not found"
+    );
+  });
+
 
   test("should open the frontend URL and return true", async () => {
     vi.spyOn(simulatorService, "getFrontendUrl").mockReturnValue("http://localhost:8080");
@@ -234,51 +263,24 @@ describe("SimulatorService - Basic Tests", () => {
     expect(result).toEqual({ initialized: false, errorCode: "ERROR", errorMessage: fetchError.message });
   });
 
-  test("should throw an error if executeCommand fails and simulator location does not exist", async () => {
-    const mockError = new Error("git clone failed");
-    vi.mocked(executeCommand).mockRejectedValueOnce(mockError);
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-    await expect(simulatorService.downloadSimulator()).rejects.toThrow("git clone failed");
-    expect(executeCommand).toHaveBeenCalled();
-    expect(fs.existsSync).toHaveBeenCalledWith("/mock/home/genlayer-simulator");
-  });
-
   test("should call executeCommand if docker ps command fails", async () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
 
-
     const result = await simulatorService.checkInstallRequirements();
     expect(result.docker).toBe(true);
-    expect(result.git).toBe(true);
   });
 
-  test("should update envConfig with newConfig values", () => {
-    const envFilePath = path.join("/mock/home/genlayer-simulator", ".env");
-    const originalEnvContent = "KEY1=value1\nKEY2=value2";
-    const envConfig = { KEY1: "value1", KEY2: "value2" };
-    const newConfig = { KEY2: "new_value2", KEY3: "value3" };
-    vi.mocked(fs.readFileSync)
-      .mockReturnValueOnce(originalEnvContent)
-      .mockReturnValueOnce(originalEnvContent);
-    vi.mocked(dotenv.parse).mockReturnValue(envConfig);
-    const writeFileSyncSpy = vi.spyOn(fs, "writeFileSync");
-    simulatorService["addConfigToEnvFile"](newConfig);
-    expect(envConfig).toEqual({
-      KEY1: "value1",
-      KEY2: "new_value2",
-      KEY3: "value3",
-    });
-    expect(writeFileSyncSpy).toHaveBeenCalledWith(`${envFilePath}.bak`, originalEnvContent);
-    expect(writeFileSyncSpy).toHaveBeenCalledWith(
-      envFilePath,
-      "KEY1=value1\nKEY2=new_value2\nKEY3=value3"
-    );
-  });
 
   test("should return providers without errors", () => {
     expect(simulatorService.getAiProvidersOptions(true)).toEqual(expect.any(Array));
     expect(simulatorService.getAiProvidersOptions(false)).toEqual(expect.any(Array));
+  });
+
+  test("clean simulator should success", async () => {
+    vi.mocked(rpcClient.request).mockResolvedValueOnce('Success');
+    await expect(simulatorService.cleanDatabase).not.toThrow();
+    expect(rpcClient.request).toHaveBeenCalledWith({ method: "sim_clearDbTables", params: [['current_state', 'transactions']] });
   });
 
 });
@@ -300,8 +302,60 @@ describe("SimulatorService - Docker Tests", () => {
     mockPing = vi.mocked(Docker.prototype.ping);
   });
 
-  test("should pull the Ollama model", async () => {
-    mockGetContainer.mockReturnValueOnce({exec: mockExec} as unknown as Docker.Container);
+  test("should handle errors during the execution of pullOllamaModel gracefully", async () => {
+    const mockExec = vi.fn();
+    const mockStart = vi.fn();
+
+    mockExec.mockResolvedValue({
+      start: mockStart,
+    });
+
+    const mockStream = {
+      on: vi.fn((event, callback) => {
+        if (event === "data") callback("Mock data chunk");
+        if (event === "error") callback(new Error("Mock error during stream"));
+      }),
+    };
+
+    mockStart.mockResolvedValue(mockStream);
+
+    mockGetContainer.mockReturnValueOnce({
+      exec: mockExec,
+    } as unknown as Docker.Container);
+
+    const result = await simulatorService.pullOllamaModel();
+
+    expect(result).toBe(false);
+    expect(mockGetContainer).toHaveBeenCalledWith("ollama");
+    expect(mockExec).toHaveBeenCalledWith({
+      Cmd: ["ollama", "pull", "llama3"],
+      AttachStdout: true,
+      AttachStderr: true,
+    });
+    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
+    expect(mockStream.on).toHaveBeenCalledWith("error", expect.any(Function));
+  });
+
+  test("should successfully execute pullOllamaModel and return true", async () => {
+    const mockExec = vi.fn();
+    const mockStart = vi.fn();
+
+    mockExec.mockResolvedValue({
+      start: mockStart,
+    });
+
+    const mockStream = {
+      on: vi.fn((event, callback) => {
+        if (event === "data") callback("Mock data chunk");
+        if (event === "end") callback();
+      }),
+    };
+
+    mockStart.mockResolvedValue(mockStream);
+
+    mockGetContainer.mockReturnValueOnce({
+      exec: mockExec,
+    } as unknown as Docker.Container);
 
     const result = await simulatorService.pullOllamaModel();
 
@@ -309,8 +363,14 @@ describe("SimulatorService - Docker Tests", () => {
     expect(mockGetContainer).toHaveBeenCalledWith("ollama");
     expect(mockExec).toHaveBeenCalledWith({
       Cmd: ["ollama", "pull", "llama3"],
+      AttachStdout: true,
+      AttachStderr: true,
     });
+    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
+    expect(mockStream.on).toHaveBeenCalledWith("data", expect.any(Function));
+    expect(mockStream.on).toHaveBeenCalledWith("end", expect.any(Function));
   });
+
 
   test("should stop and remove Docker containers with the specified prefix", async () => {
     const mockContainers = [
@@ -397,11 +457,51 @@ describe("SimulatorService - Docker Tests", () => {
     expect(executeCommand).toHaveBeenCalledTimes(1);
   });
 
-  test("should throw an unexpected error when checking docker installation requirement", async () => {
+  test("should call execute command again to start docker service", async () => {
     vi.mocked(checkCommand)
       .mockResolvedValueOnce(undefined)
       .mockRejectedValue(undefined);
-    mockPing.mockRejectedValueOnce("Unexpected docker error");
-    await expect(simulatorService.checkInstallRequirements()).rejects.toThrow("Unexpected docker error");
+    mockPing.mockRejectedValueOnce("");
+    await expect(simulatorService.checkInstallRequirements()).resolves.toStrictEqual({ docker: true });
+  });
+
+  test("should warn the user when an update is available", async () => {
+    const update = { latest: "1.1.0" };
+    (updateCheck as any).mockResolvedValue(update);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      `\nA new version (${update.latest}) is available! You're using version 1.0.0.\nRun npm install -g genlayer to update\n`
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  test("should not warn the user when the CLI is up-to-date", async () => {
+    const update = { latest: "1.0.0" };
+    (updateCheck as any).mockResolvedValue(update);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  test("should handle update-check returning undefined", async () => {
+    (updateCheck as any).mockResolvedValue(undefined);
+
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await simulatorService.checkCliVersion();
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
   });
 });

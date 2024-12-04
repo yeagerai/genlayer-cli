@@ -5,6 +5,11 @@ import { getCommand, getCommandOption } from "../utils";
 import simulatorService from  '../../src/lib/services/simulator'
 
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
+const defaultOptions = {
+  numValidators: "5",
+  headless: false,
+  resetDb: false
+}
 
 vi.mock("inquirer", () => ({
   prompt: vi.fn(() => {}),
@@ -45,21 +50,6 @@ describe("init command", () => {
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
-  test("option --branch is accepted", async () => {
-    expect(() => program.parse(["node", "test", "init", "--branch", "example"])).not.toThrow();
-  });
-
-  test("option --branch default value is main", async () => {
-    const branchOption = getCommandOption(initCommand, "--branch");
-    expect(branchOption?.defaultValue).toBe("main");
-  });
-
-  test("option --location default value is user's current directory", async () => {
-    // Given // When
-    const locationOption = getCommandOption(initCommand, "--location");
-    expect(locationOption?.defaultValue).toBe(process.cwd());
-  });
-
 
   test("random option is not accepted", async () => {
     initCommand?.exitOverride();
@@ -74,13 +64,13 @@ describe("init command", () => {
   test("action is called", async () => {
     program.parse(["node", "test", "init"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: false });
+    expect(action).toHaveBeenCalledWith(defaultOptions);
   });
 
   test("option --headless is accepted", async () => {
     program.parse(["node", "test", "init", "--headless"]);
     expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({ numValidators: "5", branch: "main", location: process.cwd(), headless: true });
+    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });
