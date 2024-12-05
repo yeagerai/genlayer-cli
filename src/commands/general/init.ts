@@ -6,6 +6,7 @@ export interface InitActionOptions {
   numValidators: number;
   headless: boolean;
   resetDb: boolean;
+  localnetVersion: string;
 }
 
 function getRequirementsErrorMessage({docker}: Record<string, boolean>): string {
@@ -34,6 +35,11 @@ function getVersionErrorMessage({docker, node}: Record<string, string>): string 
 export async function initAction(options: InitActionOptions, simulatorService: ISimulatorService) {
   simulatorService.setComposeOptions(options.headless);
 
+  let localnetVersion = options.localnetVersion;
+
+  if(localnetVersion !== 'latest'){
+    localnetVersion = simulatorService.normalizeLocalnetVersion(localnetVersion);
+  }
   await simulatorService.checkCliVersion();
 
   // Check if requirements are installed
@@ -139,6 +145,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
 
   console.log("Configuring GenLayer Simulator environment...");
   simulatorService.addConfigToEnvFile(aiProvidersEnvVars);
+  simulatorService.addConfigToEnvFile({LOCALNETVERSION: localnetVersion});
 
 
   // Run the GenLayer Simulator

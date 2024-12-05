@@ -14,7 +14,7 @@ vi.mock("dotenv");
 
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false, localnetVersion: 'latest' };
 
 describe("init action", () => {
   let error: ReturnType<any>;
@@ -201,7 +201,7 @@ describe("init action", () => {
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
-    await initAction({...defaultActionOptions, headless: true, resetDb: true}, simulatorService);
+    await initAction({...defaultActionOptions, headless: true, resetDb: true, localnetVersion: "v1.0.0"}, simulatorService);
 
     expect(log).toHaveBeenCalledWith(
       `GenLayer simulator initialized successfully! `
@@ -441,4 +441,5 @@ describe("init action", () => {
 
     expect(error).toHaveBeenCalledWith(errorMsg);
   });
+
 });

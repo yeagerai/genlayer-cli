@@ -295,6 +295,23 @@ export class SimulatorService implements ISimulatorService {
     return true;
   }
 
+  public normalizeLocalnetVersion(version: string) {
+
+    if (!version.startsWith('v')) {
+      version = 'v' + version;
+    }
+
+    const versionRegex = /^v(\d+)\.(\d+)\.(\d+)(-.+)?$/;
+    const match = version.match(versionRegex);
+
+    if (!match) {
+      console.error('Invalid version format. Expected format: v0.0.0 or v0.0.0-suffix');
+      process.exit(1);
+    }
+
+    return version
+  }
+
 }
 
 export default new SimulatorService();
