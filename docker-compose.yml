@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   frontend:
-    image: yeagerai/simulator-frontend:latest
+    image: yeagerai/simulator-frontend:${LOCALNETVERSION:-latest}
     ports:
       - "${FRONTEND_PORT:-8080}:8080"
     environment:
@@ -25,7 +25,7 @@ services:
 
 
   jsonrpc:
-    image: yeagerai/simulator-jsonrpc:latest
+    image: yeagerai/simulator-jsonrpc:${LOCALNETVERSION:-latest}
     environment:
       - FLASK_SERVER_PORT=${RPCPORT:-5000}
       - PYTHONUNBUFFERED=1
@@ -63,7 +63,7 @@ services:
       replicas: ${JSONRPC_REPLICAS:-1}
 
   webrequest:
-    image: yeagerai/simulator-webrequest:latest
+    image: yeagerai/simulator-webrequest:${LOCALNETVERSION:-latest}
     shm_size: 2gb
     environment:
       - FLASK_SERVER_PORT=${WEBREQUESTPORT:-5002}
@@ -131,7 +131,7 @@ services:
     #   - "./data/postgres:/var/lib/postgresql/data"
 
   database-migration:
-    image: yeagerai/simulator-database-migration:latest
+    image: yeagerai/simulator-database-migration:${LOCALNETVERSION:-latest}
     environment:
       - DB_URL=postgresql://${DBUSER:-postgres}:${DBPASSWORD:-postgres}@postgres/${DBNAME:-simulator_db}
       - WEBREQUESTPORT=${WEBREQUESTPORT:-5002}
