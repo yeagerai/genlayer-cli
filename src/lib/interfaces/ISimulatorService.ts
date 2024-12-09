@@ -18,6 +18,7 @@ export interface ISimulatorService {
   checkCliVersion(): Promise<void>;
   cleanDatabase(): Promise<boolean>;
   addConfigToEnvFile(newConfig: Record<string, string>): void;
+  normalizeLocalnetVersion(version: string): string;
 }
 
 
