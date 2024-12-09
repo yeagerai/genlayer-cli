@@ -1,5 +1,12 @@
 
 
+## 0.7.0 (2024-12-09)
+
+
+### Features
+
+* adding localnet version option on init ([#151](https://github.com/yeagerai/genlayer-cli/issues/151)) ([a7bf419](https://github.com/yeagerai/genlayer-cli/commit/a7bf41986e89e8db95003df290d381e77dad127f))
+
 ## 0.6.0 (2024-12-03)
 
 
