@@ -69,10 +69,10 @@ export class DeployAction {
     const leaderOnly = false;
     let deployParams: any = { code: contractCode, leaderOnly };
 
-    if (argsUsed) {
-      deployParams.args = options.args;
-    } else if (kwargsUsed && options.kwargs) {
+    if (kwargsUsed && options.kwargs) {
       deployParams.kwargs = this.parseKeyValueArgs(options.kwargs);
+    }else {
+      deployParams.args = options.args;
     }
 
     console.log("Starting contract deployment...");
