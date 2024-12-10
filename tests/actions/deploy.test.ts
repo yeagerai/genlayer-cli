@@ -51,20 +51,6 @@ describe("Deploy Action", () => {
     expect(fs.existsSync).toHaveBeenCalledWith(contractPath);
   });
 
-  test("parses kwargs correctly", () => {
-    const input = "key1=value1,key2=42";
-    const result = deployer["parseKeyValueArgs"](input);
-
-    expect(result).toEqual({ key1: "value1", key2: 42 });
-  });
-
-  test("throws error for invalid kwargs format", () => {
-    const input = "key1=value1,key2";
-
-    expect(() => deployer["parseKeyValueArgs"](input)).toThrowError(
-      'Invalid key-value pair: "key2". Expected format: KEY=VALUE.'
-    );
-  });
 
   test("deploys contract with args", async () => {
     const options: DeployOptions = {
@@ -83,28 +69,6 @@ describe("Deploy Action", () => {
     expect(mockClient.deployContract).toHaveBeenCalledWith({
       code: contractContent,
       args: [1, 2, 3],
-      leaderOnly: false,
-    });
-    expect(mockClient.deployContract).toHaveResolvedWith("mocked_tx_hash");
-  });
-
-  test("deploys contract with kwargs", async () => {
-    const options: DeployOptions = {
-      contract: "/mocked/contract/path",
-      kwargs: "key1=value1,key2=42",
-    };
-    const contractContent = "contract code";
-
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(contractContent);
-    vi.mocked(mockClient.deployContract).mockResolvedValue("mocked_tx_hash");
-
-    await deployer.deploy(options);
-
-    expect(fs.readFileSync).toHaveBeenCalledWith(options.contract, "utf-8");
-    expect(mockClient.deployContract).toHaveBeenCalledWith({
-      code: contractContent,
-      kwargs: { key1: "value1", key2: 42 },
       leaderOnly: false,
     });
     expect(mockClient.deployContract).toHaveResolvedWith("mocked_tx_hash");

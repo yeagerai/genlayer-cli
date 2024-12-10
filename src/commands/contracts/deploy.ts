@@ -29,22 +29,6 @@ export class DeployAction {
     return fs.readFileSync(contractPath, "utf-8");
   }
 
-  private parseKeyValueArgs(input: string): Record<string, any> {
-    const result: Record<string, any> = {};
-
-    input.split(",").forEach((pair) => {
-      const [key, value] = pair.split("=");
-
-      if (!key || value === undefined) {
-        throw new Error(`Invalid key-value pair: "${pair}". Expected format: KEY=VALUE.`);
-      }
-
-      result[key.trim()] = isNaN(Number(value)) ? value.trim() : Number(value);
-    });
-
-    return result;
-  }
-
   async deploy(options: DeployOptions): Promise<void> {
 
     const argsUsed = options.args && options.args.length > 0;
@@ -67,13 +51,7 @@ export class DeployAction {
     }
 
     const leaderOnly = false;
-    let deployParams: any = { code: contractCode, leaderOnly };
-
-    if (kwargsUsed && options.kwargs) {
-      deployParams.kwargs = this.parseKeyValueArgs(options.kwargs);
-    }else {
-      deployParams.args = options.args;
-    }
+    let deployParams: any = { code: contractCode, args: options.args, leaderOnly };
 
     console.log("Starting contract deployment...");
     console.log("Deployment Parameters:", deployParams);

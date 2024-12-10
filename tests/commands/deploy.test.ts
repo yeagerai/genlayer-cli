@@ -24,7 +24,6 @@ describe("deploy command", () => {
     expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
       contract: "./path/to/contract",
       args: [],
-      kwargs: "",
     });
   });
 
@@ -43,48 +42,7 @@ describe("deploy command", () => {
     expect(DeployAction).toHaveBeenCalledTimes(1);
     expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
       contract: "./path/to/contract",
-      args: ["1", "2", "3"],
-      kwargs: "",
-    });
-  });
-
-  test("DeployAction.deploy is called with key-value arguments (kwargs)", async () => {
-    program.parse([
-      "node",
-      "test",
-      "deploy",
-      "--contract",
-      "./path/to/contract",
-      "--kwargs",
-      "key1=value1,key2=42",
-    ]);
-    expect(DeployAction).toHaveBeenCalledTimes(1);
-    expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
-      contract: "./path/to/contract",
-      args: [],
-      kwargs: "key1=value1,key2=42",
-    });
-  });
-
-  test("DeployAction.deploy is called with both args and kwargs", async () => {
-    program.parse([
-      "node",
-      "test",
-      "deploy",
-      "--contract",
-      "./path/to/contract",
-      "--args",
-      "1",
-      "2",
-      "3",
-      "--kwargs",
-      "key1=value1,key2=42",
-    ]);
-    expect(DeployAction).toHaveBeenCalledTimes(1);
-    expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
-      contract: "./path/to/contract",
-      args: ["1", "2", "3"],
-      kwargs: "key1=value1,key2=42",
+      args: ["1", "2", "3"]
     });
   });
 
