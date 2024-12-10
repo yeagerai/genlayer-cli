@@ -2,11 +2,11 @@ import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import fs from "fs";
 import { createClient, createAccount } from "genlayer-js";
 import { DeployAction, DeployOptions } from "../../src/commands/general/deploy";
-import { getPrivateKey } from "../../src/lib/utils/getPrivateKey";
+import { getPrivateKey } from "../../src/lib/accounts/getPrivateKey";
 
 vi.mock("fs");
 vi.mock("genlayer-js");
-vi.mock("../../src/lib/utils/getPrivateKey");
+vi.mock("../../src/lib/accounts/getPrivateKey");
 
 describe("Deploy Action", () => {
   let deployer: DeployAction;

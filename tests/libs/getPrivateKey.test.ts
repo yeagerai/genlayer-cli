@@ -1,6 +1,6 @@
 import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import fs from "fs";
-import { getPrivateKey } from "../../src/lib/utils/getPrivateKey";
+import { getPrivateKey } from "../../src/lib/accounts/getPrivateKey";
 import { ConfigFileManager } from "../../src/lib/config/ConfigFileManager";
 
 vi.mock("fs");

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
+import { ConfigFileManager } from "../config/ConfigFileManager";
 
 export function getPrivateKey(): string {
   const configFileManager: ConfigFileManager = new ConfigFileManager();

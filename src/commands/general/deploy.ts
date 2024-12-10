@@ -2,7 +2,7 @@ import fs from "fs";
 import { createClient, createAccount } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 import type { GenLayerClient } from "genlayer-js/types";
-import { getPrivateKey } from "../../lib/utils/getPrivateKey";
+import { getPrivateKey } from "../../lib/accounts/getPrivateKey";
 
 export interface DeployOptions {
   contract?: string;
