@@ -1,7 +1,7 @@
 import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import fs from "fs";
 import { createClient, createAccount } from "genlayer-js";
-import { DeployAction, DeployOptions } from "../../src/commands/general/deploy";
+import { DeployAction, DeployOptions } from "../../src/commands/contracts/deploy";
 import { getPrivateKey } from "../../src/lib/accounts/getPrivateKey";
 
 vi.mock("fs");

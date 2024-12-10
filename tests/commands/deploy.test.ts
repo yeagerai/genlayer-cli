@@ -1,16 +1,16 @@
 import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
-import { initializeGeneralCommands } from "../../src/commands/general";
-import { DeployAction } from "../../src/commands/general/deploy";
+import { initializeContractsCommands } from "../../src/commands/contracts";
+import { DeployAction } from "../../src/commands/contracts/deploy";
 
-vi.mock("../../src/commands/general/deploy");
+vi.mock("../../src/commands/contracts/deploy");
 
 describe("deploy command", () => {
   let program: Command;
 
   beforeEach(() => {
     program = new Command();
-    initializeGeneralCommands(program);
+    initializeContractsCommands(program);
     vi.clearAllMocks();
   });
 
