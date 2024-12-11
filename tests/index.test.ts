@@ -21,6 +21,10 @@ vi.mock("../src/commands/contracts", () => ({
   initializeContractsCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/config", () => ({
+  initializeConfigCommands: vi.fn(),
+}));
+
 
 describe("CLI", () => {
   it("should initialize CLI", () => {

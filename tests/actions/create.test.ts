@@ -89,7 +89,7 @@ describe("KeypairCreator", () => {
 
   test("overwrites the file if overwrite is true", () => {
     const consoleLogSpy = vi.spyOn(console, "log");
-    vi.mocked(existsSync).mockReturnValue(true); // Simulate file exists
+    vi.mocked(existsSync).mockReturnValue(true);
     const options = { output: "keypair.json", overwrite: true };
 
     keypairCreator.createKeypairAction(options);

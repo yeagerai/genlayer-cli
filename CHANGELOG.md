@@ -1,5 +1,12 @@
 
 
+## 0.8.0 (2024-12-11)
+
+
+### Features
+
+* implement config command ([#149](https://github.com/yeagerai/genlayer-cli/issues/149)) ([cc0f2ca](https://github.com/yeagerai/genlayer-cli/commit/cc0f2caee2c55f00efc7da0671663827a69be557))
+
 ## 0.7.0 (2024-12-09)
 
 
