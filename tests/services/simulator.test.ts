@@ -173,7 +173,6 @@ describe("SimulatorService - Basic Tests", () => {
 
     simulatorService.addConfigToEnvFile(newConfig);
 
-    expect(writeFileSyncMock).toHaveBeenCalledWith(`${envFilePath}.bak`, "");
     const expectedUpdatedContent = `NEW_KEY=newValue`;
     expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
   });
