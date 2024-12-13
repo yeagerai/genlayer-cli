@@ -1,5 +1,12 @@
 
 
+## 0.9.1 (2024-12-13)
+
+
+### Bug Fixes
+
+* removing volumes to stop error when running node without nvm ([#156](https://github.com/yeagerai/genlayer-cli/issues/156)) ([189c759](https://github.com/yeagerai/genlayer-cli/commit/189c7592fedb6373e3603f1bdb4366c79f289160))
+
 ## 0.9.0 (2024-12-13)
 
 
