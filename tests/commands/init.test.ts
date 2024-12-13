@@ -3,13 +3,14 @@ import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
 import simulatorService from  '../../src/lib/services/simulator'
+import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
 
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 const defaultOptions = {
   numValidators: "5",
   headless: false,
   resetDb: false,
-  localnetVersion: 'latest'
+  localnetVersion: localnetCompatibleVersion
 }
 
 vi.mock("inquirer", () => ({
