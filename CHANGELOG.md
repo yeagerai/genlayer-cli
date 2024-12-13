@@ -1,5 +1,12 @@
 
 
+## 0.9.0 (2024-12-13)
+
+
+### Features
+
+* Add Deploy Command and Update Configurations for Compatibility ([#153](https://github.com/yeagerai/genlayer-cli/issues/153)) ([8744b2d](https://github.com/yeagerai/genlayer-cli/commit/8744b2d3ef2b4d7fd4d3ac71ac6e8eef69ed1555))
+
 ## 0.8.0 (2024-12-11)
 
 
