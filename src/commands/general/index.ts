@@ -1,5 +1,4 @@
 import { Command } from "commander";
-
 import simulatorService from "../../lib/services/simulator";
 import { initAction, InitActionOptions } from "./init";
 import { startAction, StartActionOptions } from "./start";
@@ -11,7 +10,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
-    .option("--localnet-version <localnetVersion>", "Select a specific localnet version", 'latest')
+    .option("--localnet-version <localnetVersion>", "Select a specific localnet version", "latest")
     .action((options: InitActionOptions) => initAction(options, simulatorService));
 
   program
