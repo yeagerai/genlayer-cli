@@ -12,6 +12,7 @@ describe("Call Action", () => {
     readContract: vi.fn(),
     writeContract: vi.fn(),
     waitForTransactionReceipt: vi.fn(),
+    getContractSchema: vi.fn()
   };
 
   const mockPrivateKey = "mocked_private_key";
@@ -30,12 +31,12 @@ describe("Call Action", () => {
 
   test("calls readContract successfully", async () => {
     const options: CallOptions = {
-      args: [1, 2, "Hello"],
-      type: "read",
+      args: [1, 2, "Hello"]
     };
     const mockResult = "mocked_result";
 
     vi.mocked(mockClient.readContract).mockResolvedValue(mockResult);
+    vi.mocked(mockClient.getContractSchema).mockResolvedValue({methods: {getData: {readonly: true}}});
 
     await caller.call({
       contractAddress: "0xMockedContract",
@@ -53,14 +54,14 @@ describe("Call Action", () => {
 
   test("calls writeContract successfully", async () => {
     const options: CallOptions = {
-      args: [42, "Update"],
-      type: "write",
+      args: [42, "Update"]
     };
     const mockHash = "0xMockedTransactionHash";
     const mockReceipt = { status: "success" };
 
     vi.mocked(mockClient.writeContract).mockResolvedValue(mockHash);
     vi.mocked(mockClient.waitForTransactionReceipt).mockResolvedValue(mockReceipt);
+    vi.mocked(mockClient.getContractSchema).mockResolvedValue({methods: {updateData: {readonly: false}}});
 
     await caller.call({
       contractAddress: "0xMockedContract",
@@ -82,11 +83,12 @@ describe("Call Action", () => {
     expect(mockClient.writeContract).toHaveResolvedWith(mockHash);
   });
 
-  test("throws error for invalid call type", async () => {
+  test("throws error when method is not found", async () => {
     const options: CallOptions = {
-      args: [],
-      type: "invalid" as any,
+      args: []
     };
+
+    vi.mocked(mockClient.getContractSchema).mockResolvedValue({methods: {updateData: {readonly: false}}});
 
     await expect(
       caller.call({
@@ -94,7 +96,7 @@ describe("Call Action", () => {
         method: "getData",
         ...options,
       })
-    ).rejects.toThrowError("Invalid call type: invalid. Use \"read\" or \"write\".");
+    ).rejects.toThrowError('process.exit unexpectedly called with "1"');
 
     expect(mockClient.readContract).not.toHaveBeenCalled();
     expect(mockClient.writeContract).not.toHaveBeenCalled();
@@ -102,10 +104,10 @@ describe("Call Action", () => {
 
   test("handles errors during readContract", async () => {
     const options: CallOptions = {
-      args: [1],
-      type: "read",
+      args: [1]
     };
 
+    vi.mocked(mockClient.getContractSchema).mockResolvedValue({methods: {getData: {readonly: true}}});
     vi.mocked(mockClient.readContract).mockRejectedValue(
       new Error("Mocked read error")
     );
@@ -123,10 +125,10 @@ describe("Call Action", () => {
 
   test("handles errors during writeContract", async () => {
     const options: CallOptions = {
-      args: [1],
-      type: "write",
+      args: [1]
     };
 
+    vi.mocked(mockClient.getContractSchema).mockResolvedValue({methods: {updateData: {readonly: false}}});
     vi.mocked(mockClient.writeContract).mockRejectedValue(
       new Error("Mocked write error")
     );

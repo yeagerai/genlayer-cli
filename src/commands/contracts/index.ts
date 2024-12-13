@@ -19,7 +19,6 @@ export function initializeContractsCommands(program: Command) {
     .command("call <contractAddress> <method>")
     .description("Call a contract method")
     .option("--args <args...>", "Positional arguments for the method (space-separated, use quotes for multi-word arguments)", [])
-    .option("--type <type>", "Type of call: read or write (default is read)", "read")
     .action(async (contractAddress: string, method: string, options: CallOptions) => {
       const caller = new CallAction();
       await caller.call({ contractAddress, method, ...options });

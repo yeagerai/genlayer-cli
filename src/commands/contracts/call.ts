@@ -5,7 +5,6 @@ import { getPrivateKey } from "../../lib/accounts/getPrivateKey";
 
 export interface CallOptions {
   args: any[];
-  type: "read" | "write";
 }
 
 export class CallAction {
@@ -23,22 +22,27 @@ export class CallAction {
                contractAddress,
                method,
                args,
-               type,
              }: {
     contractAddress: string;
     method: string;
     args: any[];
-    type: "read" | "write";
   }): Promise<void> {
-    console.log(`Calling ${type} method ${method} on contract at ${contractAddress}...`);
+    console.log(`Calling method ${method} on contract at ${contractAddress}...`);
+
+    const contractSchema = await this.genlayerClient.getContractSchema(contractAddress);
+
+    if(!contractSchema.methods.hasOwnProperty(method)){
+      console.error(`method ${method} not found.`);
+      process.exit(1);
+    }
+
+    const readonly = contractSchema.methods[method as any].readonly;
 
     try {
-      if (type === "read") {
+      if (readonly) {
         await this.executeRead(contractAddress, method, args);
-      } else if (type === "write") {
-        await this.executeWrite(contractAddress, method, args);
       } else {
-        throw new Error(`Invalid call type: ${type}. Use "read" or "write".`);
+        await this.executeWrite(contractAddress, method, args);
       }
     } catch (error) {
       console.error("Error calling contract method:", error);

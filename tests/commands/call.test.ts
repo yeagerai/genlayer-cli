@@ -24,8 +24,7 @@ describe("call command", () => {
     expect(CallAction.prototype.call).toHaveBeenCalledWith({
       contractAddress: "0xMockedContract",
       method: "getData",
-      args: [],
-      type: "read",
+      args: []
     });
   });
 
@@ -45,27 +44,7 @@ describe("call command", () => {
     expect(CallAction.prototype.call).toHaveBeenCalledWith({
       contractAddress: "0xMockedContract",
       method: "updateData",
-      args: ["1", "2", "Hello"],
-      type: "read",
-    });
-  });
-
-  test("CallAction.call is called with write type", async () => {
-    program.parse([
-      "node",
-      "test",
-      "call",
-      "0xMockedContract",
-      "updateData",
-      "--type",
-      "write",
-    ]);
-    expect(CallAction).toHaveBeenCalledTimes(1);
-    expect(CallAction.prototype.call).toHaveBeenCalledWith({
-      contractAddress: "0xMockedContract",
-      method: "updateData",
-      args: [],
-      type: "write",
+      args: ["1", "2", "Hello"]
     });
   });
 
