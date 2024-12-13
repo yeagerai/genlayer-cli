@@ -142,10 +142,3 @@ services:
         condition: service_healthy
       webrequest:
         condition: service_healthy
-
-  hardhat:
-    image: yeagerai/simulator-hardhat
-    ports:
-      - "${HARDHAT_PORT:-8545}:8545"
-    environment:
-      - HARDHAT_NETWORK=hardhat
