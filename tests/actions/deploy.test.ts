@@ -12,6 +12,7 @@ describe("Deploy Action", () => {
   let deployer: DeployAction;
   const mockClient = {
     deployContract: vi.fn(),
+    waitForTransactionReceipt: vi.fn()
   };
 
   const mockPrivateKey = "mocked_private_key";
@@ -62,6 +63,7 @@ describe("Deploy Action", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue(contractContent);
     vi.mocked(mockClient.deployContract).mockResolvedValue("mocked_tx_hash");
+    vi.mocked(mockClient.waitForTransactionReceipt).mockResolvedValue({data: {contractAddress: '0xdasdsadasdasdada'}});
 
     await deployer.deploy(options);
 

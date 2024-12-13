@@ -57,10 +57,13 @@ export class DeployAction {
     console.log("Deployment Parameters:", deployParams);
 
     try {
-      const result = await this.genlayerClient.deployContract(deployParams);
+      const hash = await this.genlayerClient.deployContract(deployParams) as any;
+
+      const result = await this.genlayerClient.waitForTransactionReceipt({hash, retries: 15, interval: 2000})
 
       console.log("Contract deployed successfully.");
-      console.log("Transaction Hash:", result);
+      console.log("Transaction Hash:", hash);
+      console.log("Contract Address:", result.data?.contract_address);
     } catch (error) {
       console.error("Error deploying contract:", error);
       throw new Error("Contract deployment failed.");
