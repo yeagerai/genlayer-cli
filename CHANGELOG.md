@@ -1,5 +1,12 @@
 
 
+## 0.8.1-beta.0 (2024-12-13)
+
+
+### Bug Fixes
+
+* removing volumes ([36083c0](https://github.com/yeagerai/genlayer-cli/commit/36083c04ad121464a683d69503d53c4be24bc682))
+
 ## 0.8.0 (2024-12-11)
 
 
