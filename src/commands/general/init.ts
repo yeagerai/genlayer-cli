@@ -147,7 +147,6 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   simulatorService.addConfigToEnvFile(aiProvidersEnvVars);
   simulatorService.addConfigToEnvFile({LOCALNETVERSION: localnetVersion});
 
-
   // Run the GenLayer Simulator
   console.log("Running the GenLayer Simulator...");
   try {

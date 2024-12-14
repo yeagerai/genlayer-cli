@@ -1,5 +1,12 @@
 
 
+## 0.10.0-beta.0 (2024-12-13)
+
+
+### Features
+
+* new global var to deal with compatible version ([33a4c02](https://github.com/yeagerai/genlayer-cli/commit/33a4c02f091e87faf1b884177ee854fe1b66f52b))
+
 ## 0.9.1 (2024-12-13)
 
 

@@ -10,10 +10,10 @@ import {
   checkCommand,
 } from "../../src/lib/clients/system";
 import {
-  DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
+  CONTAINERS_NAME_PREFIX,
   VERSION_REQUIREMENTS,
   STARTING_TIMEOUT_ATTEMPTS,
-  DEFAULT_RUN_SIMULATOR_COMMAND,
+  DEFAULT_RUN_SIMULATOR_COMMAND, localnetCompatibleVersion, IMAGES_NAME_PREFIX,
 } from "../../src/lib/config/simulator";
 import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
@@ -375,12 +375,12 @@ describe("SimulatorService - Docker Tests", () => {
     const mockContainers = [
       {
         Id: "container1",
-        Names: [`${DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX}container1`],
+        Names: [`${CONTAINERS_NAME_PREFIX}container1`],
         State: "running",
       },
       {
         Id: "container2",
-        Names: [`${DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX}container2`],
+        Names: [`${CONTAINERS_NAME_PREFIX}container2`],
         State: "exited",
       },
       {
@@ -417,11 +417,11 @@ describe("SimulatorService - Docker Tests", () => {
     const mockImages = [
       {
         Id: "image1",
-        RepoTags: [`${DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX}image1:latest`],
+        RepoTags: [`${IMAGES_NAME_PREFIX}image1:${localnetCompatibleVersion}`],
       },
       {
         Id: "image2",
-        RepoTags: [`${DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX}image2:latest`],
+        RepoTags: [`${IMAGES_NAME_PREFIX}image2:${localnetCompatibleVersion}`],
       },
       {
         Id: "image3",

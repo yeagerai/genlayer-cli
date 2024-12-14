@@ -7,6 +7,7 @@ import {mkdtempSync} from "fs";
 import {join} from "path";
 import fs from "fs";
 import * as dotenv from "dotenv";
+import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
 
 
 vi.mock("fs");
@@ -14,7 +15,7 @@ vi.mock("dotenv");
 
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false, localnetVersion: 'latest' };
+const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false, localnetVersion: localnetCompatibleVersion };
 
 describe("init action", () => {
   let error: ReturnType<any>;
