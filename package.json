@@ -68,5 +68,10 @@
     "uuid": "^9.0.1",
     "viem": "^2.21.54",
     "vitest": "^2.1.4"
+  },
+  "overrides": {
+    "vite": {
+      "rollup": "npm:@rollup/wasm-node"
+    }
   }
 }
