@@ -1,5 +1,33 @@
 
 
+## 0.9.1 (2024-12-13)
+
+
+### Bug Fixes
+
+* removing volumes to stop error when running node without nvm ([#156](https://github.com/yeagerai/genlayer-cli/issues/156)) ([189c759](https://github.com/yeagerai/genlayer-cli/commit/189c7592fedb6373e3603f1bdb4366c79f289160))
+
+## 0.9.0 (2024-12-13)
+
+
+### Features
+
+* Add Deploy Command and Update Configurations for Compatibility ([#153](https://github.com/yeagerai/genlayer-cli/issues/153)) ([8744b2d](https://github.com/yeagerai/genlayer-cli/commit/8744b2d3ef2b4d7fd4d3ac71ac6e8eef69ed1555))
+
+## 0.8.0 (2024-12-11)
+
+
+### Features
+
+* implement config command ([#149](https://github.com/yeagerai/genlayer-cli/issues/149)) ([cc0f2ca](https://github.com/yeagerai/genlayer-cli/commit/cc0f2caee2c55f00efc7da0671663827a69be557))
+
+## 0.7.0 (2024-12-09)
+
+
+### Features
+
+* adding localnet version option on init ([#151](https://github.com/yeagerai/genlayer-cli/issues/151)) ([a7bf419](https://github.com/yeagerai/genlayer-cli/commit/a7bf41986e89e8db95003df290d381e77dad127f))
+
 ## 0.6.0 (2024-12-03)
 
 

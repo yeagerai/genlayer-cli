@@ -50,9 +50,6 @@ export class SimulatorService implements ISimulatorService {
   public addConfigToEnvFile(newConfig: Record<string, string>): void {
     const envFilePath = path.join(this.location, ".env");
 
-    // Create a backup of the original .env file
-    fs.writeFileSync(`${envFilePath}.bak`, fs.readFileSync(envFilePath));
-
     // Transform the config string to object
     const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
     Object.keys(newConfig).forEach(key => {
@@ -293,6 +290,23 @@ export class SimulatorService implements ISimulatorService {
       console.error(error);
     }
     return true;
+  }
+
+  public normalizeLocalnetVersion(version: string) {
+
+    if (!version.startsWith('v')) {
+      version = 'v' + version;
+    }
+
+    const versionRegex = /^v(\d+)\.(\d+)\.(\d+)(-.+)?$/;
+    const match = version.match(versionRegex);
+
+    if (!match) {
+      console.error('Invalid version format. Expected format: v0.0.0 or v0.0.0-suffix');
+      process.exit(1);
+    }
+
+    return version
   }
 
 }

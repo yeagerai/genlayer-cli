@@ -173,7 +173,6 @@ describe("SimulatorService - Basic Tests", () => {
 
     simulatorService.addConfigToEnvFile(newConfig);
 
-    expect(writeFileSyncMock).toHaveBeenCalledWith(`${envFilePath}.bak`, "");
     const expectedUpdatedContent = `NEW_KEY=newValue`;
     expect(writeFileSyncMock).toHaveBeenCalledWith(envFilePath, expectedUpdatedContent);
   });
@@ -503,5 +502,39 @@ describe("SimulatorService - Docker Tests", () => {
     expect(consoleWarnSpy).not.toHaveBeenCalled();
 
     consoleWarnSpy.mockRestore();
+  });
+});
+
+describe('normalizeLocalnetVersion', () => {
+  test('should add "v" if not present', () => {
+    expect(simulatorService.normalizeLocalnetVersion("0.26.0")).toBe("v0.26.0");
+  });
+
+  test('should preserve "v" if already present', () => {
+    expect(simulatorService.normalizeLocalnetVersion("v0.26.0")).toBe("v0.26.0");
+  });
+
+  test('should retain suffixes like "-test000"', () => {
+    expect(simulatorService.normalizeLocalnetVersion("0.25.0-test000")).toBe("v0.25.0-test000");
+    expect(simulatorService.normalizeLocalnetVersion("v1.0.0-alpha")).toBe("v1.0.0-alpha");
+  });
+
+  test('should handle versions with numbers only', () => {
+    expect(simulatorService.normalizeLocalnetVersion("1.0.0")).toBe("v1.0.0");
+  });
+
+  test('should throw an error and exit for invalid versions', () => {
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => { return undefined as never});
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    simulatorService.normalizeLocalnetVersion("invalid-version");
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Invalid version format. Expected format: v0.0.0 or v0.0.0-suffix'
+    );
+    expect(mockExit).toHaveBeenCalledWith(1);
+
+    mockExit.mockRestore();
+    mockConsoleError.mockRestore();
   });
 });

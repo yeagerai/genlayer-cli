@@ -8,7 +8,8 @@ const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 const defaultOptions = {
   numValidators: "5",
   headless: false,
-  resetDb: false
+  resetDb: false,
+  localnetVersion: 'latest'
 }
 
 vi.mock("inquirer", () => ({
@@ -71,6 +72,13 @@ describe("init command", () => {
     program.parse(["node", "test", "init", "--headless"]);
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true});
+    expect(openFrontendSpy).not.toHaveBeenCalled();
+  });
+
+  test("option --localnet-version is accepted", async () => {
+    program.parse(["node", "test", "init", "--localnet-version", "v1.0.0"]);
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action).toHaveBeenCalledWith({...defaultOptions, localnetVersion: "v1.0.0"});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });
