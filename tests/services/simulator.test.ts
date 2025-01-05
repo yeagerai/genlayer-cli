@@ -200,7 +200,7 @@ describe("SimulatorService - Basic Tests", () => {
     const mockResponse = { success: true };
     vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
     const result = await simulatorService.deleteAllValidators();
-    expect(rpcClient.request).toHaveBeenCalledWith({ method: "delete_all_validators", params: [] });
+    expect(rpcClient.request).toHaveBeenCalledWith({ method: "sim_deleteAllValidators", params: [] });
     expect(result).toBe(mockResponse);
   });
 
@@ -536,5 +536,19 @@ describe('normalizeLocalnetVersion', () => {
 
     mockExit.mockRestore();
     mockConsoleError.mockRestore();
+  });
+  test("should log an error if an exception occurs while cleaning the database", async () => {
+    const mockError = new Error("Database cleanup error");
+    vi.mocked(rpcClient.request).mockRejectedValue(mockError);
+
+    console.error = vi.fn();
+
+    await simulatorService.cleanDatabase();
+
+    expect(rpcClient.request).toHaveBeenCalledWith({
+      method: "sim_clearDbTables",
+      params: [['current_state', 'transactions']],
+    });
+    expect(console.error).toHaveBeenCalledWith(mockError);
   });
 });

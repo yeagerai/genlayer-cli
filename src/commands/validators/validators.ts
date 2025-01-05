@@ -7,7 +7,7 @@ export interface ValidatorOptions {
 
 export interface UpdateValidatorOptions {
   address: string;
-  stake?: number;
+  stake?: string;
   provider?: string;
   model?: string;
   config?: string;
@@ -107,6 +107,14 @@ export class ValidatorsAction {
 
       console.log("Current Validator Details:", currentValidator.result);
 
+      const parsedStake = options.stake
+        ? parseInt(options.stake, 10)
+        : currentValidator.result.stake;
+
+      if (isNaN(parsedStake) || parsedStake < 0) {
+        return console.error("Invalid stake value. Stake must be a positive integer.");
+      }
+
       const updatedValidator = {
         address: options.address,
         stake: options.stake || currentValidator.result.stake,
@@ -154,7 +162,7 @@ export class ValidatorsAction {
     try {
       const count = parseInt(options.count, 10);
       if (isNaN(count) || count < 1) {
-        throw new Error("Invalid count. Please provide a positive integer.");
+        return console.error("Invalid count. Please provide a positive integer.");
       }
 
       console.log(`Creating ${count} random validator(s)...`);
@@ -175,7 +183,7 @@ export class ValidatorsAction {
     try {
       const stake = parseInt(options.stake, 10);
       if (isNaN(stake) || stake < 1) {
-        throw new Error("Invalid stake. Please provide a positive integer.");
+        return console.error("Invalid stake. Please provide a positive integer.");
       }
 
       console.log("Fetching available providers and models...");
@@ -186,7 +194,7 @@ export class ValidatorsAction {
       });
 
       if (!providersAndModels.result || providersAndModels.result.length === 0) {
-        throw new Error("No providers or models available.");
+        return console.error("No providers or models available.");
       }
 
       const availableProviders = [
@@ -211,7 +219,7 @@ export class ValidatorsAction {
       );
 
       if (availableModels.length === 0) {
-        throw new Error("No models available for the selected provider.");
+        return console.error("No models available for the selected provider.");
       }
 
       const { selectedModel } = await inquirer.prompt([
@@ -228,7 +236,7 @@ export class ValidatorsAction {
       );
 
       if (!modelDetails) {
-        throw new Error("Selected model details not found.");
+        return console.error("Selected model details not found.");
       }
 
       const config = options.config ? JSON.parse(options.config) : modelDetails.config;

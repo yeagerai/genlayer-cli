@@ -223,13 +223,13 @@ export class SimulatorService implements ISimulatorService {
 
   public createRandomValidators(numValidators: number, llmProviders: AiProviders[]): Promise<any> {
     return rpcClient.request({
-      method: "create_random_validators",
+      method: "sim_createRandomValidators",
       params: [numValidators, 1, 10, llmProviders],
     });
   }
 
   public deleteAllValidators(): Promise<any> {
-    return rpcClient.request({method: "delete_all_validators", params: []});
+    return rpcClient.request({method: "sim_deleteAllValidators", params: []});
   }
 
   public getAiProvidersOptions(withHint: boolean = true): Array<{name: string; value: string}> {

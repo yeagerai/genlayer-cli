@@ -34,11 +34,8 @@ export class JsonRpcClient {
     }
     const result = await response.json();
 
-    if (!response.ok || result.error) {
-      throw new Error(result?.error?.message || response.statusText);
-    }
+    throw new Error(result?.error?.message || response.statusText);
 
-    return result;
   }
 }
 export const rpcClient = new JsonRpcClient(DEFAULT_JSON_RPC_URL);

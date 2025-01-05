@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { ValidatorsAction } from "./validatorsAction";
+import { ValidatorsAction } from "./validators";
 
 export function initializeValidatorCommands(program: Command) {
   const validatorsAction = new ValidatorsAction();
@@ -10,6 +10,7 @@ export function initializeValidatorCommands(program: Command) {
 
   validatorsCommand
     .command("get")
+
     .description("Retrieve details of a specific validator or all validators")
     .option("--address <validatorAddress>", "The address of the validator to retrieve (omit to retrieve all validators)")
     .action(async (options) => {
@@ -41,7 +42,7 @@ export function initializeValidatorCommands(program: Command) {
     .action(async (validatorAddress, options) => {
       await validatorsAction.updateValidator({
         address: validatorAddress,
-        stake: options.stake ? parseFloat(options.stake) : undefined,
+        stake: options.stake,
         provider: options.provider,
         model: options.model,
         config: options.config,
