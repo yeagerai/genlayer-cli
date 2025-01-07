@@ -150,39 +150,6 @@ export class SimulatorService implements ISimulatorService {
     }
   }
 
-  public async pullOllamaModel(): Promise<boolean> {
-    try {
-      const ollamaContainer = this.docker.getContainer("ollama");
-
-      // Create the exec instance
-      const exec = await ollamaContainer.exec({
-        Cmd: ["ollama", "pull", "llama3"],
-        AttachStdout: true,
-        AttachStderr: true,
-      });
-
-      // Start the exec instance and attach to the stream
-      const stream = await exec.start({ Detach: false, Tty: false });
-
-      // Collect and log the output
-      stream.on("data", (chunk) => {
-        console.log(chunk.toString());
-      });
-
-      await new Promise<void>((resolve, reject) => {
-        stream.on("end", resolve);
-        stream.on("error", reject);
-      });
-
-      console.log("Command executed successfully");
-      return true;
-    } catch (error) {
-      console.error("Error executing ollama pull llama3:", error);
-      return false;
-    }
-  }
-
-
   public runSimulator(): Promise<{stdout: string; stderr: string}> {
     const commandsByPlatform = DEFAULT_RUN_SIMULATOR_COMMAND(this.location, this.getComposeOptions());
     return executeCommand(commandsByPlatform);

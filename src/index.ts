@@ -7,6 +7,7 @@ import { initializeKeygenCommands } from "../src/commands/keygen";
 import { initializeContractsCommands } from "../src/commands/contracts";
 import { initializeConfigCommands } from "../src/commands/config";
 import {initializeValidatorCommands} from "../src/commands/validators";
+import { initializeUpdateCommands } from "../src/commands/update";
 
 export function initializeCLI() {
   program.version(version).description(CLI_DESCRIPTION);
@@ -14,6 +15,7 @@ export function initializeCLI() {
   initializeKeygenCommands(program);
   initializeContractsCommands(program);
   initializeConfigCommands(program);
+  initializeUpdateCommands(program)
   initializeValidatorCommands(program);
   program.parse(process.argv);
 }

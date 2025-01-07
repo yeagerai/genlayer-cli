@@ -1,7 +1,8 @@
 import inquirer from "inquirer";
-
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
+import { OllamaAction } from "../update/ollama";
+
 export interface InitActionOptions {
   numValidators: number;
   headless: boolean;
@@ -179,7 +180,8 @@ export async function initAction(options: InitActionOptions, simulatorService: I
   // Ollama doesn't need changes in configuration, we just run it
   if (selectedLlmProviders.includes("ollama")) {
     console.log("Pulling llama3 from Ollama...");
-    await simulatorService.pullOllamaModel();
+    const ollamaAction = new OllamaAction();
+    await ollamaAction.updateModel("llama3");
   }
 
   // Initializing validators

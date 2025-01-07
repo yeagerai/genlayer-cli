@@ -29,6 +29,10 @@ vi.mock("../src/commands/validators", () => ({
   initializeValidatorCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/update", () => ({
+  initializeUpdateCommands: vi.fn(),
+}));
+
 
 describe("CLI", () => {
   it("should initialize CLI", () => {
