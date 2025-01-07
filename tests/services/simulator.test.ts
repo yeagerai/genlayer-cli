@@ -284,7 +284,6 @@ describe("SimulatorService - Basic Tests", () => {
 
 });
 describe("SimulatorService - Docker Tests", () => {
-  let mockExec: Mock;
   let mockGetContainer: Mock;
   let mockListContainers: Mock;
   let mockListImages: Mock;
@@ -293,83 +292,12 @@ describe("SimulatorService - Docker Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockExec = vi.fn().mockResolvedValueOnce({});
     mockGetContainer = vi.mocked(Docker.prototype.getContainer);
     mockListContainers = vi.mocked(Docker.prototype.listContainers);
     mockListImages = vi.mocked(Docker.prototype.listImages);
     mockGetImage = vi.mocked(Docker.prototype.getImage);
     mockPing = vi.mocked(Docker.prototype.ping);
   });
-
-  test("should handle errors during the execution of pullOllamaModel gracefully", async () => {
-    const mockExec = vi.fn();
-    const mockStart = vi.fn();
-
-    mockExec.mockResolvedValue({
-      start: mockStart,
-    });
-
-    const mockStream = {
-      on: vi.fn((event, callback) => {
-        if (event === "data") callback("Mock data chunk");
-        if (event === "error") callback(new Error("Mock error during stream"));
-      }),
-    };
-
-    mockStart.mockResolvedValue(mockStream);
-
-    mockGetContainer.mockReturnValueOnce({
-      exec: mockExec,
-    } as unknown as Docker.Container);
-
-    const result = await simulatorService.pullOllamaModel();
-
-    expect(result).toBe(false);
-    expect(mockGetContainer).toHaveBeenCalledWith("ollama");
-    expect(mockExec).toHaveBeenCalledWith({
-      Cmd: ["ollama", "pull", "llama3"],
-      AttachStdout: true,
-      AttachStderr: true,
-    });
-    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
-    expect(mockStream.on).toHaveBeenCalledWith("error", expect.any(Function));
-  });
-
-  test("should successfully execute pullOllamaModel and return true", async () => {
-    const mockExec = vi.fn();
-    const mockStart = vi.fn();
-
-    mockExec.mockResolvedValue({
-      start: mockStart,
-    });
-
-    const mockStream = {
-      on: vi.fn((event, callback) => {
-        if (event === "data") callback("Mock data chunk");
-        if (event === "end") callback();
-      }),
-    };
-
-    mockStart.mockResolvedValue(mockStream);
-
-    mockGetContainer.mockReturnValueOnce({
-      exec: mockExec,
-    } as unknown as Docker.Container);
-
-    const result = await simulatorService.pullOllamaModel();
-
-    expect(result).toBe(true);
-    expect(mockGetContainer).toHaveBeenCalledWith("ollama");
-    expect(mockExec).toHaveBeenCalledWith({
-      Cmd: ["ollama", "pull", "llama3"],
-      AttachStdout: true,
-      AttachStderr: true,
-    });
-    expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
-    expect(mockStream.on).toHaveBeenCalledWith("data", expect.any(Function));
-    expect(mockStream.on).toHaveBeenCalledWith("end", expect.any(Function));
-  });
-
 
   test("should stop and remove Docker containers with the specified prefix", async () => {
     const mockContainers = [

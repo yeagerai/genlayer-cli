@@ -8,10 +8,12 @@ import {join} from "path";
 import fs from "fs";
 import * as dotenv from "dotenv";
 import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
+import { OllamaAction } from "../../src/commands/update/ollama";
 
 
 vi.mock("fs");
 vi.mock("dotenv");
+vi.mock("../../src/commands/update/ollama")
 
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
@@ -29,7 +31,6 @@ describe("init action", () => {
   let simServgetAiProvidersOptions: ReturnType<any>;
   let simServRunSimulator: ReturnType<any>;
   let simServWaitForSimulator: ReturnType<any>;
-  let simServPullOllamaModel: ReturnType<any>;
   let simServDeleteAllValidators: ReturnType<any>;
   let simServCreateRandomValidators: ReturnType<any>;
   let simServOpenFrontend: ReturnType<any>;
@@ -50,7 +51,6 @@ describe("init action", () => {
     simServgetAiProvidersOptions = vi.spyOn(simulatorService, "getAiProvidersOptions");
     simServRunSimulator = vi.spyOn(simulatorService, "runSimulator");
     simServWaitForSimulator = vi.spyOn(simulatorService, "waitForSimulatorToBeReady");
-    simServPullOllamaModel = vi.spyOn(simulatorService, "pullOllamaModel");
     simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
     simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
     simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
@@ -162,9 +162,11 @@ describe("init action", () => {
       { name: "OpenAI", value: "openai" },
       { name: "Heurist", value: "heuristai" },
     ]);
+
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
     simServRunSimulator.mockResolvedValue(true);
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
@@ -192,9 +194,11 @@ describe("init action", () => {
       { name: "OpenAI", value: "openai" },
       { name: "Heurist", value: "heuristai" },
     ]);
+
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
     simServRunSimulator.mockResolvedValue(true);
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServCreateRandomValidators.mockResolvedValue(true);
     simServOpenFrontend.mockResolvedValue(true);
@@ -221,9 +225,11 @@ describe("init action", () => {
       { name: "OpenAI", value: "openai" },
       { name: "Heurist", value: "heuristai" },
     ]);
+
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
     simServRunSimulator.mockResolvedValue(true);
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
@@ -264,16 +270,17 @@ describe("init action", () => {
       { name: "Ollama", value: "ollama" },
     ]);
 
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
     simServRunSimulator.mockResolvedValue(true);
     simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServPullOllamaModel.mockResolvedValue(true);
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
 
     await initAction(defaultActionOptions, simulatorService);
 
-    expect(simServPullOllamaModel).toHaveBeenCalled();
+    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
   });
 
   test("logs error if checkVersionRequirements throws", async () => {
