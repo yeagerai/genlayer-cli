@@ -73,10 +73,14 @@ export function initializeValidatorCommands(program: Command) {
       "--config <config>",
       'Optional JSON configuration for the validator (e.g., \'{"max_tokens": 500, "temperature": 0.75}\')'
     )
+    .option("--provider <provider>", "Specify the provider for the validator")
+    .option("--model <model>", "Specify the model for the validator")
     .action(async (options) => {
       await validatorsAction.createValidator({
         stake: options.stake,
         config: options.config,
+        provider: options.provider,
+        model: options.model,
       });
     });
 

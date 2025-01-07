@@ -590,5 +590,12 @@ describe("ValidatorsAction", () => {
     expect(console.error).toHaveBeenCalledWith("Invalid stake value. Stake must be a positive integer.");
     expect(rpcClient.request).toHaveBeenCalledTimes(1);
   });
+  test("should log an error if model is provided without provider", async () => {
+    console.error = vi.fn();
 
+    await validatorsAction.createValidator({ stake: "10", model: "Model1" });
+
+    expect(console.error).toHaveBeenCalledWith("You must specify a provider if using a model.");
+    expect(rpcClient.request).not.toHaveBeenCalled();
+  });
 });

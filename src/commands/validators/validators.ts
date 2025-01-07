@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import { rpcClient } from "../../lib/clients/jsonRpcClient";
+import { BaseAction } from "../../lib/actions/BaseAction";
 
 export interface ValidatorOptions {
   address?: string;
@@ -21,9 +22,11 @@ export interface CreateRandomValidatorsOptions {
 export interface CreateValidatorOptions {
   stake: string;
   config?: string;
+  model?: string;
+  provider?: string;
 }
 
-export class ValidatorsAction {
+export class ValidatorsAction extends BaseAction {
   public async getValidator(options: ValidatorOptions): Promise<void> {
     try {
       if (options.address) {
@@ -142,22 +145,6 @@ export class ValidatorsAction {
     }
   }
 
-  private async confirmPrompt(message: string): Promise<void> {
-    const answer = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "confirmAction",
-        message: message,
-        default: true,
-      },
-    ]);
-
-    if (!answer.confirmAction) {
-      console.log("Operation aborted!");
-      process.exit(0);
-    }
-  }
-
   public async createRandomValidators(options: CreateRandomValidatorsOptions): Promise<void> {
     try {
       const count = parseInt(options.count, 10);
@@ -186,6 +173,10 @@ export class ValidatorsAction {
         return console.error("Invalid stake. Please provide a positive integer.");
       }
 
+      if (options.model && !options.provider) {
+        return console.error("You must specify a provider if using a model.");
+      }
+
       console.log("Fetching available providers and models...");
 
       const providersAndModels = await rpcClient.request({
@@ -205,34 +196,46 @@ export class ValidatorsAction {
         ).values(),
       ];
 
-      const { selectedProvider } = await inquirer.prompt([
-        {
-          type: "list",
-          name: "selectedProvider",
-          message: "Select a provider:",
-          choices: availableProviders.map((entry: any) => entry.provider),
-        },
-      ]);
+      let provider =  options.provider
+
+      if(!provider){
+        const { selectedProvider } = await inquirer.prompt([
+          {
+            type: "list",
+            name: "selectedProvider",
+            message: "Select a provider:",
+            choices: availableProviders.map((entry: any) => entry.provider),
+          },
+        ]);
+
+        provider = selectedProvider;
+      }
 
       const availableModels = providersAndModels.result.filter(
-        (entry: any) => entry.provider === selectedProvider && entry.is_model_available
+        (entry: any) => entry.provider === provider && entry.is_model_available
       );
 
       if (availableModels.length === 0) {
         return console.error("No models available for the selected provider.");
       }
 
-      const { selectedModel } = await inquirer.prompt([
-        {
-          type: "list",
-          name: "selectedModel",
-          message: "Select a model:",
-          choices: availableModels.map((entry: any) => entry.model),
-        },
-      ]);
+      let model = options.model;
+
+      if(!model){
+        const { selectedModel } = await inquirer.prompt([
+          {
+            type: "list",
+            name: "selectedModel",
+            message: "Select a model:",
+            choices: availableModels.map((entry: any) => entry.model),
+          },
+        ]);
+
+        model = selectedModel;
+      }
 
       const modelDetails = availableModels.find(
-        (entry: any) => entry.model === selectedModel
+        (entry: any) => entry.model === model
       );
 
       if (!modelDetails) {
