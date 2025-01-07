@@ -5,7 +5,6 @@ export interface ISimulatorService {
   getComposeOptions(): string;
   checkInstallRequirements(): Promise<Record<string, boolean>>;
   checkVersionRequirements(): Promise<Record<string, string>>;
-  pullOllamaModel(): Promise<boolean>;
   runSimulator(): Promise<{stdout: string; stderr: string}>;
   waitForSimulatorToBeReady(retries?: number): Promise<WaitForSimulatorToBeReadyResultType>;
   createRandomValidators(numValidators: number, llmProviders: AiProviders[]): Promise<any>;
