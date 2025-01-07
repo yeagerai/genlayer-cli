@@ -8,7 +8,6 @@ import pkg from '../../../package.json'
 
 import {rpcClient} from "../clients/jsonRpcClient";
 import {
-  DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX,
   DEFAULT_RUN_SIMULATOR_COMMAND,
   DEFAULT_RUN_DOCKER_COMMAND,
   STARTING_TIMEOUT_WAIT_CYLCE,
@@ -16,6 +15,8 @@ import {
   AI_PROVIDERS_CONFIG,
   AiProviders,
   VERSION_REQUIREMENTS,
+  CONTAINERS_NAME_PREFIX,
+  IMAGES_NAME_PREFIX
 } from "../config/simulator";
 import {
   checkCommand,
@@ -254,7 +255,7 @@ export class SimulatorService implements ISimulatorService {
     const containers = await this.docker.listContainers({ all: true });
     const genlayerContainers = containers.filter(container =>
       container.Names.some(name =>
-        name.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX)
+        name.startsWith(CONTAINERS_NAME_PREFIX)
       )
     );
 
@@ -271,7 +272,7 @@ export class SimulatorService implements ISimulatorService {
   public async resetDockerImages(): Promise<boolean> {
     const images = await this.docker.listImages();
     const genlayerImages = images.filter(image =>
-      image.RepoTags?.some(tag => tag.startsWith(DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX))
+      image.RepoTags?.some(tag => tag.startsWith(IMAGES_NAME_PREFIX))
     );
 
     for (const imageInfo of genlayerImages) {
