@@ -256,6 +256,7 @@ describe("init action", () => {
   });
 
   test("should pull Ollama model if 'ollama' is in providers", async () => {
+
     inquirerPrompt.mockResolvedValue({
       confirmReset: true,
       confirmDownload: true,
@@ -277,9 +278,43 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({}));
 
     await initAction(defaultActionOptions, simulatorService);
 
+    expect(log).toHaveBeenCalledWith(`Pulling llama3 from Ollama...`);
+    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
+  });
+
+  test("should pull Ollama model if 'ollama' is in providers using defaultOllamaModel", async () => {
+    const ollamaModel = "gemma";
+
+    inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
+      confirmDownload: true,
+      selectedLlmProviders: ["openai", "heuristai", "ollama"],
+      openai: "API_KEY1",
+      heuristai: "API_KEY2",
+      ollama: "API_KEY3",
+    });
+    simServgetAiProvidersOptions.mockReturnValue([
+      { name: "OpenAI", value: "openai" },
+      { name: "Heurist", value: "heuristai" },
+      { name: "Ollama", value: "ollama" },
+    ]);
+
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
+    simServRunSimulator.mockResolvedValue(true);
+    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServDeleteAllValidators.mockResolvedValue(true);
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({defaultOllamaModel: ollamaModel}));
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(log).toHaveBeenCalledWith(`Pulling ${ollamaModel} from Ollama...`);
     expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
   });
 
