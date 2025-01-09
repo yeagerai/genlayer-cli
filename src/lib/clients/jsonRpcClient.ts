@@ -16,27 +16,26 @@ export class JsonRpcClient {
   }
 
   async request({method, params}: JsonRPCParams): Promise<any | null> {
-    try {
-      const response = await fetch(this.serverUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: uuidv4(),
-          method,
-          params,
-        }),
-      });
+    const response = await fetch(this.serverUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: uuidv4(),
+        method,
+        params,
+      }),
+    });
 
-      if (response.ok) {
-        return response.json();
-      }
-    } catch (error: any) {
-      throw new Error(`Fetch Error: ${error.message}`);
+    if (response.ok) {
+      return response.json();
     }
-    return null;
+    const result = await response.json();
+
+    throw new Error(result?.error?.message || response.statusText);
+
   }
 }
 export const rpcClient = new JsonRpcClient(DEFAULT_JSON_RPC_URL);

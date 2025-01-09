@@ -40,6 +40,7 @@ describe("JsonRpcClient - Successful and Unsuccessful Requests", () => {
   test("should return null when the fetch response is not ok", async () => {
     (fetch as Mock).mockResolvedValueOnce({
       ok: false,
+      statusText: "Something went wrong",
       json: async () => ({ error: "Something went wrong" }),
     });
 
@@ -48,9 +49,7 @@ describe("JsonRpcClient - Successful and Unsuccessful Requests", () => {
       params: ["param1", "param2"],
     };
 
-    const response = await rpcClient.request(params);
-
-    expect(response).toBeNull();
+    await expect(rpcClient.request(params)).rejects.toThrowError("Something went wrong");
     expect(fetch).toHaveBeenCalledWith(mockServerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
