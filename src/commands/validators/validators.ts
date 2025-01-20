@@ -17,6 +17,7 @@ export interface UpdateValidatorOptions {
 export interface CreateRandomValidatorsOptions {
   count: string;
   providers: string[];
+  models: string[];
 }
 
 export interface CreateValidatorOptions {
@@ -154,10 +155,11 @@ export class ValidatorsAction extends BaseAction {
 
       console.log(`Creating ${count} random validator(s)...`);
       console.log(`Providers: ${options.providers.length > 0 ? options.providers.join(", ") : "None"}`);
+      console.log(`Models: ${options.models.length > 0 ? options.models.join(", ") : "None"}`);
 
       const result = await rpcClient.request({
         method: "sim_createRandomValidators",
-        params: [count, 1, 10, options.providers],
+        params: [count, 1, 10, options.providers, options.models],
       });
 
       console.log("Random validators successfully created:", result.result);

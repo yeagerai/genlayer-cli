@@ -333,11 +333,11 @@ describe("ValidatorsAction", () => {
 
       console.log = vi.fn();
 
-      await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1", "Provider2"] });
+      await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1", "Provider2"], models: [] });
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
-        params: [5, 1, 10, ["Provider1", "Provider2"]],
+        params: [5, 1, 10, ["Provider1", "Provider2"], []],
       });
       expect(console.log).toHaveBeenCalledWith("Creating 5 random validator(s)...");
       expect(console.log).toHaveBeenCalledWith("Providers: Provider1, Provider2");
@@ -350,11 +350,11 @@ describe("ValidatorsAction", () => {
 
       console.log = vi.fn();
 
-      await validatorsAction.createRandomValidators({ count: "3", providers: [] });
+      await validatorsAction.createRandomValidators({ count: "3", providers: [], models: [] });
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
-        params: [3, 1, 10, []],
+        params: [3, 1, 10, [], []],
       });
       expect(console.log).toHaveBeenCalledWith("Creating 3 random validator(s)...");
       expect(console.log).toHaveBeenCalledWith("Providers: None");
@@ -364,7 +364,7 @@ describe("ValidatorsAction", () => {
     test("should throw an error for invalid count", async () => {
       console.error = vi.fn();
 
-      await validatorsAction.createRandomValidators({ count: "invalid", providers: ["Provider1"] });
+      await validatorsAction.createRandomValidators({ count: "invalid", providers: ["Provider1"], models: [] });
 
       expect(console.error).toHaveBeenCalledWith("Invalid count. Please provide a positive integer.");
       expect(rpcClient.request).not.toHaveBeenCalled();
@@ -376,11 +376,11 @@ describe("ValidatorsAction", () => {
 
       console.error = vi.fn();
 
-      await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1"] });
+      await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1"], models: [] });
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
-        params: [5, 1, 10, ["Provider1"]],
+        params: [5, 1, 10, ["Provider1"], []],
       });
       expect(console.error).toHaveBeenCalledWith("Error creating random validators:", mockError);
     });

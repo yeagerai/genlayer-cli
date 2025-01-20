@@ -93,6 +93,7 @@ describe("validators command", () => {
     expect(ValidatorsAction.prototype.createRandomValidators).toHaveBeenCalledWith({
       count: "3",
       providers: ["provider1", "provider2"],
+      models: []
     });
   });
 

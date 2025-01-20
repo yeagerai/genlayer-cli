@@ -58,10 +58,16 @@ export function initializeValidatorCommands(program: Command) {
       "Space-separated list of provider names (e.g., openai ollama)",
       []
     )
+    .option(
+      "--models <models...>",
+      "Space-separated list of model names (e.g., gpt-4 gpt-4o)",
+      []
+    )
     .action(async (options) => {
       await validatorsAction.createRandomValidators({
         count: options.count,
         providers: options.providers,
+        models: options.models,
       });
     });
 
