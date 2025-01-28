@@ -344,6 +344,24 @@ describe("ValidatorsAction", () => {
       expect(console.log).toHaveBeenCalledWith("Random validators successfully created:", mockResponse.result);
     });
 
+    test("should create random validators with valid count, providers and models", async () => {
+      const mockResponse = { result: { success: true } };
+      vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
+
+      console.log = vi.fn();
+
+      await validatorsAction.createRandomValidators({ count: "10", providers: ["Provider3"], models: ["Model1", "Model2"] });
+
+      expect(rpcClient.request).toHaveBeenCalledWith({
+        method: "sim_createRandomValidators",
+        params: [10, 1, 10, ["Provider3"], ["Model1", "Model2"]],
+      });
+      expect(console.log).toHaveBeenCalledWith("Creating 10 random validator(s)...");
+      expect(console.log).toHaveBeenCalledWith("Providers: Provider3");
+      expect(console.log).toHaveBeenCalledWith("Models: Model1, Model2");
+      expect(console.log).toHaveBeenCalledWith("Random validators successfully created:", mockResponse.result);
+    });
+
     test("should create random validators with default provider message when providers list is empty", async () => {
       const mockResponse = { result: { success: true } };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
