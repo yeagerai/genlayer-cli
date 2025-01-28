@@ -58,7 +58,6 @@ describe("OllamaAction", () => {
         callback(Buffer.from("Mocked output success"));
       }
       if (event === "end") {
-        // Ensure the success flag is true
         callback();
       }
     });
@@ -81,13 +80,11 @@ describe("OllamaAction", () => {
   });
 
   test("should remove the model using 'rm'", async () => {
-    // Simulate success by setting the success flag in the `data` event
     mockStream.on.mockImplementation((event: any, callback: any) => {
       if (event === "data") {
         callback(Buffer.from("Mocked output success"));
       }
       if (event === "end") {
-        // Ensure the success flag is true
         callback();
       }
     });

@@ -14,7 +14,6 @@ describe("ollama command", () => {
     program = new Command();
     initializeUpdateCommands(program);
 
-    // Mock ConfigFileManager
     const mockConfig = { defaultOllamaModel: "default-model" };
     vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue(mockConfig);
   });
