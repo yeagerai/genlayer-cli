@@ -1,5 +1,12 @@
 
 
+## 0.10.0 (2025-01-28)
+
+
+### Features
+
+* getting default ollama model from config file ([#167](https://github.com/yeagerai/genlayer-cli/issues/167)) ([d9e440d](https://github.com/yeagerai/genlayer-cli/commit/d9e440d0cd37368e0d8b154c7b5cbcdad463256f))
+
 ## 0.10.0-beta.0 (2024-12-13)
 
 
