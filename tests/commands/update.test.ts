@@ -2,8 +2,10 @@ import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeUpdateCommands } from "../../src/commands/update";
 import { OllamaAction } from "../../src/commands/update/ollama";
+import { ConfigFileManager } from "../../src/lib/config/ConfigFileManager";
 
 vi.mock("../../src/commands/update/ollama");
+vi.mock("../../src/lib/config/ConfigFileManager");
 
 describe("ollama command", () => {
   let program: Command;
@@ -11,6 +13,10 @@ describe("ollama command", () => {
   beforeEach(() => {
     program = new Command();
     initializeUpdateCommands(program);
+
+    // Mock ConfigFileManager
+    const mockConfig = { defaultOllamaModel: "default-model" };
+    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue(mockConfig);
   });
 
   afterEach(() => {

@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { OllamaAction } from "./ollama";
+import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
 
 export function initializeUpdateCommands(program: Command) {
   const updateCommand = program
@@ -12,7 +13,10 @@ export function initializeUpdateCommands(program: Command) {
     .option("--model [model-name]", "Specify the model to update or remove")
     .option("--remove", "Remove the specified model instead of updating")
     .action(async (options) => {
-      const modelName = options.model || "default-model";
+      const configManager = new ConfigFileManager();
+      const config = configManager.getConfig()
+
+      const modelName = options.model || config.defaultOllamaModel;
       const ollamaAction = new OllamaAction();
 
       if (options.remove) {

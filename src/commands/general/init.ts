@@ -184,8 +184,12 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     const ollamaAction = new OllamaAction();
     const configManager = new ConfigFileManager();
     const config = configManager.getConfig()
+    let ollamaModel = config.defaultOllamaModel;
 
-    let ollamaModel = config.defaultOllamaModel || 'llama3';
+    if(!config.defaultOllamaModel){
+      configManager.writeConfig('defaultOllamaModel', 'llama3');
+      ollamaModel = 'llama3'
+    }
 
     console.log(`Pulling ${ollamaModel} from Ollama...`);
 

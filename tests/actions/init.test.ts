@@ -9,11 +9,13 @@ import fs from "fs";
 import * as dotenv from "dotenv";
 import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
 import { OllamaAction } from "../../src/commands/update/ollama";
+import { ConfigFileManager } from "../../src/lib/config/ConfigFileManager";
 
 
 vi.mock("fs");
 vi.mock("dotenv");
 vi.mock("../../src/commands/update/ollama")
+vi.mock("../../src/lib/config/ConfigFileManager");
 
 
 const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
@@ -278,7 +280,7 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({}));
+    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue({});
 
     await initAction(defaultActionOptions, simulatorService);
 
@@ -310,11 +312,44 @@ describe("init action", () => {
     simServDeleteAllValidators.mockResolvedValue(true);
     simServResetDockerContainers.mockResolvedValue(true);
     simServResetDockerImages.mockResolvedValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({defaultOllamaModel: ollamaModel}));
+    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue({defaultOllamaModel: ollamaModel});
 
     await initAction(defaultActionOptions, simulatorService);
 
     expect(log).toHaveBeenCalledWith(`Pulling ${ollamaModel} from Ollama...`);
+    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
+  });
+
+  test("should set defaultOllamaModel to llama 3 if no defaultOllamaModel is provided", async () => {
+
+    inquirerPrompt.mockResolvedValue({
+      confirmReset: true,
+      confirmDownload: true,
+      selectedLlmProviders: ["openai", "heuristai", "ollama"],
+      openai: "API_KEY1",
+      heuristai: "API_KEY2",
+      ollama: "API_KEY3",
+    });
+    simServgetAiProvidersOptions.mockReturnValue([
+      { name: "OpenAI", value: "openai" },
+      { name: "Heurist", value: "heuristai" },
+      { name: "Ollama", value: "ollama" },
+    ]);
+
+    vi.mocked(ConfigFileManager.prototype.getConfig).mockResolvedValueOnce({})
+    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
+
+    simServRunSimulator.mockResolvedValue(true);
+    simServWaitForSimulator.mockResolvedValue({ initialized: true });
+    simServDeleteAllValidators.mockResolvedValue(true);
+    simServResetDockerContainers.mockResolvedValue(true);
+    simServResetDockerImages.mockResolvedValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({}));
+
+    await initAction(defaultActionOptions, simulatorService);
+
+    expect(ConfigFileManager.prototype.writeConfig).toHaveBeenCalledWith('defaultOllamaModel', 'llama3')
+    expect(log).toHaveBeenCalledWith(`Pulling llama3 from Ollama...`);
     expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
   });
 
