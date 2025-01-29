@@ -25,6 +25,10 @@ vi.mock("../src/commands/config", () => ({
   initializeConfigCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/validators", () => ({
+  initializeValidatorCommands: vi.fn(),
+}));
+
 vi.mock("../src/commands/update", () => ({
   initializeUpdateCommands: vi.fn(),
 }));
