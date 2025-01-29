@@ -39,7 +39,7 @@ services:
     env_file:
       - ./.env
     healthcheck:
-      test: [ "CMD", "python", "backend/healthcheck.py", "--port", "${RPCPORT}" ]
+      test: [ "CMD", "python3", "backend/healthcheck.py", "--port", "${RPCPORT}" ]
       interval: 30s
       timeout: 10s
       retries: 3
