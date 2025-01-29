@@ -1,5 +1,12 @@
 
 
+## 0.10.1 (2025-01-29)
+
+
+### Bug Fixes
+
+* updating studio version and docker compose breaking change ([#173](https://github.com/yeagerai/genlayer-cli/issues/173)) ([fb563e6](https://github.com/yeagerai/genlayer-cli/commit/fb563e6db4a01355baf95b2b07335374966a9cdb))
+
 ## 0.10.0 (2025-01-28)
 
 
