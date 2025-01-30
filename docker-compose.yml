@@ -147,7 +147,7 @@ services:
         condition: service_healthy
 
   hardhat:
-    image: yeagerai/simulator-hardhat
+    image: yeagerai/simulator-hardhat:${LOCALNETVERSION:-latest}
     ports:
       - "${HARDHAT_PORT:-8545}:8545"
     environment:
