@@ -1,5 +1,12 @@
 
 
+## 0.10.2 (2025-01-30)
+
+
+### Bug Fixes
+
+* updated studio version ([#174](https://github.com/yeagerai/genlayer-cli/issues/174)) ([e70e7f2](https://github.com/yeagerai/genlayer-cli/commit/e70e7f2e549abc9c9633ae066820fb272c9334ee))
+
 ## 0.10.1 (2025-01-29)
 
 
