@@ -61,6 +61,9 @@ services:
         max-file: "3"
     deploy:
       replicas: ${JSONRPC_REPLICAS:-1}
+    volumes:
+      - hardhat_artifacts:/app/hardhat/artifacts
+      - hardhat_deployments:/app/hardhat/deployments
 
   webrequest:
     image: yeagerai/simulator-webrequest:${LOCALNETVERSION:-latest}
@@ -149,3 +152,12 @@ services:
       - "${HARDHAT_PORT:-8545}:8545"
     environment:
       - HARDHAT_NETWORK=hardhat
+    volumes:
+      - hardhat_artifacts:/app/artifacts
+      - hardhat_deployments:/app/deployments
+
+volumes:
+  hardhat_artifacts:
+  hardhat_cache:
+  hardhat_deployments:
+  ignition_deployments:
