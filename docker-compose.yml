@@ -158,6 +158,4 @@ services:
 
 volumes:
   hardhat_artifacts:
-  hardhat_cache:
   hardhat_deployments:
-  ignition_deployments:
