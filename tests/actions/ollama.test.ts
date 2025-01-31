@@ -1,8 +1,11 @@
-import {describe, test, vi, beforeEach, afterEach, expect, Mock} from "vitest";
+import { describe, test, vi, beforeEach, afterEach, expect, Mock } from "vitest";
 import { OllamaAction } from "../../src/commands/update/ollama";
+import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
+
 import Docker from "dockerode";
 
 vi.mock("dockerode");
+vi.mock("../../src/lib/clients/jsonRpcClient");
 
 describe("OllamaAction", () => {
   let ollamaAction: OllamaAction;
@@ -41,9 +44,22 @@ describe("OllamaAction", () => {
   });
 
   test("should update the model using 'pull'", async () => {
-    mockStream.on.mockImplementation((event: any, callback:any) => {
-      if (event === "data") callback(Buffer.from("Mocked output"));
-      if (event === "end") callback();
+    const mockProvider = {
+      plugin: "ollama",
+      config: { key: "value" },
+      plugin_config: { pluginKey: "pluginValue" },
+    };
+    vi.mocked(rpcClient.request).mockResolvedValueOnce({
+      result: [mockProvider],
+    });
+
+    mockStream.on.mockImplementation((event: any, callback: any) => {
+      if (event === "data") {
+        callback(Buffer.from("Mocked output success"));
+      }
+      if (event === "end") {
+        callback();
+      }
     });
 
     console.log = vi.fn();
@@ -59,14 +75,18 @@ describe("OllamaAction", () => {
     expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
     expect(mockStream.on).toHaveBeenCalledWith("data", expect.any(Function));
     expect(mockStream.on).toHaveBeenCalledWith("end", expect.any(Function));
-    expect(console.log).toHaveBeenCalledWith("Mocked output");
+    expect(console.log).toHaveBeenCalledWith("Mocked output success");
     expect(console.log).toHaveBeenCalledWith('Model "mocked_model" updated successfully');
   });
 
   test("should remove the model using 'rm'", async () => {
-    mockStream.on.mockImplementation((event:any, callback:any) => {
-      if (event === "data") callback(Buffer.from("Mocked output"));
-      if (event === "end") callback();
+    mockStream.on.mockImplementation((event: any, callback: any) => {
+      if (event === "data") {
+        callback(Buffer.from("Mocked output success"));
+      }
+      if (event === "end") {
+        callback();
+      }
     });
 
     console.log = vi.fn();
@@ -82,11 +102,20 @@ describe("OllamaAction", () => {
     expect(mockStart).toHaveBeenCalledWith({ Detach: false, Tty: false });
     expect(mockStream.on).toHaveBeenCalledWith("data", expect.any(Function));
     expect(mockStream.on).toHaveBeenCalledWith("end", expect.any(Function));
-    expect(console.log).toHaveBeenCalledWith("Mocked output");
+    expect(console.log).toHaveBeenCalledWith("Mocked output success");
     expect(console.log).toHaveBeenCalledWith('Model "mocked_model" removed successfully');
   });
 
   test("should log an error if an exception occurs during 'pull'", async () => {
+    const mockProvider = {
+      plugin: "ollama",
+      config: { key: "value" },
+      plugin_config: { pluginKey: "pluginValue" },
+    };
+    vi.mocked(rpcClient.request).mockResolvedValueOnce({
+      result: [mockProvider],
+    });
+
     const error = new Error("Mocked error");
     mockGetContainer.mockReturnValueOnce(
       {
@@ -126,4 +155,54 @@ describe("OllamaAction", () => {
       error
     );
   });
+
+  test("should throw an error if no 'ollama' provider exists during updateModel", async () => {
+    vi.mocked(rpcClient.request).mockResolvedValueOnce({
+      result: [],
+    });
+
+    const modelName = "mocked_model";
+
+    await expect(ollamaAction.updateModel(modelName)).rejects.toThrowError(
+      "No existing 'ollama' provider found. Unable to add/update a model."
+    );
+
+    expect(rpcClient.request).toHaveBeenCalledWith({
+      method: "sim_getProvidersAndModels",
+      params: [],
+    });
+  });
+
+  test("should reject with an error if success is not set to true", async () => {
+    console.error = vi.fn();
+
+    const mockProvider = {
+      plugin: "ollama",
+      config: { key: "value" },
+      plugin_config: { pluginKey: "pluginValue" },
+    };
+
+    vi.mocked(rpcClient.request).mockResolvedValueOnce({
+      result: [mockProvider],
+    });
+
+    mockStream.on.mockImplementation((event: any, callback: any) => {
+      if (event === "data") {
+        callback(Buffer.from("Mocked output failure"));
+      }
+      if (event === "end") {
+        callback();
+      }
+    });
+
+    console.log = vi.fn();
+    console.error = vi.fn();
+
+    await ollamaAction.updateModel("mocked_model");
+
+    expect(console.error).toHaveBeenCalledWith(
+      'Error executing command "pull" on model "mocked_model":', 'internal error'
+    );
+  });
+
 });
