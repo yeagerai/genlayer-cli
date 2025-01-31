@@ -1,5 +1,12 @@
 
 
+## 0.11.0 (2025-01-31)
+
+
+### Features
+
+* Enhance Ollama Command Workflow and Default Model Handling ([#171](https://github.com/yeagerai/genlayer-cli/issues/171)) ([3dc7a96](https://github.com/yeagerai/genlayer-cli/commit/3dc7a9673ada8116b1fb99e089439a75e06237ec))
+
 ## 0.10.2 (2025-01-30)
 
 
