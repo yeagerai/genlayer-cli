@@ -62,7 +62,7 @@
     "ethers": "^6.13.4",
     "genlayer-js": "^0.6.0",
     "inquirer": "^9.2.19",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.0.0",
     "open": "^10.1.0",
     "update-check": "^1.5.4",
     "uuid": "^11.0.0",
