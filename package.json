@@ -37,7 +37,7 @@
     "@release-it/conventional-changelog": "^8.0.1",
     "@types/dockerode": "^3.3.31",
     "@types/inquirer": "^9.0.7",
-    "@types/node": "^20.12.7",
+    "@types/node": "^22.0.0",
     "@types/sinon": "^17.0.3",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
