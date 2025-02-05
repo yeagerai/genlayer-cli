@@ -329,7 +329,7 @@ describe("SimulatorService - Docker Tests", () => {
 
     const result = await simulatorService.resetDockerContainers();
 
-    expect(result).toBe(true);
+    expect(result).toBe(undefined);
     expect(mockListContainers).toHaveBeenCalledWith({ all: true });
 
     // Ensure only the relevant containers were stopped and removed
@@ -340,6 +340,36 @@ describe("SimulatorService - Docker Tests", () => {
     expect(mockStop).toHaveBeenCalledTimes(1);
     expect(mockRemove).toHaveBeenCalledTimes(2);
   });
+
+  test("should stop all running GenLayer containers", async () => {
+    const mockContainers = [
+      {
+        Id: "container1",
+        Names: [`${CONTAINERS_NAME_PREFIX}container1`],
+        State: "running",
+      },
+      {
+        Id: "container2",
+        Names: [`${CONTAINERS_NAME_PREFIX}container2`],
+        State: "exited",
+      },
+    ];
+
+    vi.mocked(Docker.prototype.listContainers).mockResolvedValue(mockContainers as any);
+
+    const mockStop = vi.fn().mockResolvedValue(undefined);
+    const mockGetContainer = vi.mocked(Docker.prototype.getContainer);
+    mockGetContainer.mockImplementation(() => ({
+      stop: mockStop,
+    } as unknown as Docker.Container));
+
+    await simulatorService.stopDockerContainers();
+
+    expect(mockGetContainer).toHaveBeenCalledWith("container1");
+    expect(mockGetContainer).toHaveBeenCalledWith("container2");
+    expect(mockStop).toHaveBeenCalledTimes(1);
+  });
+
 
   test("should remove Docker images with the specified prefix", async () => {
     const mockImages = [
@@ -366,7 +396,7 @@ describe("SimulatorService - Docker Tests", () => {
 
     const result = await simulatorService.resetDockerImages();
 
-    expect(result).toBe(true);
+    expect(result).toBe(undefined);
     expect(mockListImages).toHaveBeenCalled();
     expect(mockGetImage).toHaveBeenCalledWith("image1");
     expect(mockGetImage).toHaveBeenCalledWith("image2");

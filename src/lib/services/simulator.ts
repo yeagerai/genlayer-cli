@@ -1,4 +1,4 @@
-import Docker from "dockerode"
+import Docker, {ContainerInfo} from "dockerode";
 import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
@@ -48,6 +48,39 @@ export class SimulatorService implements ISimulatorService {
     this.docker = new Docker();
   }
 
+  private readEnvConfigValue(key: string): string {
+    const envFilePath = path.join(this.location, ".env");
+    // Transform the config string to object
+    const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
+    return envConfig[key];
+  }
+
+  private async getGenlayerContainers(): Promise<ContainerInfo[]> {
+    const containers = await this.docker.listContainers({ all: true });
+    return containers.filter(container =>
+      container.Names.some(name =>
+        name.startsWith(CONTAINERS_NAME_PREFIX) || name.includes("ollama")
+      )
+    );
+  }
+
+  private async stopAndRemoveContainers(remove: boolean = false): Promise<void> {
+    const genlayerContainers = await this.getGenlayerContainers();
+
+    for (const containerInfo of genlayerContainers) {
+      const container = this.docker.getContainer(containerInfo.Id);
+      if (containerInfo.State === "running") {
+        await container.stop();
+      }
+
+      const isOllamaContainer = containerInfo.Names.some(name => name.includes("ollama"));
+
+      if (remove && !isOllamaContainer) {
+        await container.remove();
+      }
+    }
+  }
+
   public addConfigToEnvFile(newConfig: Record<string, string>): void {
     const envFilePath = path.join(this.location, ".env");
 
@@ -74,13 +107,6 @@ export class SimulatorService implements ISimulatorService {
 
   public getComposeOptions(): string {
     return this.composeOptions;
-  }
-
-  private readEnvConfigValue(key: string): string {
-    const envFilePath = path.join(this.location, ".env");
-    // Transform the config string to object
-    const envConfig = dotenv.parse(fs.readFileSync(envFilePath, "utf8"));
-    return envConfig[key];
   }
 
   public async checkCliVersion(): Promise<void> {
@@ -218,25 +244,15 @@ export class SimulatorService implements ISimulatorService {
     return true;
   }
 
-  public async resetDockerContainers(): Promise<boolean> {
-    const containers = await this.docker.listContainers({ all: true });
-    const genlayerContainers = containers.filter(container =>
-      container.Names.some(name =>
-        name.startsWith(CONTAINERS_NAME_PREFIX)
-      )
-    );
-
-    for (const containerInfo of genlayerContainers) {
-      const container = this.docker.getContainer(containerInfo.Id);
-      if (containerInfo.State === "running") {
-        await container.stop();
-      }
-      await container.remove();
-    }
-    return true;
+  public async stopDockerContainers(): Promise<void> {
+    await this.stopAndRemoveContainers(false);
   }
 
-  public async resetDockerImages(): Promise<boolean> {
+  public async resetDockerContainers(): Promise<void> {
+    await this.stopAndRemoveContainers(true);
+  }
+
+  public async resetDockerImages(): Promise<void> {
     const images = await this.docker.listImages();
     const genlayerImages = images.filter(image =>
       image.RepoTags?.some(tag => tag.startsWith(IMAGES_NAME_PREFIX))
@@ -246,8 +262,6 @@ export class SimulatorService implements ISimulatorService {
       const image = this.docker.getImage(imageInfo.Id);
       await image.remove({force: true});
     }
-
-    return true;
   }
 
   public async cleanDatabase(): Promise<boolean> {

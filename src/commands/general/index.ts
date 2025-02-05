@@ -4,6 +4,7 @@ import simulatorService from "../../lib/services/simulator";
 import { initAction, InitActionOptions } from "./init";
 import { startAction, StartActionOptions } from "./start";
 import {localnetCompatibleVersion} from "../../lib/config/simulator";
+import {StopAction} from "./stop";
 
 export function initializeGeneralCommands(program: Command) {
   program
@@ -23,6 +24,14 @@ export function initializeGeneralCommands(program: Command) {
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
     .action((options: StartActionOptions) => startAction(options, simulatorService));
+
+  program
+    .command("stop")
+    .description("Stop all running simulator services.")
+    .action(async () => {
+      const stopAction = new StopAction();
+      await stopAction.stop();
+    });
 
   return program;
 }

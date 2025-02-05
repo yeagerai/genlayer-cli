@@ -12,8 +12,9 @@ export interface ISimulatorService {
   getAiProvidersOptions(withHint: boolean): Array<{name: string; value: string}>;
   getFrontendUrl(): string;
   openFrontend(): Promise<boolean>;
-  resetDockerContainers(): Promise<boolean>;
-  resetDockerImages(): Promise<boolean>;
+  stopDockerContainers(): Promise<void>;
+  resetDockerContainers(): Promise<void>;
+  resetDockerImages(): Promise<void>;
   checkCliVersion(): Promise<void>;
   cleanDatabase(): Promise<boolean>;
   addConfigToEnvFile(newConfig: Record<string, string>): void;
