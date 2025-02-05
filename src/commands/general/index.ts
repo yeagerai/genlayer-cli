@@ -27,7 +27,7 @@ export function initializeGeneralCommands(program: Command) {
 
   program
     .command("stop")
-    .description("Stop all running simulator services.")
+    .description("Stop all running localnet services.")
     .action(async () => {
       const stopAction = new StopAction();
       await stopAction.stop();
