@@ -1,5 +1,12 @@
 
 
+## 0.12.0 (2025-02-05)
+
+
+### Features
+
+* Add `stop` Command and Improve Docker Container Management ([#178](https://github.com/yeagerai/genlayer-cli/issues/178)) ([dbae62c](https://github.com/yeagerai/genlayer-cli/commit/dbae62cd6ea0c90ee7fb6953112006f9dff729c3))
+
 ## 0.11.1 (2025-02-05)
 
 ## 0.11.0 (2025-01-31)
