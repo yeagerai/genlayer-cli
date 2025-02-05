@@ -77,7 +77,7 @@ export async function initAction(options: InitActionOptions, simulatorService: I
     {
       type: "confirm",
       name: "confirmReset",
-      message: `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, and validators). Do you want to continue?`,
+      message: `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`,
       default: true,
     },
   ]);
