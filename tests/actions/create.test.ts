@@ -31,6 +31,9 @@ describe("KeypairCreator", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(keypairCreator as any, "startSpinner").mockImplementation(() => {});
+    vi.spyOn(keypairCreator as any, "succeedSpinner").mockImplementation(() => {});
+    vi.spyOn(keypairCreator as any, "failSpinner").mockImplementation(() => {});
     vi.mocked(ethers.Wallet.createRandom).mockReturnValue(mockWallet);
   });
 
@@ -39,15 +42,15 @@ describe("KeypairCreator", () => {
   });
 
   test("successfully creates and saves a keypair", () => {
-    const consoleLogSpy = vi.spyOn(console, "log");
     vi.mocked(existsSync).mockReturnValue(false);
     const options = { output: "keypair.json", overwrite: false };
 
     keypairCreator.createKeypairAction(options);
 
+    expect(keypairCreator["startSpinner"]).toHaveBeenCalledWith("Creating keypair...");
     expect(ethers.Wallet.createRandom).toHaveBeenCalledTimes(1);
-
     expect(keypairCreator["filePathManager"].getFilePath).toHaveBeenCalledWith("keypair.json");
+
 
     expect(writeFileSync).toHaveBeenCalledWith(
       "/mocked/path/keypair.json",
@@ -66,15 +69,12 @@ describe("KeypairCreator", () => {
       "/mocked/path/keypair.json"
     );
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(keypairCreator["succeedSpinner"]).toHaveBeenCalledWith(
       "Keypair successfully created and saved to: /mocked/path/keypair.json"
     );
   });
 
   test("skips creation if file exists and overwrite is false", () => {
-
-
-    const consoleWarnSpy = vi.spyOn(console, "warn");
     vi.mocked(existsSync).mockReturnValue(true);
     const options = { output: "keypair.json", overwrite: false };
 
@@ -82,20 +82,19 @@ describe("KeypairCreator", () => {
 
     expect(ethers.Wallet.createRandom).not.toHaveBeenCalled();
     expect(writeFileSync).not.toHaveBeenCalled();
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
+    expect(keypairCreator["failSpinner"]).toHaveBeenCalledWith(
       "The file at /mocked/path/keypair.json already exists. Use the '--overwrite' option to replace it."
     );
   });
 
   test("overwrites the file if overwrite is true", () => {
-    const consoleLogSpy = vi.spyOn(console, "log");
     vi.mocked(existsSync).mockReturnValue(true);
     const options = { output: "keypair.json", overwrite: true };
 
     keypairCreator.createKeypairAction(options);
 
+    expect(keypairCreator["startSpinner"]).toHaveBeenCalledWith("Creating keypair...");
     expect(ethers.Wallet.createRandom).toHaveBeenCalledTimes(1);
-
     expect(keypairCreator["filePathManager"].getFilePath).toHaveBeenCalledWith("keypair.json");
 
     expect(writeFileSync).toHaveBeenCalledWith(
@@ -115,26 +114,20 @@ describe("KeypairCreator", () => {
       "/mocked/path/keypair.json"
     );
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(keypairCreator["succeedSpinner"]).toHaveBeenCalledWith(
       "Keypair successfully created and saved to: /mocked/path/keypair.json"
     );
   });
 
   test("handles errors during keypair creation", () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
-      throw new Error("process.exit");
-    });
+    const mockError = new Error("Mocked write error");
 
     vi.mocked(writeFileSync).mockImplementation(() => {
-      throw new Error("Mocked write error");
+      throw mockError;
     });
 
-    expect(() => {
-      keypairCreator.createKeypairAction({ output: "keypair.json", overwrite: true });
-    }).toThrowError("process.exit");
+    keypairCreator.createKeypairAction({ output: "keypair.json", overwrite: true });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to generate keypair:", expect.any(Error));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(keypairCreator["failSpinner"]).toHaveBeenCalledWith("Failed to generate keypair:", mockError);
   });
 });
