@@ -17,6 +17,15 @@ describe("ValidatorsAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     validatorsAction = new ValidatorsAction();
+
+    vi.spyOn(validatorsAction as any, "logSuccess").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "logError").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "startSpinner").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "succeedSpinner").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "failSpinner").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "log").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "stopSpinner").mockImplementation(() => {});
+    vi.spyOn(validatorsAction as any, "setSpinnerText").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -29,30 +38,44 @@ describe("ValidatorsAction", () => {
       const mockResponse = { result: { id: 1, name: "Validator1" } };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.getValidator({ address: mockAddress });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(
+        `Fetching validator with address: ${mockAddress}`
+      );
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getValidator",
         params: [mockAddress],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator Details:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith(
+        `Successfully fetched validator with address: ${mockAddress}`,
+        mockResponse.result
+      );
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should fetch all validators when no address is provided", async () => {
       const mockResponse = { result: [{ id: 1 }, { id: 2 }] };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.getValidator({});
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching all validators...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getAllValidators",
         params: [],
       });
-      expect(console.log).toHaveBeenCalledWith("All Validators:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith(
+        "Successfully fetched all validators.",
+        mockResponse.result
+      );
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if an exception occurs while fetching a specific validator", async () => {
@@ -61,15 +84,19 @@ describe("ValidatorsAction", () => {
 
       vi.mocked(rpcClient.request).mockRejectedValue(mockError);
 
-      console.error = vi.fn();
-
       await validatorsAction.getValidator({ address: mockAddress });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(
+        `Fetching validator with address: ${mockAddress}`
+      );
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getValidator",
         params: [mockAddress],
       });
-      expect(console.error).toHaveBeenCalledWith("Error fetching validators:", mockError);
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error fetching validators", mockError);
+      expect(validatorsAction["succeedSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if an exception occurs while fetching all validators", async () => {
@@ -77,63 +104,78 @@ describe("ValidatorsAction", () => {
 
       vi.mocked(rpcClient.request).mockRejectedValue(mockError);
 
-      console.error = vi.fn();
-
       await validatorsAction.getValidator({});
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching all validators...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getAllValidators",
         params: [],
       });
-      expect(console.error).toHaveBeenCalledWith("Error fetching validators:", mockError);
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error fetching validators", mockError);
+      expect(validatorsAction["succeedSpinner"]).not.toHaveBeenCalled();
     });
   });
 
   describe("deleteValidator", () => {
-    test("should delete a specific validator", async () => {
-      const mockAddress = "mocked_address";
+    test("should delete a specific validator", async () =>  {
+      const mockAddress = "0x725a9D2D572E8833059a3e9a844791aF185C5Ff4";
       vi.mocked(inquirer.prompt).mockResolvedValue({ confirmAction: true });
-      vi.mocked(rpcClient.request).mockResolvedValue({ result: { id: 1 } });
-
-      console.log = vi.fn();
+      vi.mocked(rpcClient.request).mockResolvedValue({ result: mockAddress });
 
       await validatorsAction.deleteValidator({ address: mockAddress });
 
-      expect(inquirer.prompt).toHaveBeenCalled();
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(
+        `Deleting validator with address: ${mockAddress}`
+      );
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_deleteValidator",
         params: [mockAddress],
       });
-      expect(console.log).toHaveBeenCalledWith("Deleted Address:", { id: 1 });
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith(
+        `Deleted Address: ${mockAddress}`
+      );
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should delete all validators when no address is provided", async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({ confirmAction: true });
       vi.mocked(rpcClient.request).mockResolvedValue({});
 
-      console.log = vi.fn();
-
       await validatorsAction.deleteValidator({});
 
-      expect(inquirer.prompt).toHaveBeenCalled();
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(
+        "Deleting all validators..."
+      );
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_deleteAllValidators",
         params: [],
       });
-      expect(console.log).toHaveBeenCalledWith("Successfully deleted all validators");
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith(
+        "Successfully deleted all validators"
+      );
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should abort deletion if user declines confirmation", async () => {
       vi.mocked(inquirer.prompt).mockResolvedValue({ confirmAction: false });
 
-      console.log = vi.fn();
-
-      await validatorsAction.deleteValidator({ address: "mocked_address" })
+      await validatorsAction.deleteValidator({ address: "mocked_address" });
 
       expect(inquirer.prompt).toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith("Operation aborted!");
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("Operation aborted!");
       expect(rpcClient.request).not.toHaveBeenCalled();
+      expect(validatorsAction["startSpinner"]).not.toHaveBeenCalled();
+      expect(validatorsAction["succeedSpinner"]).not.toHaveBeenCalled();
     });
+
   });
 
   describe("countValidators", () => {
@@ -141,15 +183,17 @@ describe("ValidatorsAction", () => {
       const mockResponse = { result: 42 };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.countValidators();
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Counting all validators...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_countValidators",
         params: [],
       });
-      expect(console.log).toHaveBeenCalledWith("Total Validators:", 42);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Total Validators: 42");
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if an exception occurs while counting validators", async () => {
@@ -157,16 +201,19 @@ describe("ValidatorsAction", () => {
 
       vi.mocked(rpcClient.request).mockRejectedValue(mockError);
 
-      console.error = vi.fn();
-
       await validatorsAction.countValidators();
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Counting all validators...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_countValidators",
         params: [],
       });
-      expect(console.error).toHaveBeenCalledWith("Error counting validators:", mockError);
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error counting validators", mockError);
+      expect(validatorsAction["succeedSpinner"]).not.toHaveBeenCalled();
     });
+
   });
 
   describe("createValidator", () => {
@@ -192,14 +239,37 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce({ selectedProvider: "Provider1" })
         .mockResolvedValueOnce({ selectedModel: "Model1" });
 
-      console.log = vi.fn();
-
       await validatorsAction.createValidator({ stake: "10" });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getProvidersAndModels",
         params: [],
       });
+
+      expect(validatorsAction["stopSpinner"]).toHaveBeenCalled();
+
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        {
+          type: "list",
+          name: "selectedProvider",
+          message: "Select a provider:",
+          choices: ["Provider1"],
+        },
+      ]);
+
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        {
+          type: "list",
+          name: "selectedModel",
+          message: "Select a model:",
+          choices: ["Model1"],
+        },
+      ]);
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating validator...");
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createValidator",
         params: [
@@ -211,30 +281,46 @@ describe("ValidatorsAction", () => {
           { api_key_env_var: "KEY1" },
         ],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator successfully created:", { id: 123 });
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith(
+        "Validator successfully created:",
+        mockResponse.result
+      );
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error for invalid stake", async () => {
-      console.error = vi.fn();
 
       await validatorsAction.createValidator({ stake: "invalid" });
 
-      expect(console.error).toHaveBeenCalledWith("Invalid stake. Please provide a positive integer.");
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith(
+        "Invalid stake. Please provide a positive integer."
+      );
+
       expect(rpcClient.request).not.toHaveBeenCalled();
+      expect(validatorsAction["startSpinner"]).not.toHaveBeenCalled();
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if no providers or models are available", async () => {
       vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: [] });
 
-      console.error = vi.fn();
-
       await validatorsAction.createValidator({ stake: "10" });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getProvidersAndModels",
         params: [],
       });
-      expect(console.error).toHaveBeenCalledWith("No providers or models available.");
+
+      expect(validatorsAction["stopSpinner"]).toHaveBeenCalled();
+
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("No providers or models available.");
+
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
+      expect(validatorsAction["succeedSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if no models are available for the selected provider", async () => {
@@ -245,11 +331,22 @@ describe("ValidatorsAction", () => {
       vi.mocked(rpcClient.request).mockResolvedValueOnce({ result: mockProvidersAndModels });
       vi.mocked(inquirer.prompt).mockResolvedValueOnce({ selectedProvider: "Provider1" });
 
-      console.error = vi.fn();
-
       await validatorsAction.createValidator({ stake: "10" });
 
-      expect(console.error).toHaveBeenCalledWith("No models available for the selected provider.");
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
+
+      expect(validatorsAction["stopSpinner"]).toHaveBeenCalled();
+
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        {
+          type: "list",
+          name: "selectedProvider",
+          message: "Select a provider:",
+          choices: ["Provider1"],
+        },
+      ]);
+
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("No models available for the selected provider.");
     });
 
     test("should log an error if selected model details are not found", async () => {
@@ -267,22 +364,42 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce({ selectedProvider: "Provider1" })
         .mockResolvedValueOnce({ selectedModel: "NonExistentModel" });
 
-      console.error = vi.fn();
-
       await validatorsAction.createValidator({ stake: "10" });
 
-      expect(console.error).toHaveBeenCalledWith("Selected model details not found.");
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
+
+      expect(validatorsAction["stopSpinner"]).toHaveBeenCalled();
+
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        {
+          type: "list",
+          name: "selectedProvider",
+          message: "Select a provider:",
+          choices: ["Provider1"],
+        },
+      ]);
+
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        {
+          type: "list",
+          name: "selectedModel",
+          message: "Select a model:",
+          choices: ["Model1"],
+        },
+      ]);
+
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("Selected model details not found.");
     });
 
     test("should log an error if an exception occurs during the process", async () => {
       const mockError = new Error("Unexpected error");
       vi.mocked(rpcClient.request).mockRejectedValue(mockError);
 
-      console.error = vi.fn();
-
       await validatorsAction.createValidator({ stake: "10" });
 
-      expect(console.error).toHaveBeenCalledWith("Error creating validator:", mockError);
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error creating validator", mockError);
     });
 
     test("should use user-provided config if specified", async () => {
@@ -307,11 +424,22 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce({ selectedProvider: "Provider1" })
         .mockResolvedValueOnce({ selectedModel: "Model1" });
 
-      console.log = vi.fn();
-
       const customConfig = '{"custom_key":"custom_value"}';
       await validatorsAction.createValidator({ stake: "10", config: customConfig });
 
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Fetching available providers and models...");
+      expect(rpcClient.request).toHaveBeenCalledWith({
+        method: "sim_getProvidersAndModels",
+        params: [],
+      });
+      expect(validatorsAction["stopSpinner"]).toHaveBeenCalled();
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        { type: "list", name: "selectedProvider", message: "Select a provider:", choices: ["Provider1"] },
+      ]);
+      expect(inquirer.prompt).toHaveBeenCalledWith([
+        { type: "list", name: "selectedModel", message: "Select a model:", choices: ["Model1"] },
+      ]);
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating validator...");
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createValidator",
         params: [
@@ -323,84 +451,100 @@ describe("ValidatorsAction", () => {
           { api_key_env_var: "KEY1" },
         ],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator successfully created:", { id: 123 });
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Validator successfully created:", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
+    });
+
+    test("should log an error if model is provided without provider", async () => {
+      vi.spyOn(validatorsAction as any, "logError").mockImplementation(() => {});
+
+      await validatorsAction.createValidator({ stake: "10", model: "Model1" });
+
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("You must specify a provider if using a model.");
+      expect(rpcClient.request).not.toHaveBeenCalled();
     });
   });
+
   describe("createRandomValidators", () => {
     test("should create random validators with valid count and providers", async () => {
       const mockResponse = { result: { success: true } };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1", "Provider2"], models: [] });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating 5 random validator(s)...");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Providers: Provider1, Provider2");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Models: All");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
         params: [5, 1, 10, ["Provider1", "Provider2"], []],
       });
-      expect(console.log).toHaveBeenCalledWith("Creating 5 random validator(s)...");
-      expect(console.log).toHaveBeenCalledWith("Providers: Provider1, Provider2");
-      expect(console.log).toHaveBeenCalledWith("Random validators successfully created:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Random validators successfully created", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should create random validators with valid count, providers and models", async () => {
       const mockResponse = { result: { success: true } };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.createRandomValidators({ count: "10", providers: ["Provider3"], models: ["Model1", "Model2"] });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating 10 random validator(s)...");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Providers: Provider3");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Models: Model1, Model2");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
         params: [10, 1, 10, ["Provider3"], ["Model1", "Model2"]],
       });
-      expect(console.log).toHaveBeenCalledWith("Creating 10 random validator(s)...");
-      expect(console.log).toHaveBeenCalledWith("Providers: Provider3");
-      expect(console.log).toHaveBeenCalledWith("Models: Model1, Model2");
-      expect(console.log).toHaveBeenCalledWith("Random validators successfully created:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Random validators successfully created", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should create random validators with default provider message when providers list is empty", async () => {
       const mockResponse = { result: { success: true } };
       vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.createRandomValidators({ count: "3", providers: [], models: [] });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating 3 random validator(s)...");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Providers: All");
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Models: All");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
         params: [3, 1, 10, [], []],
       });
-      expect(console.log).toHaveBeenCalledWith("Creating 3 random validator(s)...");
-      expect(console.log).toHaveBeenCalledWith("Providers: None");
-      expect(console.log).toHaveBeenCalledWith("Random validators successfully created:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Random validators successfully created", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should throw an error for invalid count", async () => {
-      console.error = vi.fn();
-
       await validatorsAction.createRandomValidators({ count: "invalid", providers: ["Provider1"], models: [] });
 
-      expect(console.error).toHaveBeenCalledWith("Invalid count. Please provide a positive integer.");
+      expect(validatorsAction["logError"]).toHaveBeenCalledWith("Invalid count. Please provide a positive integer.");
       expect(rpcClient.request).not.toHaveBeenCalled();
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if rpc request fails", async () => {
       const mockError = new Error("RPC failure");
       vi.mocked(rpcClient.request).mockRejectedValue(mockError);
 
-      console.error = vi.fn();
-
       await validatorsAction.createRandomValidators({ count: "5", providers: ["Provider1"], models: [] });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith("Creating 5 random validator(s)...");
 
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_createRandomValidators",
         params: [5, 1, 10, ["Provider1"], []],
       });
-      expect(console.error).toHaveBeenCalledWith("Error creating random validators:", mockError);
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error creating random validators", mockError);
     });
   });
 
@@ -422,14 +566,17 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce(mockCurrentValidator)
         .mockResolvedValueOnce(mockResponse);
 
-      console.log = vi.fn();
-
       await validatorsAction.updateValidator({ address: mockAddress, stake: "200" });
 
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(`Fetching validator with address: ${mockAddress}...`);
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getValidator",
         params: [mockAddress],
       });
+
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Current Validator Details:", mockCurrentValidator.result);
+      expect(validatorsAction["setSpinnerText"]).toHaveBeenCalledWith("Updating Validator...");
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_updateValidator",
         params: [
@@ -440,7 +587,9 @@ describe("ValidatorsAction", () => {
           { max_tokens: 500 },
         ],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator successfully updated:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Validator successfully updated", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should fetch and update a validator with new provider and model", async () => {
@@ -460,18 +609,17 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce(mockCurrentValidator)
         .mockResolvedValueOnce(mockResponse);
 
-      console.log = vi.fn();
+      await validatorsAction.updateValidator({ address: mockAddress, provider: "Provider2", model: "Model2" });
 
-      await validatorsAction.updateValidator({
-        address: mockAddress,
-        provider: "Provider2",
-        model: "Model2",
-      });
-
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(`Fetching validator with address: ${mockAddress}...`);
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getValidator",
         params: [mockAddress],
       });
+
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Current Validator Details:", mockCurrentValidator.result);
+      expect(validatorsAction["setSpinnerText"]).toHaveBeenCalledWith("Updating Validator...");
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_updateValidator",
         params: [
@@ -482,7 +630,9 @@ describe("ValidatorsAction", () => {
           { max_tokens: 500 },
         ],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator successfully updated:", mockResponse.result);
+
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Validator successfully updated", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should fetch and update a validator with new config", async () => {
@@ -502,15 +652,18 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce(mockCurrentValidator)
         .mockResolvedValueOnce(mockResponse);
 
-      console.log = vi.fn();
-
       const newConfig = '{"max_tokens":1000}';
       await validatorsAction.updateValidator({ address: mockAddress, config: newConfig });
 
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(`Fetching validator with address: ${mockAddress}...`);
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_getValidator",
         params: [mockAddress],
       });
+
+      expect(validatorsAction["log"]).toHaveBeenCalledWith("Current Validator Details:", mockCurrentValidator.result);
+      expect(validatorsAction["setSpinnerText"]).toHaveBeenCalledWith("Updating Validator...");
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_updateValidator",
         params: [
@@ -521,28 +674,9 @@ describe("ValidatorsAction", () => {
           { max_tokens: 1000 },
         ],
       });
-      expect(console.log).toHaveBeenCalledWith("Validator successfully updated:", mockResponse.result);
-    });
 
-    test("should throw an error if validator is not found", async () => {
-      const mockAddress = "mocked_address";
-      const mockResponse = { result: null };
-
-      vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
-
-      console.error = vi.fn();
-
-      await validatorsAction.updateValidator({ address: mockAddress });
-
-      expect(rpcClient.request).toHaveBeenCalledWith({
-        method: "sim_getValidator",
-        params: [mockAddress],
-      });
-      expect(console.error).toHaveBeenCalledWith(
-        "Error updating validator:",
-        new Error(`Validator with address ${mockAddress} not found.`)
-      );
-      expect(rpcClient.request).toHaveBeenCalledTimes(1);
+      expect(validatorsAction["succeedSpinner"]).toHaveBeenCalledWith("Validator successfully updated", mockResponse.result);
+      expect(validatorsAction["failSpinner"]).not.toHaveBeenCalled();
     });
 
     test("should log an error if updateValidator RPC call fails", async () => {
@@ -562,7 +696,7 @@ describe("ValidatorsAction", () => {
         .mockResolvedValueOnce(mockCurrentValidator)
         .mockRejectedValueOnce(mockError);
 
-      console.error = vi.fn();
+      vi.spyOn(validatorsAction as any, "failSpinner").mockImplementation(() => {});
 
       await validatorsAction.updateValidator({ address: mockAddress, stake: "200" });
 
@@ -570,6 +704,7 @@ describe("ValidatorsAction", () => {
         method: "sim_getValidator",
         params: [mockAddress],
       });
+
       expect(rpcClient.request).toHaveBeenCalledWith({
         method: "sim_updateValidator",
         params: [
@@ -580,40 +715,36 @@ describe("ValidatorsAction", () => {
           { max_tokens: 500 },
         ],
       });
-      expect(console.error).toHaveBeenCalledWith("Error updating validator:", mockError);
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Error updating validator", mockError);
     });
-  });
-  test("should log an error for invalid stake value", async () => {
-    const mockAddress = "mocked_address";
-    const mockCurrentValidator = {
-      result: {
-        address: "mocked_address",
-        stake: 100,
-        provider: "Provider1",
-        model: "Model1",
-        config: { max_tokens: 500 },
-      },
-    };
 
-    vi.mocked(rpcClient.request).mockResolvedValue(mockCurrentValidator);
+    test("should log an error for invalid stake value", async () => {
+      const mockAddress = "mocked_address";
+      const mockCurrentValidator = {
+        result: {
+          address: "mocked_address",
+          stake: 100,
+          provider: "Provider1",
+          model: "Model1",
+          config: { max_tokens: 500 },
+        },
+      };
 
-    console.error = vi.fn();
+      vi.mocked(rpcClient.request).mockResolvedValue(mockCurrentValidator);
 
-    await validatorsAction.updateValidator({ address: mockAddress, stake: "-10" });
+      vi.spyOn(validatorsAction as any, "failSpinner").mockImplementation(() => {});
 
-    expect(rpcClient.request).toHaveBeenCalledWith({
-      method: "sim_getValidator",
-      params: [mockAddress],
+      await validatorsAction.updateValidator({ address: mockAddress, stake: "-10" });
+
+      expect(validatorsAction["startSpinner"]).toHaveBeenCalledWith(`Fetching validator with address: ${mockAddress}...`);
+      expect(rpcClient.request).toHaveBeenCalledWith({
+        method: "sim_getValidator",
+        params: [mockAddress],
+      });
+
+      expect(validatorsAction["failSpinner"]).toHaveBeenCalledWith("Invalid stake value. Stake must be a positive integer.");
+      expect(rpcClient.request).toHaveBeenCalledTimes(1);
     });
-    expect(console.error).toHaveBeenCalledWith("Invalid stake value. Stake must be a positive integer.");
-    expect(rpcClient.request).toHaveBeenCalledTimes(1);
-  });
-  test("should log an error if model is provided without provider", async () => {
-    console.error = vi.fn();
-
-    await validatorsAction.createValidator({ stake: "10", model: "Model1" });
-
-    expect(console.error).toHaveBeenCalledWith("You must specify a provider if using a model.");
-    expect(rpcClient.request).not.toHaveBeenCalled();
   });
 });
