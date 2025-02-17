@@ -2,7 +2,7 @@ import { Command } from "commander";
 
 import simulatorService from "../../lib/services/simulator";
 import { initAction, InitActionOptions } from "./init";
-import { startAction, StartActionOptions } from "./start";
+import { StartAction, StartActionOptions } from "./start";
 import {localnetCompatibleVersion} from "../../lib/config/simulator";
 import {StopAction} from "./stop";
 
@@ -23,7 +23,10 @@ export function initializeGeneralCommands(program: Command) {
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
-    .action((options: StartActionOptions) => startAction(options, simulatorService));
+    .action(async (options: StartActionOptions) => {
+      const startAction = new StartAction();
+      await startAction.execute(options);
+    });
 
   program
     .command("stop")
