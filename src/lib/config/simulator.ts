@@ -1,15 +1,11 @@
+export const localnetCompatibleVersion = "v0.35.2";
 export const DEFAULT_JSON_RPC_URL = "http://localhost:4000/api";
-export const DEFAULT_REPO_GH_URL = "https://github.com/yeagerai/genlayer-simulator.git";
-export const DOCKER_IMAGES_AND_CONTAINERS_NAME_PREFIX = "genlayer-simulator-";
-export const DEFAULT_RUN_SIMULATOR_COMMAND = (simulatorLocation: string) => ({
-  darwin: `osascript -e 'tell application "Terminal" to do script "cd ${simulatorLocation} && docker compose build && docker compose up"'`,
-  win32: `start cmd.exe /c "cd /d ${simulatorLocation} && docker compose build && docker compose up && pause"`,
-  linux: `x-terminal-emulator -e bash -c 'cd ${simulatorLocation} && docker compose build && docker compose up; echo "Press enter to exit"; read'`,
-});
-export const DEFAULT_PULL_OLLAMA_COMMAND = (simulatorLocation: string) => ({
-  darwin: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,
-  win32: `cd /d ${simulatorLocation} && docker exec ollama ollama pull llama3`,
-  linux: `cd ${simulatorLocation} && docker exec ollama ollama pull llama3`,
+export const CONTAINERS_NAME_PREFIX = "/genlayer-";
+export const IMAGES_NAME_PREFIX = "yeagerai";
+export const DEFAULT_RUN_SIMULATOR_COMMAND = (location: string, options: string) => ({
+  darwin: `osascript -e 'tell application "Terminal" to do script "cd ${location} && docker compose build && docker compose -p genlayer up ${options}"'`,
+  win32: `start cmd.exe /c "cd /d ${location} && docker compose build && docker compose -p genlayer up ${options} && pause"`,
+  linux: `nohup bash -c 'cd ${location} && docker compose build && docker compose -p genlayer up ${options} -d '`,
 });
 export const DEFAULT_RUN_DOCKER_COMMAND = {
   darwin: "open -a Docker",

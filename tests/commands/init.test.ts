@@ -1,12 +1,26 @@
-import {Command} from "commander";
-import {jest} from "@jest/globals";
-import {initializeGeneralCommands} from "../../src/commands/general";
-import {getCommand, getCommandOption} from "../utils";
+import { Command } from "commander";
+import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
+import { initializeGeneralCommands } from "../../src/commands/general";
+import { getCommand, getCommandOption } from "../utils";
+import simulatorService from  '../../src/lib/services/simulator'
+import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
+import { InitAction } from "../../src/commands/general/init";
 
-jest.mock("inquirer", () => ({
-  prompt: jest.fn(() => {}),
+
+vi.mock("../../src/commands/general/init");
+
+
+const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
+const defaultOptions = {
+  numValidators: "5",
+  headless: false,
+  resetDb: false,
+  localnetVersion: localnetCompatibleVersion
+}
+
+vi.mock("inquirer", () => ({
+  prompt: vi.fn(() => {}),
 }));
-const action = jest.fn();
 
 describe("init command", () => {
   let initCommand: Command;
@@ -17,15 +31,11 @@ describe("init command", () => {
     initializeGeneralCommands(program);
 
     initCommand = getCommand(program, "init");
-    initCommand?.action(async args => {
-      action(args);
-    });
-
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test("doesn't have required arguments nor options", async () => {
@@ -37,36 +47,38 @@ describe("init command", () => {
   });
 
   test("option --numValidators default value is 5", async () => {
-    // Given // When
     const numValidatorsOption = getCommandOption(initCommand, "--numValidators");
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
-  test("option --branch is accepted", async () => {
-    expect(() => program.parse(["node", "test", "init", "--branch", "example"])).not.toThrow();
-  });
-
-  test("option --branch default value is main", async () => {
-    // Given // When
-    const numValidatorsOption = getCommandOption(initCommand, "--branch");
-    expect(numValidatorsOption?.defaultValue).toBe("main");
-  });
 
   test("random option is not accepted", async () => {
     initCommand?.exitOverride();
-    expect(() => program.parse(["node", "test", "init", "-random"])).toThrow(
-      "error: unknown option '-random'",
+    expect(() => program.parse(["node", "test", "init", "-random"])).toThrowError(
+      "error: unknown option '-random'"
     );
-    expect(() => program.parse(["node", "test", "init", "--randomOption"])).toThrow(
-      "error: unknown option '--randomOption'",
+    expect(() => program.parse(["node", "test", "init", "--randomOption"])).toThrowError(
+      "error: unknown option '--randomOption'"
     );
   });
 
   test("action is called", async () => {
-    // Given When
     program.parse(["node", "test", "init"]);
-    // Then
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({numValidators: "5", branch: "main"});
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith(defaultOptions);
+  });
+
+  test("option --headless is accepted", async () => {
+    program.parse(["node", "test", "init", "--headless"]);
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, headless: true});
+    expect(openFrontendSpy).not.toHaveBeenCalled();
+  });
+
+  test("option --localnet-version is accepted", async () => {
+    program.parse(["node", "test", "init", "--localnet-version", "v1.0.0"]);
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, localnetVersion: "v1.0.0"});
+    expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });
