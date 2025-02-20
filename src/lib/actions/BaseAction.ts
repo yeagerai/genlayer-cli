@@ -1,11 +1,14 @@
-import inquirer from "inquirer";
-import chalk from "chalk";
+import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
 import ora, { Ora } from "ora";
+import chalk from "chalk";
+import inquirer from "inquirer";
 
-export class BaseAction {
+
+export class BaseAction extends ConfigFileManager {
   private spinner: Ora;
 
   constructor() {
+    super()
     this.spinner = ora({ text: "", spinner: "dots" });
   }
 

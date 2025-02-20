@@ -14,6 +14,10 @@ export class OllamaAction extends BaseAction {
     try {
       this.startSpinner(`Updating model "${modelName}"...`);
 
+      if(!modelName){
+        modelName = this.getConfig().defaultOllamaModel;
+      }
+
       const providersAndModels = await rpcClient.request({
         method: "sim_getProvidersAndModels",
         params: [],
@@ -47,7 +51,7 @@ export class OllamaAction extends BaseAction {
           method: "sim_addProvider",
           params: [newModelConfig],
         });
-        this.succeedSpinner(`Model "${modelName}" added successfully.`);
+        this.succeedSpinner(`Model "${modelName}" added to Provider Presets successfully.`);
       }
     } catch (error) {
       this.failSpinner(`Error updating model "${modelName}"`, error);

@@ -1,6 +1,5 @@
 import { writeFileSync, existsSync } from "fs";
 import { ethers } from "ethers";
-import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
 import { BaseAction } from "../../lib/actions/BaseAction";
 
 export interface CreateKeypairOptions {
@@ -9,17 +8,15 @@ export interface CreateKeypairOptions {
 }
 
 export class KeypairCreator extends BaseAction{
-  private filePathManager: ConfigFileManager;
 
   constructor() {
     super()
-    this.filePathManager = new ConfigFileManager();
   }
 
   createKeypairAction(options: CreateKeypairOptions) {
     try {
       this.startSpinner(`Creating keypair...`);
-      const outputPath = this.filePathManager.getFilePath(options.output);
+      const outputPath = this.getFilePath(options.output);
 
       if(existsSync(outputPath) && !options.overwrite) {
         this.failSpinner(
@@ -36,7 +33,7 @@ export class KeypairCreator extends BaseAction{
 
       writeFileSync(outputPath, JSON.stringify(keypairData, null, 2));
 
-      this.filePathManager.writeConfig('keyPairPath', outputPath);
+      this.writeConfig('keyPairPath', outputPath);
       this.succeedSpinner(`Keypair successfully created and saved to: ${outputPath}`);
     } catch (error) {
       this.failSpinner("Failed to generate keypair:", error);

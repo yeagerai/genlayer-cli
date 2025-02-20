@@ -1,7 +1,7 @@
 import { Command } from "commander";
 
 import simulatorService from "../../lib/services/simulator";
-import { initAction, InitActionOptions } from "./init";
+import { InitAction, InitActionOptions } from "./init";
 import { StartAction, StartActionOptions } from "./start";
 import {localnetCompatibleVersion} from "../../lib/config/simulator";
 import {StopAction} from "./stop";
@@ -14,7 +14,10 @@ export function initializeGeneralCommands(program: Command) {
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
     .option("--localnet-version <localnetVersion>", "Select a specific localnet version", localnetCompatibleVersion)
-    .action((options: InitActionOptions) => initAction(options, simulatorService));
+    .action(async (options: InitActionOptions) => {
+      const initAction = new InitAction();
+      await initAction.execute(options)
+    });
 
   program
     .command("up")

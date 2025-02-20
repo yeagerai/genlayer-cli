@@ -13,13 +13,6 @@ vi.mock("ethers", () => ({
   },
 }));
 
-vi.mock("../../src/lib/config/ConfigFileManager", () => ({
-  ConfigFileManager: vi.fn().mockImplementation(() => ({
-    getFilePath: vi.fn((fileName) => `/mocked/path/${fileName}`),
-    writeConfig: vi.fn(),
-  })),
-}));
-
 describe("KeypairCreator", () => {
   let keypairCreator: KeypairCreator;
 
@@ -34,6 +27,8 @@ describe("KeypairCreator", () => {
     vi.spyOn(keypairCreator as any, "startSpinner").mockImplementation(() => {});
     vi.spyOn(keypairCreator as any, "succeedSpinner").mockImplementation(() => {});
     vi.spyOn(keypairCreator as any, "failSpinner").mockImplementation(() => {});
+    vi.spyOn(keypairCreator as any, "writeConfig").mockImplementation(() => {});
+    vi.spyOn(keypairCreator as any, "getFilePath").mockImplementation((fileName) => `/mocked/path/${fileName}`);
     vi.mocked(ethers.Wallet.createRandom).mockReturnValue(mockWallet);
   });
 
@@ -49,7 +44,7 @@ describe("KeypairCreator", () => {
 
     expect(keypairCreator["startSpinner"]).toHaveBeenCalledWith("Creating keypair...");
     expect(ethers.Wallet.createRandom).toHaveBeenCalledTimes(1);
-    expect(keypairCreator["filePathManager"].getFilePath).toHaveBeenCalledWith("keypair.json");
+    expect(keypairCreator["getFilePath"]).toHaveBeenCalledWith("keypair.json");
 
 
     expect(writeFileSync).toHaveBeenCalledWith(
@@ -64,7 +59,7 @@ describe("KeypairCreator", () => {
       )
     );
 
-    expect(keypairCreator["filePathManager"].writeConfig).toHaveBeenCalledWith(
+    expect(keypairCreator["writeConfig"]).toHaveBeenCalledWith(
       "keyPairPath",
       "/mocked/path/keypair.json"
     );
@@ -95,7 +90,7 @@ describe("KeypairCreator", () => {
 
     expect(keypairCreator["startSpinner"]).toHaveBeenCalledWith("Creating keypair...");
     expect(ethers.Wallet.createRandom).toHaveBeenCalledTimes(1);
-    expect(keypairCreator["filePathManager"].getFilePath).toHaveBeenCalledWith("keypair.json");
+    expect(keypairCreator["getFilePath"]).toHaveBeenCalledWith("keypair.json");
 
     expect(writeFileSync).toHaveBeenCalledWith(
       "/mocked/path/keypair.json",
@@ -109,7 +104,7 @@ describe("KeypairCreator", () => {
       )
     );
 
-    expect(keypairCreator["filePathManager"].writeConfig).toHaveBeenCalledWith(
+    expect(keypairCreator["writeConfig"]).toHaveBeenCalledWith(
       "keyPairPath",
       "/mocked/path/keypair.json"
     );

@@ -23,7 +23,7 @@ describe("ConfigActions", () => {
   test("set method writes key-value pair to the configuration", () => {
     configActions.set("defaultNetwork=testnet");
 
-    expect(configActions["configManager"].writeConfig).toHaveBeenCalledWith("defaultNetwork", "testnet");
+    expect(configActions["writeConfig"]).toHaveBeenCalledWith("defaultNetwork", "testnet");
     expect(configActions["startSpinner"]).toHaveBeenCalledWith("Updating configuration: defaultNetwork");
     expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully updated");
   });
@@ -32,7 +32,7 @@ describe("ConfigActions", () => {
     configActions.set("invalidFormat");
 
     expect(configActions["failSpinner"]).toHaveBeenCalledWith("Invalid format. Use 'key=value'.");
-    expect(configActions["configManager"].writeConfig).not.toHaveBeenCalled();
+    expect(configActions["writeConfig"]).not.toHaveBeenCalled();
   });
 
   test("get method retrieves value for a specific key", () => {
@@ -40,7 +40,7 @@ describe("ConfigActions", () => {
 
     configActions.get("defaultNetwork");
 
-    expect(configActions["configManager"].getConfigByKey).toHaveBeenCalledWith("defaultNetwork");
+    expect(configActions["getConfigByKey"]).toHaveBeenCalledWith("defaultNetwork");
     expect(configActions["startSpinner"]).toHaveBeenCalledWith("Retrieving value for: defaultNetwork");
     expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully retrieved", "defaultNetwork=testnet");
   });
@@ -50,7 +50,7 @@ describe("ConfigActions", () => {
 
     configActions.get("nonexistentKey");
 
-    expect(configActions["configManager"].getConfigByKey).toHaveBeenCalledWith("nonexistentKey");
+    expect(configActions["getConfigByKey"]).toHaveBeenCalledWith("nonexistentKey");
     expect(configActions["failSpinner"]).toHaveBeenCalledWith("No configuration found for 'nonexistentKey'.");
   });
 
@@ -60,7 +60,7 @@ describe("ConfigActions", () => {
 
     configActions.get();
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalled();
+    expect(configActions["getConfig"]).toHaveBeenCalled();
     expect(configActions["startSpinner"]).toHaveBeenCalledWith("Retrieving all configurations");
     expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("All configurations successfully retrieved", JSON.stringify(mockConfig, null, 2));
   });
@@ -71,9 +71,9 @@ describe("ConfigActions", () => {
 
     configActions.reset("defaultNetwork");
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalled();
+    expect(configActions["getConfig"]).toHaveBeenCalled();
     expect(configActions["startSpinner"]).toHaveBeenCalledWith("Resetting configuration: defaultNetwork");
-    expect(configActions["configManager"].writeConfig).toHaveBeenCalledWith("defaultNetwork", undefined);
+    expect(configActions["writeConfig"]).toHaveBeenCalledWith("defaultNetwork", undefined);
     expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully reset");
   });
 
@@ -82,7 +82,7 @@ describe("ConfigActions", () => {
 
     configActions.reset("nonexistentKey");
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalled();
+    expect(configActions["getConfig"]).toHaveBeenCalled();
     expect(configActions["failSpinner"]).toHaveBeenCalledWith("Configuration key 'nonexistentKey' does not exist.");
   });
 });

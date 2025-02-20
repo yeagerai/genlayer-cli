@@ -182,4 +182,12 @@ describe("OllamaAction", () => {
     expect(ollamaAction["failSpinner"]).toHaveBeenCalledWith(`Error updating model "mocked_model"`, mockError);
   });
 
+  test("should call get config if modelName is empty", async () => {
+    const defaultModel = "default_model";
+    vi.spyOn(ollamaAction as any, "getConfig").mockReturnValue({ defaultOllamaModel: defaultModel });
+
+    await ollamaAction.updateModel("");
+    expect(ollamaAction.getConfig).toHaveBeenCalledTimes(1);
+  });
+
 });

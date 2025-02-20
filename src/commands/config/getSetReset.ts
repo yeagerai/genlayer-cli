@@ -1,12 +1,9 @@
-import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
 import { BaseAction } from "../../lib/actions/BaseAction";
 
 export class ConfigActions extends BaseAction {
-  private configManager: ConfigFileManager;
 
   constructor() {
     super();
-    this.configManager = new ConfigFileManager();
   }
 
   set(keyValue: string): void {
@@ -18,7 +15,7 @@ export class ConfigActions extends BaseAction {
       return;
     }
 
-    this.configManager.writeConfig(key, value);
+    this.writeConfig(key, value);
     this.succeedSpinner(`Configuration successfully updated`);
   }
 
@@ -26,14 +23,14 @@ export class ConfigActions extends BaseAction {
     this.startSpinner(key ? `Retrieving value for: ${key}` : "Retrieving all configurations");
 
     if (key) {
-      const value = this.configManager.getConfigByKey(key);
+      const value = this.getConfigByKey(key);
       if (value === null) {
         this.failSpinner(`No configuration found for '${key}'.`);
       } else {
         this.succeedSpinner(`Configuration successfully retrieved`, `${key}=${value}`);
       }
     } else {
-      const config = this.configManager.getConfig();
+      const config = this.getConfig();
       this.succeedSpinner("All configurations successfully retrieved", JSON.stringify(config, null, 2));
     }
   }
@@ -41,14 +38,14 @@ export class ConfigActions extends BaseAction {
   reset(key: string): void {
     this.startSpinner(`Resetting configuration: ${key}`);
 
-    const config = this.configManager.getConfig();
+    const config = this.getConfig();
     if (!(key in config)) {
       this.failSpinner(`Configuration key '${key}' does not exist.`);
       return;
     }
 
     delete config[key];
-    this.configManager.writeConfig(key, undefined);
+    this.writeConfig(key, undefined);
     this.succeedSpinner(`Configuration successfully reset`);
   }
 }
