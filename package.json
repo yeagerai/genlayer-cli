@@ -3,6 +3,7 @@
   "version": "0.12.1",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
+  "type": "module",
   "bin": {
     "genlayer": "./dist/index.js"
   },
@@ -56,7 +57,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "commander": "^12.0.0",
+    "commander": "^13.1.0",
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
