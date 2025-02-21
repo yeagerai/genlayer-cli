@@ -1,4 +1,5 @@
 import inquirer from "inquirer";
+import { DistinctQuestion } from "inquirer";
 
 import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
 
@@ -58,13 +59,13 @@ export async function startAction(options: StartActionOptions, simulatorService:
     try {
       //remove all validators
       await simulatorService.deleteAllValidators();
-      const questions = [
+      const questions: DistinctQuestion[] = [
         {
           type: "checkbox",
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
           choices: simulatorService.getAiProvidersOptions(false),
-          validate: function (answer: string[]) {
+          validate: function (answer) {
             if (answer.length < 1) {
               return "You must choose at least one option.";
             }

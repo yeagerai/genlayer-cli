@@ -82,9 +82,7 @@ describe("up command", () => {
       "--numValidators",
       "10",
       "--headless",
-      "true",
-      "--reset-db",
-      "true"
+      "--reset-db"
     ]);
     expect(action).toHaveBeenCalledTimes(1);
     expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true, numValidators: '10', resetValidators: true, resetDb: true});
