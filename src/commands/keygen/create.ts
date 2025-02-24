@@ -1,26 +1,25 @@
 import { writeFileSync, existsSync } from "fs";
 import { ethers } from "ethers";
-import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
+import { BaseAction } from "../../lib/actions/BaseAction";
 
 export interface CreateKeypairOptions {
   output: string;
   overwrite: boolean;
 }
 
-export class KeypairCreator {
-  private filePathManager: ConfigFileManager;
+export class KeypairCreator extends BaseAction{
 
   constructor() {
-    this.filePathManager = new ConfigFileManager();
+    super()
   }
 
   createKeypairAction(options: CreateKeypairOptions) {
     try {
-
-      const outputPath = this.filePathManager.getFilePath(options.output);
+      this.startSpinner(`Creating keypair...`);
+      const outputPath = this.getFilePath(options.output);
 
       if(existsSync(outputPath) && !options.overwrite) {
-        console.warn(
+        this.failSpinner(
           `The file at ${outputPath} already exists. Use the '--overwrite' option to replace it.`
         );
         return;
@@ -34,11 +33,10 @@ export class KeypairCreator {
 
       writeFileSync(outputPath, JSON.stringify(keypairData, null, 2));
 
-      this.filePathManager.writeConfig('keyPairPath', outputPath);
-      console.log(`Keypair successfully created and saved to: ${outputPath}`);
+      this.writeConfig('keyPairPath', outputPath);
+      this.succeedSpinner(`Keypair successfully created and saved to: ${outputPath}`);
     } catch (error) {
-      console.error("Failed to generate keypair:", error);
-      process.exit(1);
+      this.failSpinner("Failed to generate keypair:", error);
     }
   }
 }

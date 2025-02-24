@@ -11,15 +11,16 @@ export class StopAction extends BaseAction {
   }
 
   public async stop(): Promise<void> {
-    try{
+    try {
       await this.confirmPrompt(
         "Are you sure you want to stop all running GenLayer containers? This will halt all active processes."
       );
-      console.log(`Stopping Docker containers...`);
+
+      this.startSpinner("Stopping Docker containers...");
       await this.simulatorService.stopDockerContainers();
-      console.log(`All running GenLayer containers have been successfully stopped.`);
-    }catch (error) {
-      console.error("An error occurred while stopping the containers:", error)
+      this.succeedSpinner("All running GenLayer containers have been successfully stopped.");
+    } catch (error) {
+      this.failSpinner("An error occurred while stopping the containers.", error);
     }
   }
 }
