@@ -32,7 +32,7 @@ export type AiProvidersConfigType = {
 export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
   ollama: {
     name: "Ollama",
-    hint: "(This will download and run a local instance of Llama 3)",
+    hint: "(By default, this will download and run a local instance of Llama 3)",
     cliOptionValue: "ollama",
   },
   openai: {
