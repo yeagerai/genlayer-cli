@@ -85,7 +85,7 @@ describe("up command", () => {
       "--numValidators",
       "10",
       "--headless",
-      "--reset-db",
+      "--reset-db"
     ]);
 
     expect(StartAction).toHaveBeenCalledTimes(1);

@@ -1,13 +1,18 @@
-const esbuild = require("esbuild");
+/* eslint-disable no-undef -- Allow process and console in ignored file */
+
+import esbuild from "esbuild";
+
 const isProduction = process.env.NODE_ENV === "production";
-const config = require(isProduction ? "./esbuild.config.prod" : "./esbuild.config.dev");
+const config = isProduction
+  ? await import("./esbuild.config.prod.js")
+  : await import("./esbuild.config.dev.js");
 
 const run = async () => {
-  if (config.watch) {
-    const context = await esbuild.context(config.context);
+  if (config.default.watch) {
+    const context = await esbuild.context(config.default.context);
     await context.watch();
   } else {
-    await esbuild.build(config.context);
+    await esbuild.build(config.default.context);
   }
 };
 

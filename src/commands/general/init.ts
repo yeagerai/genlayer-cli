@@ -1,4 +1,5 @@
 import inquirer from "inquirer";
+import { DistinctQuestion } from "inquirer";
 import { ISimulatorService } from "../../lib/interfaces/ISimulatorService";
 import { AI_PROVIDERS_CONFIG, AiProviders } from "../../lib/config/simulator";
 import { OllamaAction } from "../update/ollama";
@@ -79,13 +80,13 @@ export class InitAction extends BaseAction {
       await this.simulatorService.resetDockerImages();
       this.stopSpinner();
 
-      const llmQuestions = [
+      const llmQuestions: DistinctQuestion[] = [
         {
           type: "checkbox",
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
           choices: this.simulatorService.getAiProvidersOptions(true),
-          validate: (answer: string[]) =>
+          validate: (answer) =>
             answer.length < 1 ? "You must choose at least one option." : true,
         },
       ];
@@ -100,7 +101,7 @@ export class InitAction extends BaseAction {
       );
       for (const provider of configurableAiProviders) {
         const providerConfig = AI_PROVIDERS_CONFIG[provider];
-        const keyQuestion = [
+        const keyQuestion: DistinctQuestion[] = [
           {
             type: "input",
             name: providerConfig.cliOptionValue,
