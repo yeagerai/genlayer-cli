@@ -1,4 +1,10 @@
+# Changelog
 
+## 0.12.2-beta.2 (2025-02-27)
+
+### Bug Fixes
+
+* esbuild ([9addc4a](https://github.com/yeagerai/genlayer-cli/commit/9addc4a981b7c5bd895d2dd8943cc777ba508ff9))
 
 ## 0.12.1 (2025-02-20)
 
