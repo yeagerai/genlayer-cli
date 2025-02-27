@@ -26,6 +26,6 @@ export default async function main(client: GenLayerClient<any>) {
       throw new Error(`Deployment failed. Receipt: ${JSON.stringify(receipt)}`);
     }
   } catch (error) {
-    console.error("Error during deployment:", error);
+    throw new Error((`Error during deployment:, ${error}`));
   }
 }
