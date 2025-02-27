@@ -106,10 +106,8 @@ export class DeployAction extends BaseAction {
         }
       } catch (error) {
         this.failSpinner(`Error executing script: ${filePath}`, error);
-        process.exit(1);
       }
     }
-    this.succeedSpinner("All deploy scripts executed successfully.");
   }
 
   async deploy(options: DeployOptions): Promise<void> {

@@ -4,6 +4,9 @@ import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeContractsCommands } from "../../src/commands/contracts";
 
 vi.mock("../../src/commands/contracts/call");
+vi.mock("esbuild", () => ({
+  buildSync: vi.fn(),
+}));
 
 describe("call command", () => {
   let program: Command;
