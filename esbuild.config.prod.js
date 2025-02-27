@@ -7,7 +7,7 @@ export default {
     platform: "node",
     target: "es2020",
     format: "esm",
-    define: { "import.meta.url": "_importMetaUrl" },
+    define: { "import.meta.url": "import.meta.url" },
     banner: {
       js: `const _importMetaUrl = new URL(import.meta.url).pathname;`,
     },
