@@ -1,4 +1,10 @@
+# Changelog
 
+## 0.12.2-beta.1 (2025-02-27)
+
+### Bug Fixes
+
+* version ([bc8a896](https://github.com/yeagerai/genlayer-cli/commit/bc8a89669000818beb4e560fc5a0385e9956cf35))
 
 ## 0.12.1 (2025-02-20)
 
