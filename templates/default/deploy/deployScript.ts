@@ -4,7 +4,7 @@ import { TransactionHash, TransactionStatus, GenLayerClient } from "genlayer-js/
 
 
 export default async function main(client: GenLayerClient<any>) {
-  const filePath = path.resolve(process.cwd(), "scripts/football_bets.py");
+  const filePath = path.resolve(process.cwd(), "contracts/football_bets.py");
 
   try {
     const contractCode = new Uint8Array(readFileSync(filePath));
