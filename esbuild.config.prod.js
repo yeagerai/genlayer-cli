@@ -10,7 +10,7 @@ export default {
     banner: {
       js: `const _importMetaUrl = new URL(import.meta.url).pathname;`,
     },
-    external: ["commander", "dockerode", "dotenv", "ethers", "inquirer", "update-check", "ssh2"]
+    external: ["commander", "dockerode", "dotenv", "ethers", "inquirer", "update-check", "ssh2", "fs-extra"]
   },
   watch: false,
 };
