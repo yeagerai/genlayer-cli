@@ -4,6 +4,11 @@ import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
 import simulatorService from  '../../src/lib/services/simulator'
 import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
+import { InitAction } from "../../src/commands/general/init";
+
+
+vi.mock("../../src/commands/general/init");
+
 
 const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
 const defaultOptions = {
@@ -17,8 +22,6 @@ vi.mock("inquirer", () => ({
   prompt: vi.fn(() => {}),
 }));
 
-const action = vi.fn();
-
 describe("init command", () => {
   let initCommand: Command;
   let program: Command;
@@ -28,10 +31,6 @@ describe("init command", () => {
     initializeGeneralCommands(program);
 
     initCommand = getCommand(program, "init");
-    initCommand?.action(async (args) => {
-      action(args);
-    });
-
     vi.clearAllMocks();
   });
 
@@ -65,21 +64,21 @@ describe("init command", () => {
 
   test("action is called", async () => {
     program.parse(["node", "test", "init"]);
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith(defaultOptions);
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith(defaultOptions);
   });
 
   test("option --headless is accepted", async () => {
     program.parse(["node", "test", "init", "--headless"]);
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true});
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, headless: true});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 
   test("option --localnet-version is accepted", async () => {
     program.parse(["node", "test", "init", "--localnet-version", "v1.0.0"]);
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({...defaultOptions, localnetVersion: "v1.0.0"});
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, localnetVersion: "v1.0.0"});
     expect(openFrontendSpy).not.toHaveBeenCalled();
   });
 });

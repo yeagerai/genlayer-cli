@@ -31,26 +31,25 @@ export class ValidatorsAction extends BaseAction {
   public async getValidator(options: ValidatorOptions): Promise<void> {
     try {
       if (options.address) {
-        console.log(`Fetching validator with address: ${options.address}`);
+        this.startSpinner(`Fetching validator with address: ${options.address}`);
 
         const result = await rpcClient.request({
           method: "sim_getValidator",
           params: [options.address],
         });
 
-        console.log("Validator Details:", result.result);
+        this.succeedSpinner(`Successfully fetched validator with address: ${options.address}`, result.result);
       } else {
-        console.log("Fetching all validators...");
+        this.startSpinner(`Fetching all validators...`);
 
         const result = await rpcClient.request({
           method: "sim_getAllValidators",
           params: [],
         });
-
-        console.log("All Validators:", result.result);
+        this.succeedSpinner('Successfully fetched all validators.', result.result)
       }
     } catch (error) {
-      console.error("Error fetching validators:", error);
+      this.failSpinner("Error fetching validators", error);
     }
   }
 
@@ -58,65 +57,60 @@ export class ValidatorsAction extends BaseAction {
     try {
       if (options.address) {
         await this.confirmPrompt(`This command will delete the validator with the address: ${options.address}. Do you want to continue?`);
-        console.log(`Deleting validator with address: ${options.address}`);
+        this.startSpinner(`Deleting validator with address: ${options.address}`);
 
         const result = await rpcClient.request({
           method: "sim_deleteValidator",
           params: [options.address],
         });
 
-        console.log("Deleted Address:", result.result);
+        this.succeedSpinner(`Deleted Address: ${result.result}`);
       } else {
         await this.confirmPrompt(`This command will delete all validators. Do you want to continue?`);
-        console.log("Deleting all validators...");
+        this.startSpinner("Deleting all validators...");
 
         await rpcClient.request({
           method: "sim_deleteAllValidators",
           params: [],
         });
 
-        console.log("Successfully deleted all validators");
+        this.succeedSpinner("Successfully deleted all validators");
       }
     } catch (error) {
-      console.error("Error deleting validators:", error);
+      this.failSpinner("Error deleting validators", error);
     }
   }
 
   public async countValidators(): Promise<void> {
     try {
-      console.log("Counting all validators...");
+      this.startSpinner("Counting all validators...");
 
       const result = await rpcClient.request({
         method: "sim_countValidators",
         params: [],
       });
-
-      console.log("Total Validators:", result.result);
+      this.succeedSpinner(`Total Validators: ${result.result}`);
     } catch (error) {
-      console.error("Error counting validators:", error);
+      this.failSpinner("Error counting validators", error);
     }
   }
 
   public async updateValidator(options: UpdateValidatorOptions): Promise<void> {
     try {
-      console.log(`Fetching validator with address: ${options.address}...`);
+      this.startSpinner(`Fetching validator with address: ${options.address}...`);
       const currentValidator = await rpcClient.request({
         method: "sim_getValidator",
         params: [options.address],
       });
 
-      if (!currentValidator.result) {
-        throw new Error(`Validator with address ${options.address} not found.`);
-      }
-
-      console.log("Current Validator Details:", currentValidator.result);
+      this.log("Current Validator Details:", currentValidator.result);
 
       const parsedStake = options.stake
         ? parseInt(options.stake, 10)
         : currentValidator.result.stake;
 
       if (isNaN(parsedStake) || parsedStake < 0) {
-        return console.error("Invalid stake value. Stake must be a positive integer.");
+        return this.failSpinner("Invalid stake value. Stake must be a positive integer.");
       }
 
       const updatedValidator = {
@@ -127,7 +121,9 @@ export class ValidatorsAction extends BaseAction {
         config: options.config ? JSON.parse(options.config) : currentValidator.result.config,
       };
 
-      console.log("Updated Validator Details:", updatedValidator);
+      this.log("Updated Validator Details:", updatedValidator);
+
+      this.setSpinnerText('Updating Validator...');
 
       const result = await rpcClient.request({
         method: "sim_updateValidator",
@@ -140,9 +136,9 @@ export class ValidatorsAction extends BaseAction {
         ],
       });
 
-      console.log("Validator successfully updated:", result.result);
+      this.succeedSpinner("Validator successfully updated", result.result);
     } catch (error) {
-      console.error("Error updating validator:", error);
+      this.failSpinner("Error updating validator", error);
     }
   }
 
@@ -150,21 +146,21 @@ export class ValidatorsAction extends BaseAction {
     try {
       const count = parseInt(options.count, 10);
       if (isNaN(count) || count < 1) {
-        return console.error("Invalid count. Please provide a positive integer.");
+        return this.logError("Invalid count. Please provide a positive integer.");
       }
 
-      console.log(`Creating ${count} random validator(s)...`);
-      console.log(`Providers: ${options.providers.length > 0 ? options.providers.join(", ") : "None"}`);
-      console.log(`Models: ${options.models.length > 0 ? options.models.join(", ") : "None"}`);
+      this.startSpinner(`Creating ${count} random validator(s)...`);
+      this.log(`Providers: ${options.providers.length > 0 ? options.providers.join(", ") : "All"}`);
+      this.log(`Models: ${options.models.length > 0 ? options.models.join(", ") : "All"}`);
 
       const result = await rpcClient.request({
         method: "sim_createRandomValidators",
         params: [count, 1, 10, options.providers, options.models],
       });
 
-      console.log("Random validators successfully created:", result.result);
+      this.succeedSpinner("Random validators successfully created", result.result);
     } catch (error) {
-      console.error("Error creating random validators:", error);
+      this.failSpinner("Error creating random validators", error);
     }
   }
 
@@ -172,22 +168,23 @@ export class ValidatorsAction extends BaseAction {
     try {
       const stake = parseInt(options.stake, 10);
       if (isNaN(stake) || stake < 1) {
-        return console.error("Invalid stake. Please provide a positive integer.");
+        return this.logError("Invalid stake. Please provide a positive integer.");
       }
 
       if (options.model && !options.provider) {
-        return console.error("You must specify a provider if using a model.");
+        return this.logError("You must specify a provider if using a model.");
       }
 
-      console.log("Fetching available providers and models...");
+      this.startSpinner("Fetching available providers and models...");
 
       const providersAndModels = await rpcClient.request({
         method: "sim_getProvidersAndModels",
         params: [],
       });
+      this.stopSpinner();
 
       if (!providersAndModels.result || providersAndModels.result.length === 0) {
-        return console.error("No providers or models available.");
+        return this.logError("No providers or models available.");
       }
 
       const availableProviders = [
@@ -218,7 +215,7 @@ export class ValidatorsAction extends BaseAction {
       );
 
       if (availableModels.length === 0) {
-        return console.error("No models available for the selected provider.");
+        return this.logError("No models available for the selected provider.");
       }
 
       let model = options.model;
@@ -241,34 +238,30 @@ export class ValidatorsAction extends BaseAction {
       );
 
       if (!modelDetails) {
-        return console.error("Selected model details not found.");
+        return this.logError("Selected model details not found.");
       }
 
       const config = options.config ? JSON.parse(options.config) : modelDetails.config;
+      const params = [
+        stake,
+        modelDetails.provider,
+        modelDetails.model,
+        config,
+        modelDetails.plugin,
+        modelDetails.plugin_config,
+      ]
 
-      console.log("Creating validator with the following details:");
-      console.log(`Stake: ${stake}`);
-      console.log(`Provider: ${modelDetails.provider}`);
-      console.log(`Model: ${modelDetails.model}`);
-      console.log(`Config:`, config);
-      console.log(`Plugin:`, modelDetails.plugin);
-      console.log(`Plugin Config:`, modelDetails.plugin_config);
+      this.log("Validator details:", params);
+      this.startSpinner('Creating validator...');
 
       const result = await rpcClient.request({
         method: "sim_createValidator",
-        params: [
-          stake,
-          modelDetails.provider,
-          modelDetails.model,
-          config,
-          modelDetails.plugin,
-          modelDetails.plugin_config,
-        ],
+        params,
       });
 
-      console.log("Validator successfully created:", result.result);
+      this.succeedSpinner("Validator successfully created:", result.result);
     } catch (error) {
-      console.error("Error creating validator:", error);
+      this.failSpinner("Error creating validator", error);
     }
   }
 }

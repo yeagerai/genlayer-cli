@@ -282,6 +282,21 @@ describe("SimulatorService - Basic Tests", () => {
     expect(rpcClient.request).toHaveBeenCalledWith({ method: "sim_clearDbTables", params: [['current_state', 'transactions']] });
   });
 
+  test("should create random validators", async () => {
+    const numValidators = 5;
+    const llmProviders = ["openai", "ollama"];
+    const mockResponse = { success: true };
+    vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
+
+    const result = await simulatorService.createRandomValidators(numValidators, llmProviders);
+
+    expect(rpcClient.request).toHaveBeenCalledWith({
+      method: "sim_createRandomValidators",
+      params: [numValidators, 1, 10, llmProviders],
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
 });
 describe("SimulatorService - Docker Tests", () => {
   let mockGetContainer: Mock;
