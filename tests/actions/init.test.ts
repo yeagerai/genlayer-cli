@@ -1,523 +1,288 @@
-import {vi, describe, beforeEach, afterEach, test, expect} from "vitest";
+import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import inquirer from "inquirer";
-import simulatorService from "../../src/lib/services/simulator";
-import { initAction } from "../../src/commands/general/init";
-import { tmpdir } from "os";
-import {mkdtempSync} from "fs";
-import {join} from "path";
-import fs from "fs";
-import * as dotenv from "dotenv";
-import {localnetCompatibleVersion} from "../../src/lib/config/simulator";
+import { InitAction, InitActionOptions } from "../../src/commands/general/init";
+import { SimulatorService } from "../../src/lib/services/simulator";
 import { OllamaAction } from "../../src/commands/update/ollama";
-import { ConfigFileManager } from "../../src/lib/config/ConfigFileManager";
 
+describe("InitAction", () => {
+  let initAction: InitAction;
+  let inquirerPromptSpy: ReturnType<any>;
+  let checkCliVersionSpy: ReturnType<typeof vi.spyOn>;
+  let checkInstallRequirementsSpy: ReturnType<typeof vi.spyOn>;
+  let checkVersionRequirementsSpy: ReturnType<typeof vi.spyOn>;
+  let resetDockerContainersSpy: ReturnType<typeof vi.spyOn>;
+  let resetDockerImagesSpy: ReturnType<typeof vi.spyOn>;
+  let addConfigToEnvFileSpy: ReturnType<typeof vi.spyOn>;
+  let runSimulatorSpy: ReturnType<typeof vi.spyOn>;
+  let waitForSimulatorSpy: ReturnType<typeof vi.spyOn>;
+  let deleteAllValidatorsSpy: ReturnType<typeof vi.spyOn>;
+  let createRandomValidatorsSpy: ReturnType<typeof vi.spyOn>;
+  let cleanDatabaseSpy: ReturnType<typeof vi.spyOn>;
+  let openFrontendSpy: ReturnType<typeof vi.spyOn>;
+  let getFrontendUrlSpy: ReturnType<typeof vi.spyOn>;
+  let normalizeLocalnetVersionSpy: ReturnType<typeof vi.spyOn>;
 
-vi.mock("fs");
-vi.mock("dotenv");
-vi.mock("../../src/commands/update/ollama")
-vi.mock("../../src/lib/config/ConfigFileManager");
+  const defaultConfig = { defaultOllamaModel: "llama3" };
 
-
-const tempDir = mkdtempSync(join(tmpdir(), "test-initAction-"));
-const defaultActionOptions = { numValidators: 5, branch: "main", location: tempDir, headless: false, resetDb: false, localnetVersion: localnetCompatibleVersion };
-
-describe("init action", () => {
-  let error: ReturnType<any>;
-  let log: ReturnType<any>;
-  let inquirerPrompt: ReturnType<any>;
-
-  let simServCheckInstallRequirements: ReturnType<any>;
-  let simServCheckVersionRequirements: ReturnType<any>;
-  let simServResetDockerContainers: ReturnType<any>;
-  let simServResetDockerImages: ReturnType<any>;
-  let simServgetAiProvidersOptions: ReturnType<any>;
-  let simServRunSimulator: ReturnType<any>;
-  let simServWaitForSimulator: ReturnType<any>;
-  let simServDeleteAllValidators: ReturnType<any>;
-  let simServCreateRandomValidators: ReturnType<any>;
-  let simServOpenFrontend: ReturnType<any>;
-  let simGetSimulatorUrl: ReturnType<any>;
-  let simAddConfigToEnvFile: ReturnType<any>;
+  const defaultOptions: InitActionOptions = {
+    numValidators: 5,
+    headless: false,
+    resetDb: false,
+    localnetVersion: "v1.0.0",
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    error = vi.spyOn(console, "error").mockImplementation(() => {});
-    log = vi.spyOn(console, "log").mockImplementation(() => {});
-    inquirerPrompt = vi.spyOn(inquirer, "prompt");
-
-    simServCheckInstallRequirements = vi.spyOn(simulatorService, "checkInstallRequirements");
-    simServCheckVersionRequirements = vi.spyOn(simulatorService, "checkVersionRequirements");
-    simServResetDockerContainers = vi.spyOn(simulatorService, "resetDockerContainers");
-    simServResetDockerImages = vi.spyOn(simulatorService, "resetDockerImages");
-    simServgetAiProvidersOptions = vi.spyOn(simulatorService, "getAiProvidersOptions");
-    simServRunSimulator = vi.spyOn(simulatorService, "runSimulator");
-    simServWaitForSimulator = vi.spyOn(simulatorService, "waitForSimulatorToBeReady");
-    simServDeleteAllValidators = vi.spyOn(simulatorService, "deleteAllValidators");
-    simServCreateRandomValidators = vi.spyOn(simulatorService, "createRandomValidators");
-    simServOpenFrontend = vi.spyOn(simulatorService, "openFrontend");
-    simGetSimulatorUrl = vi.spyOn(simulatorService, "getFrontendUrl")
-    simAddConfigToEnvFile = vi.spyOn(simulatorService, "addConfigToEnvFile")
-
-    simServCheckVersionRequirements.mockResolvedValue({
-      node: '',
-      docker: '',
-    });
-    simServCheckInstallRequirements.mockResolvedValue({
-      git: true,
-      docker: true,
-    })
-    simAddConfigToEnvFile.mockResolvedValue(true);
-    const mockEnvContent = "FRONTEND_PORT=8080";
-    const mockEnvConfig = { FRONTEND_PORT: "8080" };
-    vi.mocked(fs.readFileSync).mockReturnValue(mockEnvContent);
-    vi.mocked(dotenv.parse).mockReturnValue(mockEnvConfig);
+    initAction = new InitAction();
+    inquirerPromptSpy = vi.spyOn(inquirer, "prompt");
+    vi.spyOn(initAction as any, "startSpinner").mockImplementation(() => {});
+    vi.spyOn(initAction as any, "setSpinnerText").mockImplementation(() => {});
+    vi.spyOn(initAction as any, "succeedSpinner").mockImplementation(() => {});
+    vi.spyOn(initAction as any, "failSpinner").mockImplementation(() => {});
+    vi.spyOn(initAction as any, "stopSpinner").mockImplementation(() => {});
+    vi.spyOn(initAction as any, "logError").mockImplementation(() => {});
+    vi.spyOn(initAction, "getConfig").mockReturnValue(defaultConfig);
+    checkCliVersionSpy = vi.spyOn(SimulatorService.prototype, "checkCliVersion").mockResolvedValue(undefined);
+    checkInstallRequirementsSpy = vi.spyOn(SimulatorService.prototype, "checkInstallRequirements").mockResolvedValue({ git: true, docker: true });
+    checkVersionRequirementsSpy = vi.spyOn(SimulatorService.prototype, "checkVersionRequirements").mockResolvedValue({ node: "", docker: "" });
+    resetDockerContainersSpy = vi.spyOn(SimulatorService.prototype, "resetDockerContainers").mockResolvedValue(undefined);
+    resetDockerImagesSpy = vi.spyOn(SimulatorService.prototype, "resetDockerImages").mockResolvedValue(undefined);
+    addConfigToEnvFileSpy = vi.spyOn(SimulatorService.prototype, "addConfigToEnvFile").mockResolvedValue();
+    runSimulatorSpy = vi.spyOn(SimulatorService.prototype, "runSimulator").mockResolvedValue(undefined as any);
+    waitForSimulatorSpy = vi.spyOn(SimulatorService.prototype, "waitForSimulatorToBeReady").mockResolvedValue({ initialized: true }) as any;
+    deleteAllValidatorsSpy = vi.spyOn(SimulatorService.prototype, "deleteAllValidators").mockResolvedValue(undefined);
+    createRandomValidatorsSpy = vi.spyOn(SimulatorService.prototype, "createRandomValidators").mockResolvedValue(undefined) as any;
+    cleanDatabaseSpy = vi.spyOn(SimulatorService.prototype, "cleanDatabase").mockResolvedValue(true);
+    openFrontendSpy = vi.spyOn(SimulatorService.prototype, "openFrontend").mockResolvedValue(true);
+    getFrontendUrlSpy = vi.spyOn(SimulatorService.prototype, "getFrontendUrl").mockReturnValue("http://localhost:8080");
+    normalizeLocalnetVersionSpy = vi.spyOn(SimulatorService.prototype, "normalizeLocalnetVersion").mockImplementation((v: string) => v) as any;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  test("if only docker is missing, then the execution fails", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: false });
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith("Docker is not installed. Please install Docker and try again.\n");
-  });
-
-  test("if check install requirements fail, then the execution aborts", async () => {
-    simServCheckInstallRequirements.mockRejectedValue(new Error("Error"));
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(new Error("Error"));
-  });
-
-  test("if both versions are too low, then the execution fails", async () => {
-    const mockVersionNumber = "99.9.9";
-    simServCheckVersionRequirements.mockResolvedValue({
-      node: mockVersionNumber,
-      docker: mockVersionNumber,
+  describe("Successful Execution", () => {
+    test("executes the full flow in non-headless mode", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai", "heuristai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" })
+        .mockResolvedValueOnce({ heuristai: "API_KEY_HEURIST" });
+      await initAction.execute(defaultOptions);
+      expect(checkCliVersionSpy).toHaveBeenCalled();
+      expect(checkInstallRequirementsSpy).toHaveBeenCalled();
+      expect(checkVersionRequirementsSpy).toHaveBeenCalled();
+      expect(resetDockerContainersSpy).toHaveBeenCalled();
+      expect(resetDockerImagesSpy).toHaveBeenCalled();
+      expect(addConfigToEnvFileSpy).toHaveBeenCalledWith({ OPENAIKEY: "API_KEY_OPENAI", HEURISTAIAPIKEY: "API_KEY_HEURIST" });
+      expect(addConfigToEnvFileSpy).toHaveBeenCalledWith({ LOCALNETVERSION: "v1.0.0" });
+      expect(runSimulatorSpy).toHaveBeenCalled();
+      expect(waitForSimulatorSpy).toHaveBeenCalled();
+      expect(deleteAllValidatorsSpy).toHaveBeenCalled();
+      expect(createRandomValidatorsSpy).toHaveBeenCalledWith(5, ["openai", "heuristai"]);
+      expect(getFrontendUrlSpy).toHaveBeenCalled();
+      expect(openFrontendSpy).toHaveBeenCalled();
+      expect((initAction as any).succeedSpinner).toHaveBeenCalledWith("GenLayer Localnet initialized successfully! Go to http://localhost:8080 in your browser to access it.");
     });
 
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(
-      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\nNode version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
-    );
-  });
-
-  test("if only docker version is too low, then the execution fails", async () => {
-    const mockVersionNumber = "99.9.9";
-    simServCheckVersionRequirements.mockResolvedValue({
-      docker: mockVersionNumber,
+    test("executes correctly in headless mode with DB reset and 'ollama' selected", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai", "ollama"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      const ollamaUpdateSpy = vi.spyOn(OllamaAction.prototype, "updateModel").mockResolvedValue(undefined);
+      const headlessOptions: InitActionOptions = {
+        numValidators: 5,
+        headless: true,
+        resetDb: true,
+        localnetVersion: "v1.0.0",
+      };
+      await initAction.execute(headlessOptions);
+      expect(cleanDatabaseSpy).toHaveBeenCalled();
+      expect(openFrontendSpy).not.toHaveBeenCalled();
+      expect((initAction as any).succeedSpinner).toHaveBeenCalledWith("GenLayer Localnet initialized successfully! ");
+      expect(ollamaUpdateSpy).toHaveBeenCalledWith("llama3");
     });
 
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(
-      `Docker version ${mockVersionNumber} or higher is required. Please update Docker and try again.\n`
-    );
-  });
-
-  test("if only node version is too low, then the execution fails", async () => {
-    const mockVersionNumber = "99.9.9";
-    simServCheckVersionRequirements.mockResolvedValue({
-      node: mockVersionNumber
+    test("normalizes localnetVersion if not 'latest'", async () => {
+      const customVersion = "custom-v1";
+      normalizeLocalnetVersionSpy.mockReturnValue(customVersion);
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      await initAction.execute({ ...defaultOptions, localnetVersion: customVersion });
+      expect(normalizeLocalnetVersionSpy).toHaveBeenCalledWith(customVersion);
+      expect(addConfigToEnvFileSpy).toHaveBeenCalledWith({ LOCALNETVERSION: customVersion });
     });
 
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(
-      `Node version ${mockVersionNumber} or higher is required. Please update Node and try again.\n`
-    );
-  });
-
-  test("if reset is not confirmed, abort", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: false });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(log).toHaveBeenCalledWith("Aborted!");
-  });
-
-  test("if resetDockerContainers fail, then the execution aborts", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true });
-    simServResetDockerContainers.mockRejectedValue(new Error("Error"));
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(new Error("Error"));
-  });
-
-  test("should open the frontend if everything went well", async () => {
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
+    test("should set defaultOllamaModel to 'llama3' if not provided in config", async () => {
+      vi.spyOn(initAction, "getConfig").mockReturnValue({});
+      const writeConfigSpy = vi.spyOn(initAction, "writeConfig").mockImplementation(() => {});
+      const ollamaUpdateSpy = vi.spyOn(OllamaAction.prototype, "updateModel").mockResolvedValue(undefined);
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["ollama"] })
+        .mockResolvedValueOnce({ ollama: "API_KEY_OLLAMA" });
+      await initAction.execute(defaultOptions);
+      expect(writeConfigSpy).toHaveBeenCalledWith("defaultOllamaModel", "llama3");
+      expect(ollamaUpdateSpy).toHaveBeenCalledWith("llama3");
     });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-    ]);
 
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServCreateRandomValidators.mockResolvedValue(true);
-    simServOpenFrontend.mockResolvedValue(true);
-    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    const frontendUrl = simulatorService.getFrontendUrl();
-    expect(log).toHaveBeenCalledWith(
-      `GenLayer simulator initialized successfully! Go to ${frontendUrl} in your browser to access it.`
-    );
-  });
-
-  test("should open the frontend if everything went well (custom options)", async () => {
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-    ]);
-
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServCreateRandomValidators.mockResolvedValue(true);
-    simServOpenFrontend.mockResolvedValue(true);
-    simGetSimulatorUrl.mockResolvedValue('http://localhost:8080/');
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-
-    await initAction({...defaultActionOptions, headless: true, resetDb: true, localnetVersion: "v1.0.0"}, simulatorService);
-
-    expect(log).toHaveBeenCalledWith(
-      `GenLayer simulator initialized successfully! `
-    );
-  });
-
-  test("should throw an error if validator are not initialized", async () => {
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-    ]);
-
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServCreateRandomValidators.mockRejectedValue();
-    simServOpenFrontend.mockResolvedValue(true);
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-
-    await initAction({...defaultActionOptions, headless: true}, simulatorService);
-
-    expect(log).toHaveBeenCalledWith('Initializing validators...');
-    expect(error).toHaveBeenCalledWith('Unable to initialize the validators.');
-  });
-
-  test("if runSimulator fails, then the execution aborts", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true, confirmDownload: true, selectedLlmProviders: [] });
-    simServRunSimulator.mockRejectedValue(new Error("Error"));
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(new Error("Error"));
-  });
-
-  test("should pull Ollama model if 'ollama' is in providers", async () => {
-
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai", "ollama"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-      ollama: "API_KEY3",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-      { name: "Ollama", value: "ollama" },
-    ]);
-
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue({});
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(log).toHaveBeenCalledWith(`Pulling llama3 from Ollama...`);
-    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
-  });
-
-  test("should pull Ollama model if 'ollama' is in providers using defaultOllamaModel", async () => {
-    const ollamaModel = "gemma";
-
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai", "ollama"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-      ollama: "API_KEY3",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-      { name: "Ollama", value: "ollama" },
-    ]);
-
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue({defaultOllamaModel: ollamaModel});
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(log).toHaveBeenCalledWith(`Pulling ${ollamaModel} from Ollama...`);
-    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
-  });
-
-  test("should set defaultOllamaModel to llama 3 if no defaultOllamaModel is provided", async () => {
-
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai", "heuristai", "ollama"],
-      openai: "API_KEY1",
-      heuristai: "API_KEY2",
-      ollama: "API_KEY3",
-    });
-    simServgetAiProvidersOptions.mockReturnValue([
-      { name: "OpenAI", value: "openai" },
-      { name: "Heurist", value: "heuristai" },
-      { name: "Ollama", value: "ollama" },
-    ]);
-
-    vi.mocked(ConfigFileManager.prototype.getConfig).mockResolvedValueOnce({})
-    vi.mocked(OllamaAction.prototype.updateModel).mockResolvedValueOnce(undefined);
-
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({}));
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(ConfigFileManager.prototype.writeConfig).toHaveBeenCalledWith('defaultOllamaModel', 'llama3')
-    expect(log).toHaveBeenCalledWith(`Pulling llama3 from Ollama...`);
-    expect(OllamaAction.prototype.updateModel).toHaveBeenCalled();
-  });
-
-  test("logs error if checkVersionRequirements throws", async () => {
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
-    const errorMsg = new Error("checkVersionRequirements error");
-    simServCheckVersionRequirements.mockRejectedValueOnce(errorMsg);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(errorMsg);
-  });
-
-  test("logs error if resetDockerContainers throws", async () => {
-    inquirerPrompt.mockResolvedValue({ confirmReset: true });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
-    const errorMsg = new Error("resetDockerContainers error");
-    simServResetDockerContainers.mockRejectedValueOnce(errorMsg);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(errorMsg);
-  });
-
-  test("prompts for LLM providers and validates that at least one is selected", async () => {
-    const mockEnvContent = "FRONTEND_PORT=8080";
-    vi.mocked(fs.readFileSync).mockReturnValue(mockEnvContent);
-
-    inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockImplementation((questions: any) => {
-        if (questions[0].type === "checkbox") {
-          const validateFunction = questions[0].validate;
-          expect(validateFunction([])).toBe("You must choose at least one option.");
-          expect(validateFunction(["openai"])).toBe(true);
-          return Promise.resolve({ selectedLlmProviders: ["openai"] });
-        }
-
-        if (questions[0].type === "input") {
-          const validateFunction = questions[0].validate;
-          expect(validateFunction("")).toBe("Please enter a valid API Key for OpenAI.");
-          expect(validateFunction("API_KEY1")).toBe(true);
-          return Promise.resolve({ openai: "API_KEY1" });
-        }
+    test("validates API key input for configurable provider", async () => {
+      inquirerPromptSpy.mockResolvedValueOnce({ confirmAction: true });
+      inquirerPromptSpy.mockResolvedValueOnce({ selectedLlmProviders: ["openai"] });
+      let capturedQuestion: any;
+      inquirerPromptSpy.mockImplementationOnce((questions: any) => {
+        capturedQuestion = questions[0];
+        return Promise.resolve({ openai: "dummy-key" });
       });
-
-    simServCheckInstallRequirements.mockResolvedValue({ docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServCreateRandomValidators.mockResolvedValue(true);
-    simServOpenFrontend.mockResolvedValue(true);
-
-    await initAction(defaultActionOptions, simulatorService);
-  });
-
-
-  test("logs error message if simulator fails to initialize with ERROR code", async () => {
-    inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
-
-    simServCheckInstallRequirements.mockResolvedValue({ docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: false,
-      errorCode: "ERROR",
-      errorMessage: "Simulator failed to initialize due to configuration error.",
+      await initAction.execute(defaultOptions);
+      expect(capturedQuestion).toBeDefined();
+      const expectedError = `Please enter a valid API Key for OpenAI.`;
+      expect(capturedQuestion.validate("")).toBe(expectedError);
+      expect(capturedQuestion.validate("non-empty-key")).toBe(true);
     });
 
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(log).toHaveBeenCalledWith("Simulator failed to initialize due to configuration error.");
-    expect(error).toHaveBeenCalledWith("Unable to initialize the GenLayer simulator. Please try again.");
+    test("validates LLM provider selection prompt", async () => {
+      let capturedQuestion: any;
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockImplementationOnce((questions: any) => {
+          capturedQuestion = questions[0];
+          return Promise.resolve({ selectedLlmProviders: ["openai"] });
+        })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      await initAction.execute(defaultOptions);
+      expect(capturedQuestion.validate([])).toBe("You must choose at least one option.");
+      expect(capturedQuestion.validate(["openai"])).toBe(true);
+    });
   });
 
-  test("logs error if runSimulator throws", async () => {
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai"],
-      openai: "API_KEY1",
-    });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    const errorMsg = new Error("runSimulator error");
-    simServRunSimulator.mockRejectedValueOnce(errorMsg);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(errorMsg);
-  });
-
-  test("logs specific message if waitForSimulatorToBeReady returns TIMEOUT errorCode", async () => {
-    inquirerPrompt.mockResolvedValue({
-      confirmReset: true,
-      confirmDownload: true,
-      selectedLlmProviders: ["openai"],
-      openai: "API_KEY1",
-    });
-    simServCheckInstallRequirements.mockResolvedValue({ git: true, docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({
-      initialized: false,
-      errorCode: "TIMEOUT",
-      errorMessage: "errorMessage",
+  describe("Error Handling", () => {
+    test("fails if Docker is not installed", async () => {
+      checkInstallRequirementsSpy.mockResolvedValue({ git: true, docker: false });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("Docker is not installed. Please install Docker and try again.\n");
     });
 
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(
-      "The simulator is taking too long to initialize. Please try again after the simulator is ready."
-    );
-  });
-
-  test("catches and logs error if waitForSimulatorToBeReady throws an exception", async () => {
-    inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
-
-    simServCheckInstallRequirements.mockResolvedValue({ docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-
-    const errorMsg = new Error("Unexpected simulator error");
-    simServWaitForSimulator.mockRejectedValueOnce(errorMsg);
-
-    await initAction(defaultActionOptions, simulatorService);
-
-    expect(error).toHaveBeenCalledWith(errorMsg);
-  });
-
-  test("catches and logs error if openFrontend throws an exception", async () => {
-    const mockEnvContent = "FRONTEND_PORT=8080";
-    vi.mocked(fs.readFileSync).mockReturnValue(mockEnvContent);
-
-    inquirerPrompt
-      .mockResolvedValueOnce({ confirmReset: true })
-      .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
-      .mockResolvedValueOnce({ openai: "API_KEY1" });
-
-    simServCheckInstallRequirements.mockResolvedValue({ docker: true });
-    simServResetDockerContainers.mockResolvedValue(true);
-    simServResetDockerImages.mockResolvedValue(true);
-    simServRunSimulator.mockResolvedValue(true);
-    simServWaitForSimulator.mockResolvedValue({ initialized: true });
-    simServDeleteAllValidators.mockResolvedValue(true);
-    simServCreateRandomValidators.mockResolvedValue(true);
-
-    const errorMsg = new Error("Failed to open frontend");
-    simServOpenFrontend.mockImplementationOnce(() => {
-      throw errorMsg;
+    test("fails if checkInstallRequirements throws an error", async () => {
+      const error = new Error("Install error");
+      checkInstallRequirementsSpy.mockRejectedValue(error);
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", error);
     });
 
-    await initAction(defaultActionOptions, simulatorService);
+    test("fails if version requirements are not met (both docker and node)", async () => {
+      const version = "99.9.9";
+      checkVersionRequirementsSpy.mockResolvedValue({ docker: version, node: version });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith(`Docker version ${version} or higher is required. Please update Docker and try again.\nNode version ${version} or higher is required. Please update Node and try again.\n`);
+    });
 
-    expect(error).toHaveBeenCalledWith(errorMsg);
+    test("fails if version requirement for docker is not met", async () => {
+      const version = "99.9.9";
+      checkVersionRequirementsSpy.mockResolvedValue({ docker: version });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith(`Docker version ${version} or higher is required. Please update Docker and try again.\n`);
+    });
+
+    test("fails if version requirement for node is not met", async () => {
+      const version = "99.9.9";
+      checkVersionRequirementsSpy.mockResolvedValue({ node: version });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith(`Node version ${version} or higher is required. Please update Node and try again.\n`);
+    });
+
+    test("aborts if user does not confirm reset action", async () => {
+      inquirerPromptSpy.mockResolvedValueOnce({ confirmAction: false });
+      await initAction.execute(defaultOptions)
+      expect((initAction as any).logError).toHaveBeenCalledWith(`Operation aborted!`);
+    });
+
+    test("fails if resetDockerContainers throws an error", async () => {
+      inquirerPromptSpy.mockResolvedValueOnce({ confirmAction: true });
+      resetDockerContainersSpy.mockRejectedValue(new Error("Container reset error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", new Error("Container reset error"));
+    });
+
+    test("fails if runSimulator throws an error", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      runSimulatorSpy.mockRejectedValue(new Error("Run simulator error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", new Error("Run simulator error"));
+    });
+
+    test("fails if waitForSimulatorToBeReady returns ERROR code", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      waitForSimulatorSpy.mockResolvedValue({ initialized: false, errorCode: "ERROR", errorMessage: "Initialization failed" });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("Unable to initialize the GenLayer Localnet: Initialization failed");
+    });
+
+    test("fails if waitForSimulatorToBeReady returns TIMEOUT code", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      waitForSimulatorSpy.mockResolvedValue({ initialized: false, errorCode: "TIMEOUT", errorMessage: "Timeout" });
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("The localnet is taking too long to initialize. Please try again after the localnet is ready.");
+    });
+
+    test("fails if deleteAllValidators throws an error", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      deleteAllValidatorsSpy.mockRejectedValue(new Error("Validator deletion error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", expect.any(Error));
+    });
+
+    test("fails if createRandomValidators throws an error", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      createRandomValidatorsSpy.mockRejectedValue(new Error("Validator creation error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", Error("Validator creation error"));
+    });
+
+    test("fails if cleanDatabase throws an error when resetDb is true", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      cleanDatabaseSpy.mockRejectedValue(new Error("Database error"));
+      const optionsWithResetDb: InitActionOptions = { ...defaultOptions, resetDb: true };
+      await initAction.execute(optionsWithResetDb);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", new Error("Database error"));
+    });
+
+    test("fails if openFrontend throws an error", async () => {
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      openFrontendSpy.mockRejectedValue(new Error("Frontend error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", new Error("Frontend error"));
+    });
+
+    test("catches and logs unexpected errors", async () => {
+      inquirerPromptSpy.mockRejectedValueOnce(new Error("Unexpected prompt error"));
+      await initAction.execute(defaultOptions);
+      expect((initAction as any).failSpinner).toHaveBeenCalledWith("An error occurred during initialization.", new Error("Unexpected prompt error"));
+    });
   });
-
 });

@@ -1,7 +1,7 @@
 import { Command } from "commander";
+import { CallAction } from "../../src/commands/contracts/call";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeContractsCommands } from "../../src/commands/contracts";
-import { CallAction } from "../../src/commands/contracts/call";
 
 vi.mock("../../src/commands/contracts/call");
 
