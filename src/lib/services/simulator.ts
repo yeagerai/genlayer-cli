@@ -4,6 +4,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import * as semver from "semver";
 import updateCheck from "update-check";
+import { fileURLToPath } from "url";
 import pkg from '../../../package.json'
 
 import {rpcClient} from "../clients/jsonRpcClient";
@@ -43,7 +44,8 @@ export class SimulatorService implements ISimulatorService {
   public location: string;
 
   constructor() {
-    this.location = path.resolve(__dirname, '..');
+    const __filename = fileURLToPath(import.meta.url);
+    this.location = path.resolve(path.dirname(__filename), '..');
     this.composeOptions = "";
     this.docker = new Docker();
   }
@@ -184,7 +186,6 @@ export class SimulatorService implements ISimulatorService {
   public async waitForSimulatorToBeReady(
     retries: number = STARTING_TIMEOUT_ATTEMPTS,
   ): Promise<WaitForSimulatorToBeReadyResultType> {
-    console.log("Waiting for the simulator to start up...");
     try {
       const response = await rpcClient.request({method: "ping", params: []});
 
