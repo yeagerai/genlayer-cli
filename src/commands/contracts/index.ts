@@ -12,7 +12,11 @@ export function initializeContractsCommands(program: Command) {
     .option("--args <args...>", "Positional arguments for the contract (space-separated, use quotes for multi-word arguments)", [])
     .action(async (options: DeployOptions) => {
       const deployer = new DeployAction();
-      await deployer.deploy(options);
+      if(options.contract){
+        await deployer.deploy(options);
+      }else {
+        await deployer.deployScripts();
+      }
     });
 
   program
