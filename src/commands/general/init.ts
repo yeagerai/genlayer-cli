@@ -94,6 +94,7 @@ export class InitAction extends BaseAction {
       const selectedLlmProviders = llmProvidersAnswer.selectedLlmProviders as AiProviders[];
 
       let defaultOllamaModel = this.getConfig().defaultOllamaModel;
+      AI_PROVIDERS_CONFIG.ollama.hint = `(This will download and run a local instance of ${defaultOllamaModel})`;
       const aiProvidersEnvVars: Record<string, string> = {};
       const configurableAiProviders = selectedLlmProviders.filter(
         (provider: AiProviders) => AI_PROVIDERS_CONFIG[provider].envVar
