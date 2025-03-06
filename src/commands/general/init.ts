@@ -93,6 +93,7 @@ export class InitAction extends BaseAction {
       const llmProvidersAnswer = await inquirer.prompt(llmQuestions);
       const selectedLlmProviders = llmProvidersAnswer.selectedLlmProviders as AiProviders[];
 
+      let defaultOllamaModel = this.getConfig().defaultOllamaModel;
       const aiProvidersEnvVars: Record<string, string> = {};
       const configurableAiProviders = selectedLlmProviders.filter(
         (provider: AiProviders) => AI_PROVIDERS_CONFIG[provider].envVar
