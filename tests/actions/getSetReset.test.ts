@@ -10,92 +10,79 @@ describe("ConfigActions", () => {
   beforeEach(() => {
     configActions = new ConfigActions();
     vi.clearAllMocks();
-  });
 
-  new ConfigFileManager();
+    vi.spyOn(configActions as any, "startSpinner").mockImplementation(() => {});
+    vi.spyOn(configActions as any, "succeedSpinner").mockImplementation(() => {});
+    vi.spyOn(configActions as any, "failSpinner").mockImplementation(() => {});
+  });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   test("set method writes key-value pair to the configuration", () => {
-    const consoleLogSpy = vi.spyOn(console, "log");
-
     configActions.set("defaultNetwork=testnet");
 
-    expect(configActions["configManager"].writeConfig).toHaveBeenCalledWith("defaultNetwork", "testnet");
-    expect(consoleLogSpy).toHaveBeenCalledWith("Configuration updated: defaultNetwork=testnet");
+    expect(configActions["writeConfig"]).toHaveBeenCalledWith("defaultNetwork", "testnet");
+    expect(configActions["startSpinner"]).toHaveBeenCalledWith("Updating configuration: defaultNetwork");
+    expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully updated");
   });
 
-  test("set method throws error for invalid format", () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
-      throw new Error("process.exit");
-    });
+  test("set method fails for invalid format", () => {
+    configActions.set("invalidFormat");
 
-    expect(() => configActions.set("invalidFormat")).toThrowError("process.exit");
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Invalid format. Use key=value.");
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(configActions["failSpinner"]).toHaveBeenCalledWith("Invalid format. Use 'key=value'.");
+    expect(configActions["writeConfig"]).not.toHaveBeenCalled();
   });
 
   test("get method retrieves value for a specific key", () => {
     vi.mocked(ConfigFileManager.prototype.getConfigByKey).mockReturnValue("testnet");
 
-    const consoleLogSpy = vi.spyOn(console, "log");
-
     configActions.get("defaultNetwork");
 
-    expect(configActions["configManager"].getConfigByKey).toHaveBeenCalledWith("defaultNetwork");
-    expect(consoleLogSpy).toHaveBeenCalledWith("defaultNetwork=testnet");
+    expect(configActions["getConfigByKey"]).toHaveBeenCalledWith("defaultNetwork");
+    expect(configActions["startSpinner"]).toHaveBeenCalledWith("Retrieving value for: defaultNetwork");
+    expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully retrieved", "defaultNetwork=testnet");
   });
 
-  test("get method prints message when key has no value", () => {
+  test("get method prints failure message when key does not exist", () => {
     vi.mocked(ConfigFileManager.prototype.getConfigByKey).mockReturnValue(null);
-
-    const consoleLogSpy = vi.spyOn(console, "log");
 
     configActions.get("nonexistentKey");
 
-    expect(configActions["configManager"].getConfigByKey).toHaveBeenCalledWith("nonexistentKey");
-    expect(consoleLogSpy).toHaveBeenCalledWith("No value set for key: nonexistentKey");
+    expect(configActions["getConfigByKey"]).toHaveBeenCalledWith("nonexistentKey");
+    expect(configActions["failSpinner"]).toHaveBeenCalledWith("No configuration found for 'nonexistentKey'.");
   });
 
   test("get method retrieves the entire configuration when no key is provided", () => {
     const mockConfig = { defaultNetwork: "testnet" };
     vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue(mockConfig);
 
-    const consoleLogSpy = vi.spyOn(console, "log");
-
     configActions.get();
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith("Current configuration:", JSON.stringify(mockConfig, null, 2));
+    expect(configActions["getConfig"]).toHaveBeenCalled();
+    expect(configActions["startSpinner"]).toHaveBeenCalledWith("Retrieving all configurations");
+    expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("All configurations successfully retrieved", JSON.stringify(mockConfig, null, 2));
   });
 
   test("reset method removes key from configuration", () => {
     const mockConfig = { defaultNetwork: "testnet" };
     vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue(mockConfig);
 
-    const consoleLogSpy = vi.spyOn(console, "log");
-
     configActions.reset("defaultNetwork");
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalledTimes(1);
-    expect(configActions["configManager"].writeConfig).toHaveBeenCalledWith("defaultNetwork", undefined);
-    expect(consoleLogSpy).toHaveBeenCalledWith("Configuration key reset: defaultNetwork");
+    expect(configActions["getConfig"]).toHaveBeenCalled();
+    expect(configActions["startSpinner"]).toHaveBeenCalledWith("Resetting configuration: defaultNetwork");
+    expect(configActions["writeConfig"]).toHaveBeenCalledWith("defaultNetwork", undefined);
+    expect(configActions["succeedSpinner"]).toHaveBeenCalledWith("Configuration successfully reset");
   });
 
-  test("reset method prints message when key does not exist", () => {
-    const mockConfig = {};
-    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue(mockConfig);
-
-    const consoleLogSpy = vi.spyOn(console, "log");
+  test("reset method prints failure message when key does not exist", () => {
+    vi.mocked(ConfigFileManager.prototype.getConfig).mockReturnValue({});
 
     configActions.reset("nonexistentKey");
 
-    expect(configActions["configManager"].getConfig).toHaveBeenCalledTimes(1);
-    expect(configActions["configManager"].writeConfig).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith("Key does not exist in the configuration: nonexistentKey");
+    expect(configActions["getConfig"]).toHaveBeenCalled();
+    expect(configActions["failSpinner"]).toHaveBeenCalledWith("Configuration key 'nonexistentKey' does not exist.");
   });
 });

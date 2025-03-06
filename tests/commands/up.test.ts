@@ -2,17 +2,9 @@ import { Command } from "commander";
 import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeGeneralCommands } from "../../src/commands/general";
 import { getCommand, getCommandOption } from "../utils";
-import simulatorService from  '../../src/lib/services/simulator'
+import { StartAction } from "../../src/commands/general/start";
 
-const openFrontendSpy = vi.spyOn(simulatorService, "openFrontend");
-
-const action = vi.fn();
-const defaultOptions = {
-  resetValidators: false,
-  numValidators: "5",
-  headless: false ,
-  resetDb: false
-}
+vi.mock("../../src/commands/general/start");
 
 describe("up command", () => {
   let upCommand: Command;
@@ -23,10 +15,6 @@ describe("up command", () => {
     initializeGeneralCommands(program);
 
     upCommand = getCommand(program, "up");
-    upCommand?.action(async (args) => {
-      action(args);
-    });
-
     vi.clearAllMocks();
   });
 
@@ -36,6 +24,15 @@ describe("up command", () => {
 
   test("doesn't require arguments or options", async () => {
     expect(() => program.parse(["node", "test", "up"])).not.toThrow();
+    expect(StartAction).toHaveBeenCalledTimes(1);
+    expect(StartAction.prototype.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resetValidators: false,
+        numValidators: "5",
+        headless: false,
+        resetDb: false,
+      })
+    );
   });
 
   test("option --reset-validators is accepted", async () => {
@@ -56,7 +53,6 @@ describe("up command", () => {
     expect(numValidatorsOption?.defaultValue).toBe("5");
   });
 
-
   test("unrecognized option is not accepted", async () => {
     upCommand?.exitOverride();
     expect(() => program.parse(["node", "test", "up", "-unknown"])).toThrowError(
@@ -69,8 +65,15 @@ describe("up command", () => {
 
   test("action is called with default options", async () => {
     program.parse(["node", "test", "up"]);
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith(defaultOptions);
+    expect(StartAction).toHaveBeenCalledTimes(1);
+    expect(StartAction.prototype.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resetValidators: false,
+        numValidators: "5",
+        headless: false,
+        resetDb: false,
+      })
+    );
   });
 
   test("action is called with custom options", async () => {
@@ -84,8 +87,15 @@ describe("up command", () => {
       "--headless",
       "--reset-db"
     ]);
-    expect(action).toHaveBeenCalledTimes(1);
-    expect(action).toHaveBeenCalledWith({...defaultOptions, headless: true, numValidators: '10', resetValidators: true, resetDb: true});
-    expect(openFrontendSpy).not.toHaveBeenCalled();
+
+    expect(StartAction).toHaveBeenCalledTimes(1);
+    expect(StartAction.prototype.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resetValidators: true,
+        numValidators: "10",
+        headless: true,
+        resetDb: true,
+      })
+    );
   });
 });

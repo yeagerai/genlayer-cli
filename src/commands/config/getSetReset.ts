@@ -1,44 +1,51 @@
-import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
+import { BaseAction } from "../../lib/actions/BaseAction";
 
-export class ConfigActions {
-  private configManager: ConfigFileManager;
+export class ConfigActions extends BaseAction {
 
   constructor() {
-    this.configManager = new ConfigFileManager();
+    super();
   }
 
   set(keyValue: string): void {
     const [key, value] = keyValue.split("=");
+    this.startSpinner(`Updating configuration: ${key}`);
+
     if (!key || value === undefined) {
-      console.error("Invalid format. Use key=value.");
-      process.exit(1);
+      this.failSpinner("Invalid format. Use 'key=value'.");
+      return;
     }
-    this.configManager.writeConfig(key, value);
-    console.log(`Configuration updated: ${key}=${value}`);
+
+    this.writeConfig(key, value);
+    this.succeedSpinner(`Configuration successfully updated`);
   }
 
   get(key?: string): void {
+    this.startSpinner(key ? `Retrieving value for: ${key}` : "Retrieving all configurations");
+
     if (key) {
-      const value = this.configManager.getConfigByKey(key);
+      const value = this.getConfigByKey(key);
       if (value === null) {
-        console.log(`No value set for key: ${key}`);
+        this.failSpinner(`No configuration found for '${key}'.`);
       } else {
-        console.log(`${key}=${value}`);
+        this.succeedSpinner(`Configuration successfully retrieved`, `${key}=${value}`);
       }
     } else {
-      const config = this.configManager.getConfig();
-      console.log("Current configuration:", JSON.stringify(config, null, 2));
+      const config = this.getConfig();
+      this.succeedSpinner("All configurations successfully retrieved", JSON.stringify(config, null, 2));
     }
   }
 
   reset(key: string): void {
-    const config = this.configManager.getConfig();
-    if (config[key] === undefined) {
-      console.log(`Key does not exist in the configuration: ${key}`);
+    this.startSpinner(`Resetting configuration: ${key}`);
+
+    const config = this.getConfig();
+    if (!(key in config)) {
+      this.failSpinner(`Configuration key '${key}' does not exist.`);
       return;
     }
+
     delete config[key];
-    this.configManager.writeConfig(key, undefined);
-    console.log(`Configuration key reset: ${key}`);
+    this.writeConfig(key, undefined);
+    this.succeedSpinner(`Configuration successfully reset`);
   }
 }

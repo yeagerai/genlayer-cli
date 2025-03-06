@@ -186,7 +186,6 @@ export class SimulatorService implements ISimulatorService {
   public async waitForSimulatorToBeReady(
     retries: number = STARTING_TIMEOUT_ATTEMPTS,
   ): Promise<WaitForSimulatorToBeReadyResultType> {
-    console.log("Waiting for the simulator to start up...");
     try {
       const response = await rpcClient.request({method: "ping", params: []});
 
