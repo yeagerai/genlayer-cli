@@ -141,6 +141,8 @@ export class DeployAction extends BaseAction {
         status: TransactionStatus.ACCEPTED,
       });
 
+      this.log("Deployment Receipt:", result);
+
       this.succeedSpinner("Contract deployed successfully.", {
         "Transaction Hash": hash,
         "Contract Address": result.data?.contract_address,
