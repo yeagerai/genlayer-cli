@@ -4,6 +4,9 @@ import { initializeContractsCommands } from "../../src/commands/contracts";
 import { DeployAction } from "../../src/commands/contracts/deploy";
 
 vi.mock("../../src/commands/contracts/deploy");
+vi.mock("esbuild", () => ({
+  buildSync: vi.fn(),
+}));
 
 describe("deploy command", () => {
   let program: Command;
@@ -42,7 +45,7 @@ describe("deploy command", () => {
     expect(DeployAction).toHaveBeenCalledTimes(1);
     expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
       contract: "./path/to/contract",
-      args: ["1", "2", "3"]
+      args: [1, 2, 3]
     });
   });
 
@@ -64,6 +67,14 @@ describe("deploy command", () => {
     vi.mocked(DeployAction.prototype.deploy).mockResolvedValueOnce(undefined);
     expect(() =>
       program.parse(["node", "test", "deploy", "--contract", "./path/to/contract"])
+    ).not.toThrow();
+  });
+
+  test("DeployAction.deployScripts is called without throwing errors", async () => {
+    program.parse(["node", "test", "deploy"]);
+    vi.mocked(DeployAction.prototype.deployScripts).mockResolvedValueOnce(undefined);
+    expect(() =>
+      program.parse(["node", "test", "deploy"])
     ).not.toThrow();
   });
 });
