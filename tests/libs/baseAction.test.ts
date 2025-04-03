@@ -172,4 +172,21 @@ describe("BaseAction", () => {
     expect((baseAction as any).formatOutput(true)).toBe("true");
   });
 
+  test("should format a Map object correctly", () => {
+    const testMap = new Map<string, any>([
+      ["key1", "value1"],
+      ["key2", 42],
+      ["key3", { nested: "object" }]
+    ]);
+    
+    const result = (baseAction as any).formatOutput(testMap);
+    const expected = JSON.stringify({
+      key1: "value1",
+      key2: 42,
+      key3: { nested: "object" }
+    }, null, 2);
+    
+    expect(result).toBe(expected);
+  });
+
 });
