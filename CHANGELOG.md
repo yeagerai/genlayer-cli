@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.4 (2025-04-03)
+
+### Bug Fixes
+
+* map objects ([#207](https://github.com/yeagerai/genlayer-cli/issues/207)) ([45956f6](https://github.com/yeagerai/genlayer-cli/commit/45956f64e02505262a3585b1349dbfbf0f195d73))
+
 ## 0.12.3 (2025-03-07)
 
 ### Bug Fixes
