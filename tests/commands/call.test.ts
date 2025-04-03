@@ -4,6 +4,9 @@ import { vi, describe, beforeEach, afterEach, test, expect } from "vitest";
 import { initializeContractsCommands } from "../../src/commands/contracts";
 
 vi.mock("../../src/commands/contracts/call");
+vi.mock("esbuild", () => ({
+  buildSync: vi.fn(),
+}));
 
 describe("call command", () => {
   let program: Command;
@@ -39,12 +42,14 @@ describe("call command", () => {
       "1",
       "2",
       "Hello",
+      "false",
+      "true"
     ]);
     expect(CallAction).toHaveBeenCalledTimes(1);
     expect(CallAction.prototype.call).toHaveBeenCalledWith({
       contractAddress: "0xMockedContract",
       method: "updateData",
-      args: ["1", "2", "Hello"]
+      args: [1, 2, "Hello", false, true]
     });
   });
 
