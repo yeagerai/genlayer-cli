@@ -37,6 +37,11 @@ export class BaseAction extends ConfigFileManager {
       };
       return JSON.stringify(errorDetails, null, 2);
     }
+    
+    if (data instanceof Map) {
+      data = Object.fromEntries(data);
+    }
+    
     return typeof data === "object" ? JSON.stringify(data, null, 2) : String(data);
   }
 
