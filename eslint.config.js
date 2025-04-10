@@ -24,7 +24,8 @@ export default [
       "eslint.config.js",
       "Config.js",
       "commitLint.config.ts",
-      "scripts/postinstall.js"
+      "scripts/postinstall.js",
+      "templates/**/*"
     ],
     plugins: {
       "@typescript-eslint": tseslint,
