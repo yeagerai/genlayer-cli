@@ -6,7 +6,7 @@ export default defineConfig({
     environment: 'jsdom',
     testTimeout: 10000,
     coverage: {
-      exclude: [...configDefaults.exclude, '*.js', 'tests/**/*.ts', 'src/types', 'scripts'],
+      exclude: [...configDefaults.exclude, '*.js', 'tests/**/*.ts', 'src/types', 'scripts', 'templates'],
     }
   }
 });

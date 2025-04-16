@@ -33,6 +33,10 @@ vi.mock("../src/commands/update", () => ({
   initializeUpdateCommands: vi.fn(),
 }));
 
+vi.mock("../src/commands/scaffold", () => ({
+  initializeScaffoldCommands: vi.fn(),
+}));
+
 
 describe("CLI", () => {
   it("should initialize CLI", () => {
