@@ -133,6 +133,7 @@ export class DeployAction extends BaseAction {
       this.setSpinnerText("Starting contract deployment...");
       this.log("Deployment Parameters:", deployParams);
 
+
       const hash = (await this.genlayerClient.deployContract(deployParams)) as any;
       const result = await this.genlayerClient.waitForTransactionReceipt({
         hash,
@@ -140,6 +141,9 @@ export class DeployAction extends BaseAction {
         interval: 2000,
         status: TransactionStatus.ACCEPTED,
       });
+
+      this.log("Deployment Receipt:", result);
+
 
       this.succeedSpinner("Contract deployed successfully.", {
         "Transaction Hash": hash,
