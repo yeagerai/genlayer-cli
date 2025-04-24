@@ -1,7 +1,6 @@
 import { createClient, createAccount } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 import type { GenLayerClient } from "genlayer-js/types";
-import { getPrivateKey } from "../../lib/accounts/getPrivateKey";
 import { BaseAction } from "../../lib/actions/BaseAction";
 
 export interface CallOptions {
@@ -9,15 +8,21 @@ export interface CallOptions {
 }
 
 export class CallAction extends BaseAction{
-  private genlayerClient: GenLayerClient<typeof simulator>;
+  private _genlayerClient: GenLayerClient<typeof simulator> | null = null;
 
   constructor() {
     super();
-    this.genlayerClient = createClient({
-      chain: simulator,
-      endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
-      account: createAccount(getPrivateKey() as any),
-    });
+  }
+
+  private async getClient(): Promise<GenLayerClient<typeof simulator>> {
+    if (!this._genlayerClient) {
+      this._genlayerClient = createClient({
+        chain: simulator,
+        endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
+        account: createAccount(await this.getPrivateKey() as any),
+      });
+    }
+    return this._genlayerClient;
   }
 
   async call({
@@ -29,9 +34,10 @@ export class CallAction extends BaseAction{
     method: string;
     args: any[];
   }): Promise<void> {
+    const client = await this.getClient();
     this.startSpinner(`Calling method ${method} on contract at ${contractAddress}...`);
 
-    const contractSchema = await this.genlayerClient.getContractSchema(contractAddress);
+    const contractSchema = await client.getContractSchema(contractAddress);
 
     if(!contractSchema.methods.hasOwnProperty(method)){
       this.failSpinner(`method ${method} not found.`);
@@ -50,7 +56,8 @@ export class CallAction extends BaseAction{
 
   private async executeRead(contractAddress: string, method: string, args: any[]): Promise<void> {
     try {
-      const result = await this.genlayerClient.readContract({
+      const client = await this.getClient();
+      const result = await client.readContract({
         address: contractAddress as any,
         functionName: method,
         args,
@@ -63,13 +70,14 @@ export class CallAction extends BaseAction{
 
   private async executeWrite(contractAddress: string, method: string, args: any[]): Promise<void> {
     try {
-      const hash = await this.genlayerClient.writeContract({
+      const client = await this.getClient();
+      const hash = await client.writeContract({
         address: contractAddress as any,
         functionName: method,
         args,
         value: 0n,
       });
-      const result = await this.genlayerClient.waitForTransactionReceipt({
+      const result = await client.waitForTransactionReceipt({
         hash,
         retries: 15,
         interval: 2000,

@@ -2,14 +2,26 @@ import { ConfigFileManager } from "../../lib/config/ConfigFileManager";
 import ora, { Ora } from "ora";
 import chalk from "chalk";
 import inquirer from "inquirer";
-
+import { KeypairManager } from "../accounts/KeypairManager";
 
 export class BaseAction extends ConfigFileManager {
   private spinner: Ora;
+  protected keypairManager: KeypairManager;
 
   constructor() {
     super()
     this.spinner = ora({ text: "", spinner: "dots" });
+    this.keypairManager = new KeypairManager();
+  }
+
+  protected async getPrivateKey() {
+    const privateKey = this.keypairManager.getPrivateKey();
+    if (privateKey) {
+      return privateKey;
+    }
+    await this.confirmPrompt("Keypair file not found. Would you like to create a new keypair?");
+    this.keypairManager.createKeypair();
+    return this.keypairManager.getPrivateKey();
   }
 
   protected async confirmPrompt(message: string): Promise<void> {

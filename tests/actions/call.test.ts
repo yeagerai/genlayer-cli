@@ -1,10 +1,8 @@
 import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import { createClient, createAccount } from "genlayer-js";
 import { CallAction } from "../../src/commands/contracts/call";
-import { getPrivateKey } from "../../src/lib/accounts/getPrivateKey";
 
 vi.mock("genlayer-js");
-vi.mock("../../src/lib/accounts/getPrivateKey");
 
 describe("CallAction", () => {
   let callActions: CallAction;
@@ -21,8 +19,8 @@ describe("CallAction", () => {
     vi.clearAllMocks();
     vi.mocked(createClient).mockReturnValue(mockClient as any);
     vi.mocked(createAccount).mockReturnValue({ privateKey: mockPrivateKey } as any);
-    vi.mocked(getPrivateKey).mockReturnValue(mockPrivateKey);
     callActions = new CallAction();
+    vi.spyOn(callActions as any, "getPrivateKey").mockResolvedValue(mockPrivateKey);
 
     vi.spyOn(callActions as any, "startSpinner").mockImplementation(() => {});
     vi.spyOn(callActions as any, "succeedSpinner").mockImplementation(() => {});
