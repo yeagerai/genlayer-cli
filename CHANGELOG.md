@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13.0 (2025-04-24)
+
+### Features
+
+* create account if it doesnt exists ([#214](https://github.com/yeagerai/genlayer-cli/issues/214)) ([12d2faa](https://github.com/yeagerai/genlayer-cli/commit/12d2faa68202310059c688c9c17a99ef6e577412))
+
 ## 0.12.5 (2025-04-24)
 
 ## 0.12.4 (2025-04-03)
