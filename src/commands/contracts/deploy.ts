@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { createClient, createAccount } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 import type { GenLayerClient } from "genlayer-js/types";
 import { BaseAction } from "../../lib/actions/BaseAction";
@@ -14,22 +13,10 @@ export interface DeployOptions {
 }
 
 export class DeployAction extends BaseAction {
-  private _genlayerClient: GenLayerClient<typeof simulator> | null = null;
   private readonly deployDir = path.resolve(process.cwd(), "deploy");
 
   constructor() {
     super();
-  }
-
-  private async getClient(): Promise<GenLayerClient<typeof simulator>> {
-    if (!this._genlayerClient) {
-      this._genlayerClient = createClient({
-        chain: simulator,
-        endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
-        account: createAccount(await this.getPrivateKey() as any),
-      });
-    }
-    return this._genlayerClient;
   }
 
   private readContractCode(contractPath: string): string {

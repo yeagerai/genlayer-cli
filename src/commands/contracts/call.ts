@@ -1,4 +1,3 @@
-import { createClient, createAccount } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 import type { GenLayerClient } from "genlayer-js/types";
 import { BaseAction } from "../../lib/actions/BaseAction";
@@ -8,21 +7,8 @@ export interface CallOptions {
 }
 
 export class CallAction extends BaseAction{
-  private _genlayerClient: GenLayerClient<typeof simulator> | null = null;
-
   constructor() {
     super();
-  }
-
-  private async getClient(): Promise<GenLayerClient<typeof simulator>> {
-    if (!this._genlayerClient) {
-      this._genlayerClient = createClient({
-        chain: simulator,
-        endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
-        account: createAccount(await this.getPrivateKey() as any),
-      });
-    }
-    return this._genlayerClient;
   }
 
   async call({
