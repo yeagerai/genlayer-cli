@@ -8,6 +8,7 @@ import { initializeContractsCommands } from "../src/commands/contracts";
 import { initializeConfigCommands } from "../src/commands/config";
 import {initializeValidatorCommands} from "../src/commands/validators";
 import { initializeUpdateCommands } from "../src/commands/update";
+import { initializeScaffoldCommands } from "../src/commands/scaffold";
 
 export function initializeCLI() {
   program.version(version).description(CLI_DESCRIPTION);
@@ -17,6 +18,7 @@ export function initializeCLI() {
   initializeConfigCommands(program);
   initializeUpdateCommands(program)
   initializeValidatorCommands(program);
+  initializeScaffoldCommands(program);
   program.parse(process.argv);
 }
 

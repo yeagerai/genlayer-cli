@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.14.1 (2025-04-25)
+
+## 0.14.0 (2025-04-25)
+
+### Features
+
+* adding gemini and XAI ([#216](https://github.com/yeagerai/genlayer-cli/issues/216)) ([01310b2](https://github.com/yeagerai/genlayer-cli/commit/01310b2c4856880d8b4209a8b659445bf6d4d501))
+
+## 0.13.0 (2025-04-24)
+
+### Features
+
+* create account if it doesnt exists ([#214](https://github.com/yeagerai/genlayer-cli/issues/214)) ([12d2faa](https://github.com/yeagerai/genlayer-cli/commit/12d2faa68202310059c688c9c17a99ef6e577412))
+
+## 0.12.5 (2025-04-24)
+
 ## 0.12.4 (2025-04-03)
 
 ### Bug Fixes
