@@ -143,9 +143,9 @@ describe("DeployAction", () => {
     await deployer.deployScripts();
 
     expect(deployer["setSpinnerText"]).toHaveBeenCalledWith("Found 3 deploy scripts. Executing...");
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringMatching(/1_first.ts/));
-    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(expect.stringMatching(/2_second.js/));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringMatching(/10_last.ts/));
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringMatching(/1_first.ts/), undefined);
+    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(expect.stringMatching(/2_second.js/), undefined, undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringMatching(/10_last.ts/), undefined);
   });
 
   test("executeTsScript transpiles and executes TypeScript", async () => {
@@ -168,7 +168,7 @@ describe("DeployAction", () => {
       sourcemap: false,
     });
 
-    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(filePath, outFile);
+    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(filePath, outFile, undefined);
     expect(fs.unlinkSync).toHaveBeenCalledWith(outFile);
   });
 
@@ -193,9 +193,9 @@ describe("DeployAction", () => {
 
     await deployer.deployScripts();
 
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("1_first.ts"));
-    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(expect.stringContaining("2_second.js"));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("10_last.ts"));
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("1_first.ts"), undefined);
+    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(expect.stringContaining("2_second.js"), undefined, undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("10_last.ts"), undefined);
   });
 
   test("deployScripts fails when no scripts are found", async () => {
@@ -257,11 +257,11 @@ describe("DeployAction", () => {
 
     await deployer.deployScripts();
 
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("script.ts"));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("2alpha_script.ts"));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("3alpha_script.ts"));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("blpha_script.ts"));
-    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("clpha_script.ts"));
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("script.ts"), undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("2alpha_script.ts"), undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("3alpha_script.ts"), undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("blpha_script.ts"), undefined);
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(expect.stringContaining("clpha_script.ts"), undefined);
   });
 
   test("executeJsScript fails if module has no default export", async () => {
@@ -302,6 +302,100 @@ describe("DeployAction", () => {
     expect(deployer["failSpinner"]).toHaveBeenCalledWith(
       `Error executing: ${filePath}`,
       error
+    );
+  });
+
+  test("deploys contract with rpc option", async () => {
+    const options: DeployOptions = {
+      contract: "/mocked/contract/path",
+      args: [1, 2, 3],
+      rpc: "https://custom-rpc-url.com"
+    };
+    const contractContent = "contract code";
+
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(contractContent);
+    vi.mocked(mockClient.deployContract).mockResolvedValue("mocked_tx_hash");
+    vi.mocked(mockClient.waitForTransactionReceipt).mockResolvedValue({
+      data: { contract_address: "0xdasdsadasdasdada" },
+    });
+
+    await deployer.deploy(options);
+
+    expect(createClient).toHaveBeenCalledWith(expect.objectContaining({
+      endpoint: "https://custom-rpc-url.com"
+    }));
+    expect(fs.readFileSync).toHaveBeenCalledWith(options.contract, "utf-8");
+    expect(mockClient.deployContract).toHaveBeenCalledWith({
+      code: contractContent,
+      args: [1, 2, 3],
+      leaderOnly: false,
+    });
+  });
+
+  test("executeJsScript uses rpc url when provided", async () => {
+    const filePath = "/mocked/script.js";
+    const rpcUrl = "https://custom-rpc-url.com";
+    const mockFn = vi.fn();
+
+    vi.doMock(pathToFileURL(filePath).href, () => ({ default: mockFn }));
+
+    await deployer["executeJsScript"](filePath, undefined, rpcUrl);
+
+    expect(createClient).toHaveBeenCalledWith(expect.objectContaining({
+      endpoint: rpcUrl
+    }));
+    expect(mockFn).toHaveBeenCalledWith(mockClient);
+    expect(deployer["succeedSpinner"]).toHaveBeenCalledWith(`Successfully executed: ${filePath}`);
+  });
+
+  test("executeTsScript passes rpc url to executeJsScript", async () => {
+    const filePath = "/mocked/script.ts";
+    const outFile = "/mocked/script.compiled.js";
+    const rpcUrl = "https://custom-rpc-url.com";
+
+    vi.spyOn(deployer as any, "executeJsScript").mockResolvedValue(undefined);
+    vi.mocked(buildSync).mockImplementation((() => {}) as any);
+
+    await deployer["executeTsScript"](filePath, rpcUrl);
+
+    expect(deployer["startSpinner"]).toHaveBeenCalledWith(`Transpiling TypeScript file: ${filePath}`);
+    expect(buildSync).toHaveBeenCalledWith({
+      entryPoints: [filePath],
+      outfile: outFile,
+      bundle: false,
+      platform: "node",
+      format: "esm",
+      target: "es2020",
+      sourcemap: false,
+    });
+
+    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(filePath, outFile, rpcUrl);
+    expect(fs.unlinkSync).toHaveBeenCalledWith(outFile);
+  });
+
+  test("deployScripts passes rpc url to script execution methods", async () => {
+    const rpcUrl = "https://custom-rpc-url.com";
+    
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readdirSync).mockReturnValue([
+      "1_first.ts",
+      "2_second.js",
+    ] as any);
+
+    vi.spyOn(deployer as any, "executeTsScript").mockResolvedValue(undefined);
+    vi.spyOn(deployer as any, "executeJsScript").mockResolvedValue(undefined);
+
+    await deployer.deployScripts({ rpc: rpcUrl });
+
+    expect(deployer["executeTsScript"]).toHaveBeenCalledWith(
+      expect.stringMatching(/1_first.ts/),
+      rpcUrl
+    );
+    expect(deployer["executeJsScript"]).toHaveBeenCalledWith(
+      expect.stringMatching(/2_second.js/),
+      undefined,
+      rpcUrl
     );
   });
 });
