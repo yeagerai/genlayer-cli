@@ -2,7 +2,6 @@ import { describe, test, vi, beforeEach, afterEach, expect } from "vitest";
 import fs from "fs";
 import { createClient, createAccount } from "genlayer-js";
 import { DeployAction, DeployOptions } from "../../src/commands/contracts/deploy";
-import { getPrivateKey } from "../../src/lib/accounts/getPrivateKey";
 import { buildSync } from "esbuild";
 import { pathToFileURL } from "url";
 
@@ -11,7 +10,6 @@ vi.mock("genlayer-js");
 vi.mock("esbuild", () => ({
   buildSync: vi.fn(),
 }));
-vi.mock("../../src/lib/accounts/getPrivateKey");
 
 describe("DeployAction", () => {
   let deployer: DeployAction;
@@ -27,8 +25,8 @@ describe("DeployAction", () => {
     vi.clearAllMocks();
     vi.mocked(createClient).mockReturnValue(mockClient as any);
     vi.mocked(createAccount).mockReturnValue({ privateKey: mockPrivateKey } as any);
-    vi.mocked(getPrivateKey).mockReturnValue(mockPrivateKey);
     deployer = new DeployAction();
+    vi.spyOn(deployer as any, "getPrivateKey").mockResolvedValue(mockPrivateKey);
 
     vi.spyOn(deployer as any, "startSpinner").mockImplementation(() => {});
     vi.spyOn(deployer as any, "succeedSpinner").mockImplementation(() => {});
@@ -286,7 +284,7 @@ describe("DeployAction", () => {
 
     await deployer["executeJsScript"](filePath);
 
-    expect(mockFn).toHaveBeenCalledWith(deployer["genlayerClient"]);
+    expect(mockFn).toHaveBeenCalledWith(mockClient);
 
     expect(deployer["succeedSpinner"]).toHaveBeenCalledWith(`Successfully executed: ${filePath}`);
   });

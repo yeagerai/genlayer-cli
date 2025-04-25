@@ -1,9 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { createClient, createAccount } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 import type { GenLayerClient } from "genlayer-js/types";
-import { getPrivateKey } from "../../lib/accounts/getPrivateKey";
 import { BaseAction } from "../../lib/actions/BaseAction";
 import { pathToFileURL } from "url";
 import { TransactionStatus } from "genlayer-js/types";
@@ -15,16 +13,10 @@ export interface DeployOptions {
 }
 
 export class DeployAction extends BaseAction {
-  private genlayerClient: GenLayerClient<typeof simulator>;
   private readonly deployDir = path.resolve(process.cwd(), "deploy");
 
   constructor() {
     super();
-    this.genlayerClient = createClient({
-      chain: simulator,
-      endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
-      account: createAccount(getPrivateKey() as any),
-    });
   }
 
   private readContractCode(contractPath: string): string {
@@ -63,7 +55,8 @@ export class DeployAction extends BaseAction {
         this.failSpinner(`No "default" function found in: ${filePath}`);
         return
       }
-      await module.default(this.genlayerClient);
+      const client = await this.getClient();
+      await module.default(client);
       this.succeedSpinner(`Successfully executed: ${filePath}`);
     } catch (error) {
       this.failSpinner(`Error executing: ${filePath}`, error);
@@ -112,8 +105,9 @@ export class DeployAction extends BaseAction {
 
   async deploy(options: DeployOptions): Promise<void> {
     try {
+      const client = await this.getClient();
       this.startSpinner("Setting up the deployment environment...");
-      await this.genlayerClient.initializeConsensusSmartContract();
+      await client.initializeConsensusSmartContract();
 
       if (!options.contract) {
         this.failSpinner("No contract specified for deployment.");
@@ -133,8 +127,8 @@ export class DeployAction extends BaseAction {
       this.setSpinnerText("Starting contract deployment...");
       this.log("Deployment Parameters:", deployParams);
 
-      const hash = (await this.genlayerClient.deployContract(deployParams)) as any;
-      const result = await this.genlayerClient.waitForTransactionReceipt({
+      const hash = (await client.deployContract(deployParams)) as any;
+      const result = await client.waitForTransactionReceipt({
         hash,
         retries: 15,
         interval: 2000,

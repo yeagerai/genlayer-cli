@@ -189,4 +189,44 @@ describe("BaseAction", () => {
     expect(result).toBe(expected);
   });
 
+  const mockPrivateKey = "mocked_private_key";
+
+  beforeEach(() => {
+    baseAction["keypairManager"] = {
+      getPrivateKey: vi.fn(),
+      createKeypair: vi.fn(),
+      getKeypairPath: vi.fn(),
+      setKeypairPath: vi.fn(),
+    } as any;
+
+  });
+
+  test("should return private key when it exists", async () => {
+    vi.mocked(baseAction["keypairManager"].getPrivateKey).mockReturnValue(mockPrivateKey);
+
+    const result = await baseAction["getPrivateKey"]();
+
+    expect(result).toBe(mockPrivateKey);
+    expect(baseAction["keypairManager"].createKeypair).not.toHaveBeenCalled();
+  });
+
+  test("should create new keypair when private key doesn't exist and user confirms", async () => {
+    vi.mocked(baseAction["keypairManager"].getPrivateKey)
+      .mockReturnValueOnce(undefined)
+      .mockReturnValueOnce(mockPrivateKey);
+      vi.mocked(inquirer.prompt).mockResolvedValue({ confirmAction: true });
+      await baseAction["getPrivateKey"]();
+
+    expect(baseAction["keypairManager"].createKeypair).toHaveBeenCalled();
+  });
+
+  test("should exit when private key doesn't exist and user declines", async () => {
+    vi.mocked(baseAction["keypairManager"].getPrivateKey).mockReturnValueOnce(undefined);
+    vi.mocked(inquirer.prompt).mockResolvedValue({ confirmAction: false });
+    vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("process exited");
+    });
+
+    await expect(baseAction["getPrivateKey"]()).rejects.toThrow("process exited");
+  });
 });
