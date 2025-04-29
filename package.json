@@ -1,6 +1,6 @@
 {
   "name": "genlayer",
-  "version": "0.13.0",
+  "version": "0.14.1",
   "description": "GenLayer Command Line Tool",
   "main": "src/index.ts",
   "type": "module",
@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/yeagerai/genlayer-cli#readme",
   "devDependencies": {
-    "@release-it/conventional-changelog": "^10.0.0",
+    "@release-it/conventional-changelog": "^10.0.1",
     "@types/dockerode": "^3.3.31",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
@@ -49,11 +49,11 @@
     "esbuild": ">=0.25.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-import-resolver-typescript": "^4.0.0",
     "eslint-plugin-import": "^2.29.1",
     "jsdom": "^26.0.0",
     "prettier": "^3.2.5",
-    "release-it": "^18.0.0",
+    "release-it": "^19.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
