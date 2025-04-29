@@ -10,6 +10,11 @@ import { buildSync } from "esbuild";
 export interface DeployOptions {
   contract?: string;
   args?: any[];
+  rpc?: string;
+}
+
+export interface DeployScriptsOptions {
+  rpc?: string;
 }
 
 export class DeployAction extends BaseAction {
@@ -26,7 +31,7 @@ export class DeployAction extends BaseAction {
     return fs.readFileSync(contractPath, "utf-8");
   }
 
-  private async executeTsScript(filePath: string): Promise<void> {
+  private async executeTsScript(filePath: string, rpcUrl?: string): Promise<void> {
     const outFile = filePath.replace(/\.ts$/, ".compiled.js");
     this.startSpinner(`Transpiling TypeScript file: ${filePath}`);
     try {
@@ -39,7 +44,7 @@ export class DeployAction extends BaseAction {
         target: "es2020",
         sourcemap: false,
       });
-     await this.executeJsScript(filePath, outFile);
+     await this.executeJsScript(filePath, outFile, rpcUrl);
     } catch (error) {
       this.failSpinner(`Error executing: ${filePath}`, error);
     } finally {
@@ -47,7 +52,7 @@ export class DeployAction extends BaseAction {
     }
   }
 
-  private async executeJsScript(filePath: string, transpiledFilePath?: string): Promise<void> {
+  private async executeJsScript(filePath: string, transpiledFilePath?: string, rpcUrl?: string): Promise<void> {
     this.startSpinner(`Executing file: ${filePath}`);
     try {
       const module = await import(pathToFileURL(transpiledFilePath || filePath).href);
@@ -55,7 +60,7 @@ export class DeployAction extends BaseAction {
         this.failSpinner(`No "default" function found in: ${filePath}`);
         return
       }
-      const client = await this.getClient();
+      const client = await this.getClient(rpcUrl);
       await module.default(client);
       this.succeedSpinner(`Successfully executed: ${filePath}`);
     } catch (error) {
@@ -63,7 +68,7 @@ export class DeployAction extends BaseAction {
     }
   }
 
-  async deployScripts() {
+  async deployScripts(options?: DeployScriptsOptions) {
     this.startSpinner("Searching for deploy scripts...");
     if (!fs.existsSync(this.deployDir)) {
       this.failSpinner("No deploy folder found.");
@@ -93,9 +98,9 @@ export class DeployAction extends BaseAction {
       this.setSpinnerText(`Executing script: ${filePath}`);
       try {
         if (file.endsWith(".ts")) {
-          await this.executeTsScript(filePath);
+          await this.executeTsScript(filePath, options?.rpc);
         } else {
-          await this.executeJsScript(filePath);
+          await this.executeJsScript(filePath, undefined, options?.rpc);
         }
       } catch (error) {
         this.failSpinner(`Error executing script: ${filePath}`, error);
@@ -105,7 +110,7 @@ export class DeployAction extends BaseAction {
 
   async deploy(options: DeployOptions): Promise<void> {
     try {
-      const client = await this.getClient();
+      const client = await this.getClient(options.rpc);
       this.startSpinner("Setting up the deployment environment...");
       await client.initializeConsensusSmartContract();
 

@@ -41,11 +41,14 @@ describe("deploy command", () => {
       "1",
       "2",
       "3",
+      "--rpc",
+      "https://custom-rpc-url.com"
     ]);
     expect(DeployAction).toHaveBeenCalledTimes(1);
     expect(DeployAction.prototype.deploy).toHaveBeenCalledWith({
       contract: "./path/to/contract",
-      args: [1, 2, 3]
+      args: [1, 2, 3],
+      rpc: "https://custom-rpc-url.com"
     });
   });
 

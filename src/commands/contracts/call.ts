@@ -4,6 +4,7 @@ import { BaseAction } from "../../lib/actions/BaseAction";
 
 export interface CallOptions {
   args: any[];
+  rpc?: string;
 }
 
 export class CallAction extends BaseAction{
@@ -15,12 +16,15 @@ export class CallAction extends BaseAction{
                contractAddress,
                method,
                args,
+               rpc,
              }: {
     contractAddress: string;
     method: string;
     args: any[];
+    rpc?: string;
   }): Promise<void> {
-    const client = await this.getClient();
+    const client = await this.getClient(rpc);
+    await client.initializeConsensusSmartContract();
     this.startSpinner(`Calling method ${method} on contract at ${contractAddress}...`);
 
     const contractSchema = await client.getContractSchema(contractAddress);
