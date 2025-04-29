@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.0 (2025-04-29)
+
+### Features
+
+* custom rpc for interacting with contracts ([#218](https://github.com/yeagerai/genlayer-cli/issues/218)) ([138babd](https://github.com/yeagerai/genlayer-cli/commit/138babd76b24d2333356ec64cfdb712add312585))
+
 ## 0.14.1 (2025-04-25)
 
 ## 0.14.0 (2025-04-25)
