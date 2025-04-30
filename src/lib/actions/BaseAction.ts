@@ -18,11 +18,11 @@ export class BaseAction extends ConfigFileManager {
     this.keypairManager = new KeypairManager();
   }
 
-  protected async getClient(): Promise<GenLayerClient<typeof localnet>> {
+  protected async getClient(rpcUrl?: string): Promise<GenLayerClient<typeof localnet>> {
     if (!this._genlayerClient) {
       this._genlayerClient = createClient({
         chain: localnet,
-        endpoint: process.env.VITE_JSON_RPC_SERVER_URL,
+        endpoint: rpcUrl,
         account: createAccount(await this.getPrivateKey() as any),
       });
     }
