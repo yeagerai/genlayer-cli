@@ -26,6 +26,14 @@ export class StartAction extends BaseAction {
     this.startSpinner("Checking CLI version...");
     await this.simulatorService.checkCliVersion();
 
+    const isRunning = await this.simulatorService.isLocalnetRunning();
+    if (isRunning) {
+      this.stopSpinner();
+      await this.confirmPrompt("GenLayer Localnet is already running. Do you want to proceed?");
+      this.startSpinner("Stopping Docker containers...");
+      await this.simulatorService.stopDockerContainers();
+    }
+
     const restartValidatorsHintText = resetValidators
       ? `creating new ${numValidators} random validators`
       : "keeping the existing validators";

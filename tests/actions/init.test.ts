@@ -56,6 +56,7 @@ describe("InitAction", () => {
     openFrontendSpy = vi.spyOn(SimulatorService.prototype, "openFrontend").mockResolvedValue(true);
     getFrontendUrlSpy = vi.spyOn(SimulatorService.prototype, "getFrontendUrl").mockReturnValue("http://localhost:8080");
     normalizeLocalnetVersionSpy = vi.spyOn(SimulatorService.prototype, "normalizeLocalnetVersion").mockImplementation((v: string) => v) as any;
+    vi.spyOn(SimulatorService.prototype, "isLocalnetRunning").mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -63,6 +64,38 @@ describe("InitAction", () => {
   });
 
   describe("Successful Execution", () => {
+    test("should show combined confirmation message when localnet is running", async () => {
+      vi.spyOn(SimulatorService.prototype, "isLocalnetRunning").mockResolvedValue(true);
+      
+      const confirmPromptSpy = vi.spyOn(initAction as any, "confirmPrompt").mockResolvedValue(undefined);
+      
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+        
+      await initAction.execute(defaultOptions);
+      
+      expect(confirmPromptSpy).toHaveBeenCalledWith(
+        "GenLayer Localnet is already running and this command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?"
+      );
+    });
+    
+    test("should show standard confirmation message when localnet is not running", async () => {
+      vi.spyOn(SimulatorService.prototype, "isLocalnetRunning").mockResolvedValue(false);
+      
+      const confirmPromptSpy = vi.spyOn(initAction as any, "confirmPrompt").mockResolvedValue(undefined);
+      
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+        
+      await initAction.execute(defaultOptions);
+      
+      expect(confirmPromptSpy).toHaveBeenCalledWith(
+        "This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?"
+      );
+    });
+    
     test("executes the full flow in non-headless mode", async () => {
       inquirerPromptSpy
         .mockResolvedValueOnce({ confirmAction: true })

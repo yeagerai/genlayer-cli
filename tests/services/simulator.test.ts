@@ -314,6 +314,34 @@ describe("SimulatorService - Docker Tests", () => {
     mockPing = vi.mocked(Docker.prototype.ping);
   });
 
+  test("isLocalnetRunning should return true when 4 or more containers are running", async () => {
+    const mockContainers = [
+      { Id: "container1", Names: [`${CONTAINERS_NAME_PREFIX}container1`], State: "running" },
+      { Id: "container2", Names: [`${CONTAINERS_NAME_PREFIX}container2`], State: "running" },
+      { Id: "container3", Names: [`${CONTAINERS_NAME_PREFIX}container3`], State: "running" },
+      { Id: "container4", Names: [`${CONTAINERS_NAME_PREFIX}container4`], State: "running" },
+      { Id: "container5", Names: [`${CONTAINERS_NAME_PREFIX}container5`], State: "exited" }
+    ];
+
+    mockListContainers.mockResolvedValue(mockContainers);
+    const result = await simulatorService.isLocalnetRunning();
+    expect(result).toBe(true);
+  });
+
+  test("isLocalnetRunning should return false when fewer than 4 containers are running", async () => {
+    const mockContainers = [
+      { Id: "container1", Names: [`${CONTAINERS_NAME_PREFIX}container1`], State: "running" },
+      { Id: "container2", Names: [`${CONTAINERS_NAME_PREFIX}container2`], State: "running" },
+      { Id: "container3", Names: [`${CONTAINERS_NAME_PREFIX}container3`], State: "running" },
+      { Id: "container4", Names: [`${CONTAINERS_NAME_PREFIX}container4`], State: "exited" },
+      { Id: "container5", Names: ["/unrelated-container"], State: "running" }
+    ];
+
+    mockListContainers.mockResolvedValue(mockContainers);
+    const result = await simulatorService.isLocalnetRunning();
+    expect(result).toBe(false);
+  });
+
   test("should stop and remove Docker containers with the specified prefix", async () => {
     const mockContainers = [
       {

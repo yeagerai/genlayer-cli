@@ -292,6 +292,12 @@ export class SimulatorService implements ISimulatorService {
     return version
   }
 
+  public async isLocalnetRunning(): Promise<boolean> {
+    const genlayerContainers = await this.getGenlayerContainers();
+    const runningContainers = genlayerContainers.filter(container => container.State === "running");
+    return runningContainers.length >= 4;
+  }
+
 }
 
 export default new SimulatorService();

@@ -9,6 +9,7 @@ vi.mock("inquirer");
 describe("StartAction", () => {
   let startAction: StartAction;
   let mockSimulatorService: SimulatorService;
+  let mockConfirmPrompt: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -18,7 +19,9 @@ describe("StartAction", () => {
     startAction["simulatorService"] = mockSimulatorService;
 
     mockSimulatorService.waitForSimulatorToBeReady = vi.fn().mockResolvedValue({ initialized: true });
+    mockSimulatorService.stopDockerContainers = vi.fn().mockResolvedValue(undefined);
 
+    mockConfirmPrompt = vi.spyOn(startAction as any, "confirmPrompt").mockResolvedValue(undefined);
     vi.spyOn(startAction as any, "startSpinner").mockImplementation(() => {});
     vi.spyOn(startAction as any, "setSpinnerText").mockImplementation(() => {});
     vi.spyOn(startAction as any, "succeedSpinner").mockImplementation(() => {});
@@ -35,6 +38,26 @@ describe("StartAction", () => {
     headless: false,
     resetDb: false,
   };
+
+  test("should check if localnet is running and proceed without confirmation when not running", async () => {
+    mockSimulatorService.isLocalnetRunning = vi.fn().mockResolvedValue(false);
+    
+    await startAction.execute(defaultOptions);
+    
+    expect(mockSimulatorService.isLocalnetRunning).toHaveBeenCalled();
+    expect(mockConfirmPrompt).not.toHaveBeenCalled();
+    expect(mockSimulatorService.runSimulator).toHaveBeenCalled();
+  });
+
+  test("should prompt for confirmation when localnet is already running", async () => {
+    mockSimulatorService.isLocalnetRunning = vi.fn().mockResolvedValue(true);
+    
+    await startAction.execute(defaultOptions);
+    
+    expect(mockSimulatorService.isLocalnetRunning).toHaveBeenCalled();
+    expect(mockConfirmPrompt).toHaveBeenCalledWith("GenLayer Localnet is already running. Do you want to proceed?");
+    expect(mockSimulatorService.runSimulator).toHaveBeenCalled();
+  });
 
   test("should start the simulator successfully", async () => {
     mockSimulatorService.checkCliVersion = vi.fn().mockResolvedValue(undefined);
