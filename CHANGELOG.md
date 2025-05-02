@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.0 (2025-05-02)
+
+### Features
+
+* update studios compatible version ([#220](https://github.com/yeagerai/genlayer-cli/issues/220)) ([cedf568](https://github.com/yeagerai/genlayer-cli/commit/cedf56888c81098ef83647bff4ad55dd7d697fb8))
+
 ## 0.15.0 (2025-04-29)
 
 ### Features
