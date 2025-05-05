@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.0 (2025-05-05)
+
+### Features
+
+* check if the simulator is running before launching it again ([#219](https://github.com/yeagerai/genlayer-cli/issues/219)) ([f45e1f7](https://github.com/yeagerai/genlayer-cli/commit/f45e1f7bcee9b1319cf60e658fa433fe5ec8c3eb))
+
 ## 0.16.0 (2025-05-02)
 
 ### Features
