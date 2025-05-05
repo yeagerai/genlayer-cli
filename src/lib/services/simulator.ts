@@ -17,7 +17,8 @@ import {
   AiProviders,
   VERSION_REQUIREMENTS,
   CONTAINERS_NAME_PREFIX,
-  IMAGES_NAME_PREFIX
+  IMAGES_NAME_PREFIX,
+  GENLAYER_REQUIRED_CONTAINERS
 } from "../config/simulator";
 import {
   checkCommand,
@@ -295,7 +296,12 @@ export class SimulatorService implements ISimulatorService {
   public async isLocalnetRunning(): Promise<boolean> {
     const genlayerContainers = await this.getGenlayerContainers();
     const runningContainers = genlayerContainers.filter(container => container.State === "running");
-    return runningContainers.length >= 4;
+    
+    return GENLAYER_REQUIRED_CONTAINERS.every(requiredContainer => 
+      runningContainers.some(container => 
+        container.Names.some(name => name.includes(requiredContainer))
+      )
+    );
   }
 
 }

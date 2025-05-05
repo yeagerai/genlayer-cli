@@ -14,6 +14,7 @@ import {
   VERSION_REQUIREMENTS,
   STARTING_TIMEOUT_ATTEMPTS,
   DEFAULT_RUN_SIMULATOR_COMMAND, localnetCompatibleVersion, IMAGES_NAME_PREFIX,
+  AiProviders, GENLAYER_REQUIRED_CONTAINERS,
 } from "../../src/lib/config/simulator";
 import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
@@ -284,7 +285,7 @@ describe("SimulatorService - Basic Tests", () => {
 
   test("should create random validators", async () => {
     const numValidators = 5;
-    const llmProviders = ["openai", "ollama"];
+    const llmProviders = ["openai", "ollama"] as AiProviders[];
     const mockResponse = { success: true };
     vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
@@ -314,13 +315,13 @@ describe("SimulatorService - Docker Tests", () => {
     mockPing = vi.mocked(Docker.prototype.ping);
   });
 
-  test("isLocalnetRunning should return true when 4 or more containers are running", async () => {
+  test("isLocalnetRunning should return true when all required containers are running", async () => {
     const mockContainers = [
-      { Id: "container1", Names: [`${CONTAINERS_NAME_PREFIX}container1`], State: "running" },
-      { Id: "container2", Names: [`${CONTAINERS_NAME_PREFIX}container2`], State: "running" },
-      { Id: "container3", Names: [`${CONTAINERS_NAME_PREFIX}container3`], State: "running" },
-      { Id: "container4", Names: [`${CONTAINERS_NAME_PREFIX}container4`], State: "running" },
-      { Id: "container5", Names: [`${CONTAINERS_NAME_PREFIX}container5`], State: "exited" }
+      { Id: "container1", Names: ["/genlayer-jsonrpc1"], State: "running" },
+      { Id: "container2", Names: ["/genlayer-webrequest1"], State: "running" },
+      { Id: "container3", Names: ["/genlayer-postgres1"], State: "running" },
+      { Id: "container4", Names: ["/genlayer-other-container1"], State: "running" },
+      { Id: "container5", Names: ["/genlayer-another-container1"], State: "exited" }
     ];
 
     mockListContainers.mockResolvedValue(mockContainers);
@@ -328,13 +329,13 @@ describe("SimulatorService - Docker Tests", () => {
     expect(result).toBe(true);
   });
 
-  test("isLocalnetRunning should return false when fewer than 4 containers are running", async () => {
+  test("isLocalnetRunning should return false when not all required containers are running", async () => {
     const mockContainers = [
-      { Id: "container1", Names: [`${CONTAINERS_NAME_PREFIX}container1`], State: "running" },
-      { Id: "container2", Names: [`${CONTAINERS_NAME_PREFIX}container2`], State: "running" },
-      { Id: "container3", Names: [`${CONTAINERS_NAME_PREFIX}container3`], State: "running" },
-      { Id: "container4", Names: [`${CONTAINERS_NAME_PREFIX}container4`], State: "exited" },
-      { Id: "container5", Names: ["/unrelated-container"], State: "running" }
+      { Id: "container1", Names: ["/genlayer-jsonrpc2"], State: "running" },
+      { Id: "container2", Names: ["/genlayer-webrequest2"], State: "running" },
+      { Id: "container3", Names: ["/genlayer-postgres2"], State: "exited" },
+      { Id: "container4", Names: ["/genlayer-other-container2"], State: "running" },
+      { Id: "container5", Names: ["/unrelated-container2"], State: "running" }
     ];
 
     mockListContainers.mockResolvedValue(mockContainers);
