@@ -50,6 +50,8 @@ export class InitAction extends BaseAction {
       this.startSpinner("Checking CLI version...");
       await this.simulatorService.checkCliVersion();
 
+      const isRunning = await this.simulatorService.isLocalnetRunning();
+
       this.setSpinnerText("Checking installation requirements...");
       const requirementsInstalled = await this.simulatorService.checkInstallRequirements();
       const requirementErrorMessage = getRequirementsErrorMessage(requirementsInstalled);
@@ -67,10 +69,11 @@ export class InitAction extends BaseAction {
       }
       this.stopSpinner();
 
-      // Confirm reset action with the user using BaseAction's confirm prompt
-      await this.confirmPrompt(
-        `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`
-      );
+      const confirmMessage = isRunning
+        ? `GenLayer Localnet is already running and this command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`
+        : `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`;
+      
+      await this.confirmPrompt(confirmMessage);
 
       this.logInfo(`Initializing GenLayer CLI with ${options.numValidators} validators`);
 

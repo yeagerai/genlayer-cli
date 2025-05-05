@@ -60,3 +60,9 @@ export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
     cliOptionValue: "xai",
   },
 };
+
+export const GENLAYER_REQUIRED_CONTAINERS = [
+  "genlayer-jsonrpc",
+  "genlayer-webrequest",
+  "genlayer-postgres"
+]

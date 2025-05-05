@@ -14,6 +14,7 @@ import {
   VERSION_REQUIREMENTS,
   STARTING_TIMEOUT_ATTEMPTS,
   DEFAULT_RUN_SIMULATOR_COMMAND, localnetCompatibleVersion, IMAGES_NAME_PREFIX,
+  AiProviders, GENLAYER_REQUIRED_CONTAINERS,
 } from "../../src/lib/config/simulator";
 import { rpcClient } from "../../src/lib/clients/jsonRpcClient";
 import * as semver from "semver";
@@ -284,7 +285,7 @@ describe("SimulatorService - Basic Tests", () => {
 
   test("should create random validators", async () => {
     const numValidators = 5;
-    const llmProviders = ["openai", "ollama"];
+    const llmProviders = ["openai", "ollama"] as AiProviders[];
     const mockResponse = { success: true };
     vi.mocked(rpcClient.request).mockResolvedValue(mockResponse);
 
@@ -312,6 +313,34 @@ describe("SimulatorService - Docker Tests", () => {
     mockListImages = vi.mocked(Docker.prototype.listImages);
     mockGetImage = vi.mocked(Docker.prototype.getImage);
     mockPing = vi.mocked(Docker.prototype.ping);
+  });
+
+  test("isLocalnetRunning should return true when all required containers are running", async () => {
+    const mockContainers = [
+      { Id: "container1", Names: ["/genlayer-jsonrpc1"], State: "running" },
+      { Id: "container2", Names: ["/genlayer-webrequest1"], State: "running" },
+      { Id: "container3", Names: ["/genlayer-postgres1"], State: "running" },
+      { Id: "container4", Names: ["/genlayer-other-container1"], State: "running" },
+      { Id: "container5", Names: ["/genlayer-another-container1"], State: "exited" }
+    ];
+
+    mockListContainers.mockResolvedValue(mockContainers);
+    const result = await simulatorService.isLocalnetRunning();
+    expect(result).toBe(true);
+  });
+
+  test("isLocalnetRunning should return false when not all required containers are running", async () => {
+    const mockContainers = [
+      { Id: "container1", Names: ["/genlayer-jsonrpc2"], State: "running" },
+      { Id: "container2", Names: ["/genlayer-webrequest2"], State: "running" },
+      { Id: "container3", Names: ["/genlayer-postgres2"], State: "exited" },
+      { Id: "container4", Names: ["/genlayer-other-container2"], State: "running" },
+      { Id: "container5", Names: ["/unrelated-container2"], State: "running" }
+    ];
+
+    mockListContainers.mockResolvedValue(mockContainers);
+    const result = await simulatorService.isLocalnetRunning();
+    expect(result).toBe(false);
   });
 
   test("should stop and remove Docker containers with the specified prefix", async () => {
