@@ -1,10 +1,52 @@
 # Changelog
 
-## 0.12.2-beta.2 (2025-02-27)
+## 0.17.0 (2025-05-05)
+
+### Features
+
+* check if the simulator is running before launching it again ([#219](https://github.com/yeagerai/genlayer-cli/issues/219)) ([f45e1f7](https://github.com/yeagerai/genlayer-cli/commit/f45e1f7bcee9b1319cf60e658fa433fe5ec8c3eb))
+
+## 0.16.0 (2025-05-02)
+
+### Features
+
+* update studios compatible version ([#220](https://github.com/yeagerai/genlayer-cli/issues/220)) ([cedf568](https://github.com/yeagerai/genlayer-cli/commit/cedf56888c81098ef83647bff4ad55dd7d697fb8))
+
+## 0.15.0 (2025-04-29)
+
+### Features
+
+* custom rpc for interacting with contracts ([#218](https://github.com/yeagerai/genlayer-cli/issues/218)) ([138babd](https://github.com/yeagerai/genlayer-cli/commit/138babd76b24d2333356ec64cfdb712add312585))
+
+## 0.14.1 (2025-04-25)
+
+## 0.14.0 (2025-04-25)
+
+### Features
+
+* adding gemini and XAI ([#216](https://github.com/yeagerai/genlayer-cli/issues/216)) ([01310b2](https://github.com/yeagerai/genlayer-cli/commit/01310b2c4856880d8b4209a8b659445bf6d4d501))
+
+## 0.13.0 (2025-04-24)
+
+### Features
+
+* create account if it doesnt exists ([#214](https://github.com/yeagerai/genlayer-cli/issues/214)) ([12d2faa](https://github.com/yeagerai/genlayer-cli/commit/12d2faa68202310059c688c9c17a99ef6e577412))
+
+## 0.12.5 (2025-04-24)
+
+## 0.12.4 (2025-04-03)
 
 ### Bug Fixes
 
-* esbuild ([9addc4a](https://github.com/yeagerai/genlayer-cli/commit/9addc4a981b7c5bd895d2dd8943cc777ba508ff9))
+* map objects ([#207](https://github.com/yeagerai/genlayer-cli/issues/207)) ([45956f6](https://github.com/yeagerai/genlayer-cli/commit/45956f64e02505262a3585b1349dbfbf0f195d73))
+
+## 0.12.3 (2025-03-07)
+
+### Bug Fixes
+
+* production build ([#204](https://github.com/yeagerai/genlayer-cli/issues/204)) ([ceed97b](https://github.com/yeagerai/genlayer-cli/commit/ceed97be6f0b6720d3d243cc41326d6b98569f26))
+
+## 0.12.2 (2025-03-07)
 
 ## 0.12.1 (2025-02-20)
 

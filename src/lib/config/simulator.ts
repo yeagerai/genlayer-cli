@@ -1,4 +1,4 @@
-export const localnetCompatibleVersion = "v0.35.2";
+export const localnetCompatibleVersion = "v0.51.1";
 export const DEFAULT_JSON_RPC_URL = "http://localhost:4000/api";
 export const CONTAINERS_NAME_PREFIX = "/genlayer-";
 export const IMAGES_NAME_PREFIX = "yeagerai";
@@ -23,8 +23,8 @@ export type RunningPlatform = (typeof AVAILABLE_PLATFORMS)[number];
 export const STARTING_TIMEOUT_WAIT_CYLCE = 2000;
 export const STARTING_TIMEOUT_ATTEMPTS = 120;
 
-export type AiProviders = "ollama" | "openai" | "heuristai";
-export type AiProvidersEnvVars = "ollama" | "OPENAIKEY" | "HEURISTAIAPIKEY";
+export type AiProviders = "ollama" | "openai" | "heuristai" | "geminiai" | "xai";
+export type AiProvidersEnvVars = "ollama" | "OPENAIKEY" | "HEURISTAIAPIKEY" | "GEMINI_API_KEY" | "XAI_API_KEY";
 export type AiProvidersConfigType = {
   [key in AiProviders]: {name: string; hint: string; envVar?: AiProvidersEnvVars; cliOptionValue: string};
 };
@@ -47,4 +47,22 @@ export const AI_PROVIDERS_CONFIG: AiProvidersConfigType = {
     envVar: "HEURISTAIAPIKEY",
     cliOptionValue: "heuristai",
   },
+  geminiai: {
+    name: "Gemini",
+    hint: '(You will need to provide an API key.)',
+    envVar: "GEMINI_API_KEY",
+    cliOptionValue: "geminiai",
+  },
+  xai: {
+    name: "XAI",
+    hint: '(You will need to provide an API key)',
+    envVar: "XAI_API_KEY",
+    cliOptionValue: "xai",
+  },
 };
+
+export const GENLAYER_REQUIRED_CONTAINERS = [
+  "genlayer-jsonrpc",
+  "genlayer-webrequest",
+  "genlayer-postgres"
+]

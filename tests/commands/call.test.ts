@@ -42,12 +42,17 @@ describe("call command", () => {
       "1",
       "2",
       "Hello",
+      "false",
+      "true",
+      "--rpc",
+      "https://custom-rpc-url.com"
     ]);
     expect(CallAction).toHaveBeenCalledTimes(1);
     expect(CallAction.prototype.call).toHaveBeenCalledWith({
       contractAddress: "0xMockedContract",
       method: "updateData",
-      args: ["1", "2", "Hello"]
+      args: [1, 2, "Hello", false, true],
+      rpc: "https://custom-rpc-url.com"
     });
   });
 

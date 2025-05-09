@@ -1,10 +1,10 @@
 import inquirer from "inquirer";
-import { DistinctQuestion } from "inquirer";
-import { ISimulatorService } from "../../lib/interfaces/ISimulatorService";
-import { AI_PROVIDERS_CONFIG, AiProviders } from "../../lib/config/simulator";
-import { OllamaAction } from "../update/ollama";
-import { BaseAction } from "../../lib/actions/BaseAction";
-import { SimulatorService } from "../../lib/services/simulator";
+import {DistinctQuestion} from "inquirer";
+import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
+import {AI_PROVIDERS_CONFIG, AiProviders} from "../../lib/config/simulator";
+import {OllamaAction} from "../update/ollama";
+import {BaseAction} from "../../lib/actions/BaseAction";
+import {SimulatorService} from "../../lib/services/simulator";
 
 export interface InitActionOptions {
   numValidators: number;
@@ -13,14 +13,14 @@ export interface InitActionOptions {
   localnetVersion: string;
 }
 
-function getRequirementsErrorMessage({ docker }: Record<string, boolean>): string {
+function getRequirementsErrorMessage({docker}: Record<string, boolean>): string {
   if (!docker) {
     return "Docker is not installed. Please install Docker and try again.\n";
   }
   return "";
 }
 
-function getVersionErrorMessage({ docker, node }: Record<string, string>): string {
+function getVersionErrorMessage({docker, node}: Record<string, string>): string {
   let message = "";
 
   if (docker) {
@@ -50,6 +50,8 @@ export class InitAction extends BaseAction {
       this.startSpinner("Checking CLI version...");
       await this.simulatorService.checkCliVersion();
 
+      const isRunning = await this.simulatorService.isLocalnetRunning();
+
       this.setSpinnerText("Checking installation requirements...");
       const requirementsInstalled = await this.simulatorService.checkInstallRequirements();
       const requirementErrorMessage = getRequirementsErrorMessage(requirementsInstalled);
@@ -67,10 +69,11 @@ export class InitAction extends BaseAction {
       }
       this.stopSpinner();
 
-      // Confirm reset action with the user using BaseAction's confirm prompt
-      await this.confirmPrompt(
-        `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`
-      );
+      const confirmMessage = isRunning
+        ? `GenLayer Localnet is already running and this command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`
+        : `This command is going to reset GenLayer docker images and containers, providers API Keys, and GenLayer database (accounts, transactions, validators and logs). Contract code (gpy files) will be kept. Do you want to continue?`;
+
+      await this.confirmPrompt(confirmMessage);
 
       this.logInfo(`Initializing GenLayer CLI with ${options.numValidators} validators`);
 
@@ -86,8 +89,7 @@ export class InitAction extends BaseAction {
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
           choices: this.simulatorService.getAiProvidersOptions(true),
-          validate: (answer) =>
-            answer.length < 1 ? "You must choose at least one option." : true,
+          validate: answer => (answer.length < 1 ? "You must choose at least one option." : true),
         },
       ];
       const llmProvidersAnswer = await inquirer.prompt(llmQuestions);
@@ -96,7 +98,7 @@ export class InitAction extends BaseAction {
       let defaultOllamaModel = this.getConfig().defaultOllamaModel;
       const aiProvidersEnvVars: Record<string, string> = {};
       const configurableAiProviders = selectedLlmProviders.filter(
-        (provider: AiProviders) => AI_PROVIDERS_CONFIG[provider].envVar
+        (provider: AiProviders) => AI_PROVIDERS_CONFIG[provider].envVar,
       );
       for (const provider of configurableAiProviders) {
         const providerConfig = AI_PROVIDERS_CONFIG[provider];
@@ -115,14 +117,13 @@ export class InitAction extends BaseAction {
 
       this.startSpinner("Configuring GenLayer Localnet environment...");
       this.simulatorService.addConfigToEnvFile(aiProvidersEnvVars);
-      this.simulatorService.addConfigToEnvFile({ LOCALNETVERSION: localnetVersion });
+      this.simulatorService.addConfigToEnvFile({LOCALNETVERSION: localnetVersion});
 
       this.setSpinnerText("Running GenLayer Localnet...");
       await this.simulatorService.runSimulator();
 
       this.setSpinnerText("Waiting for localnet to be ready...");
-      const { initialized, errorCode, errorMessage } =
-        await this.simulatorService.waitForSimulatorToBeReady();
+      const {initialized, errorCode, errorMessage} = await this.simulatorService.waitForSimulatorToBeReady();
       if (!initialized) {
         if (errorCode === "ERROR") {
           this.failSpinner(`Unable to initialize the GenLayer Localnet: ${errorMessage}`);
@@ -130,7 +131,7 @@ export class InitAction extends BaseAction {
         }
         if (errorCode === "TIMEOUT") {
           this.failSpinner(
-            "The localnet is taking too long to initialize. Please try again after the localnet is ready."
+            "The localnet is taking too long to initialize. Please try again after the localnet is ready.",
           );
           return;
         }
@@ -149,10 +150,7 @@ export class InitAction extends BaseAction {
 
       this.startSpinner("Initializing validators...");
       await this.simulatorService.deleteAllValidators();
-      await this.simulatorService.createRandomValidators(
-        Number(options.numValidators),
-        selectedLlmProviders
-      );
+      await this.simulatorService.createRandomValidators(Number(options.numValidators), selectedLlmProviders);
 
       if (options.resetDb) {
         this.setSpinnerText("Cleaning database...");

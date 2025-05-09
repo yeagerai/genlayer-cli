@@ -19,6 +19,7 @@ export interface ISimulatorService {
   cleanDatabase(): Promise<boolean>;
   addConfigToEnvFile(newConfig: Record<string, string>): void;
   normalizeLocalnetVersion(version: string): string;
+  isLocalnetRunning(): Promise<boolean>;
 }
 
 
