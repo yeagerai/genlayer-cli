@@ -4,13 +4,13 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 import {KeypairManager} from "../accounts/KeypairManager";
 import {createClient, createAccount} from "genlayer-js";
-import {localnet} from "genlayer-js/chains";
+import {testnet} from "genlayer-js/chains";
 import type {GenLayerClient} from "genlayer-js/types";
 
 export class BaseAction extends ConfigFileManager {
   protected keypairManager: KeypairManager;
   private spinner: Ora;
-  private _genlayerClient: GenLayerClient<typeof localnet> | null = null;
+  private _genlayerClient: GenLayerClient<typeof testnet> | null = null;
 
   constructor() {
     super();
@@ -18,10 +18,10 @@ export class BaseAction extends ConfigFileManager {
     this.keypairManager = new KeypairManager();
   }
 
-  protected async getClient(rpcUrl?: string): Promise<GenLayerClient<typeof localnet>> {
+  protected async getClient(rpcUrl?: string): Promise<GenLayerClient<typeof testnet>> {
     if (!this._genlayerClient) {
       this._genlayerClient = createClient({
-        chain: localnet,
+        chain: testnet,
         endpoint: rpcUrl,
         account: createAccount((await this.getPrivateKey()) as any),
       });
