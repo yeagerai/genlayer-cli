@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0-beta.0 (2025-05-09)
+
+### Features
+
+* separate read and write calls ([#222](https://github.com/yeagerai/genlayer-cli/issues/222)) ([fce8904](https://github.com/yeagerai/genlayer-cli/commit/fce8904f6b51587bfb9e690b0e42efe441f19b1d))
+
 ## 0.17.0 (2025-05-05)
 
 ### Features
