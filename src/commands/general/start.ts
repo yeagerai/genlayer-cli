@@ -1,8 +1,8 @@
 import inquirer from "inquirer";
-import { ISimulatorService } from "../../lib/interfaces/ISimulatorService";
-import { DistinctQuestion } from "inquirer";
-import { BaseAction } from "../../lib/actions/BaseAction";
-import { SimulatorService } from "../../lib/services/simulator";
+import {ISimulatorService} from "../../lib/interfaces/ISimulatorService";
+import {DistinctQuestion} from "inquirer";
+import {BaseAction} from "../../lib/actions/BaseAction";
+import {SimulatorService} from "../../lib/services/simulator";
 
 export interface StartActionOptions {
   resetValidators: boolean;
@@ -20,11 +20,19 @@ export class StartAction extends BaseAction {
   }
 
   async execute(options: StartActionOptions) {
-    const { resetValidators, numValidators, headless, resetDb } = options;
+    const {resetValidators, numValidators, headless, resetDb} = options;
 
     this.simulatorService.setComposeOptions(headless);
     this.startSpinner("Checking CLI version...");
     await this.simulatorService.checkCliVersion();
+
+    const isRunning = await this.simulatorService.isLocalnetRunning();
+    if (isRunning) {
+      this.stopSpinner();
+      await this.confirmPrompt("GenLayer Localnet is already running. Do you want to proceed?");
+      this.startSpinner("Stopping Docker containers...");
+      await this.simulatorService.stopDockerContainers();
+    }
 
     const restartValidatorsHintText = resetValidators
       ? `creating new ${numValidators} random validators`
@@ -40,7 +48,7 @@ export class StartAction extends BaseAction {
 
     try {
       this.setSpinnerText("Waiting for the simulator to be ready...");
-      const { initialized, errorCode, errorMessage } = await this.simulatorService.waitForSimulatorToBeReady();
+      const {initialized, errorCode, errorMessage} = await this.simulatorService.waitForSimulatorToBeReady();
 
       if (!initialized) {
         if (errorCode === "ERROR") {
@@ -52,7 +60,6 @@ export class StartAction extends BaseAction {
           return;
         }
       }
-
     } catch (error) {
       this.failSpinner("Error waiting for the simulator to be ready", error);
       return;
@@ -74,12 +81,15 @@ export class StartAction extends BaseAction {
             name: "selectedLlmProviders",
             message: "Select which LLM providers do you want to use:",
             choices: this.simulatorService.getAiProvidersOptions(false),
-            validate: (answer) => (answer.length < 1 ? "You must choose at least one option." : true),
+            validate: answer => (answer.length < 1 ? "You must choose at least one option." : true),
           },
         ];
 
         const llmProvidersAnswer = await inquirer.prompt(questions);
-        await this.simulatorService.createRandomValidators(numValidators, llmProvidersAnswer.selectedLlmProviders);
+        await this.simulatorService.createRandomValidators(
+          numValidators,
+          llmProvidersAnswer.selectedLlmProviders,
+        );
       } catch (error) {
         this.failSpinner("Unable to initialize the validators", error);
         return;
@@ -87,7 +97,9 @@ export class StartAction extends BaseAction {
     }
 
     let successMessage = "GenLayer simulator initialized successfully! ";
-    successMessage += headless ? "" : `Go to ${this.simulatorService.getFrontendUrl()} in your browser to access it.`;
+    successMessage += headless
+      ? ""
+      : `Go to ${this.simulatorService.getFrontendUrl()} in your browser to access it.`;
     this.succeedSpinner(successMessage);
 
     if (!headless) {
