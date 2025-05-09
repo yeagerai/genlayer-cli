@@ -34,12 +34,13 @@ export class WriteAction extends BaseAction {
         args,
         value: 0n,
       });
+      this.log("Write Transaction Hash:", hash);
+
       const result = await client.waitForTransactionReceipt({
         hash,
         retries: 100,
         interval: 5000,
       });
-      this.log("Write transaction hash:", hash);
       this.succeedSpinner("Write operation successfully executed", result);
     } catch (error) {
       this.failSpinner("Error during write operation", error);
