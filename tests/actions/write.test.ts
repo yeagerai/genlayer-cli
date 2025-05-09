@@ -51,7 +51,7 @@ describe("WriteAction", () => {
       args: [42, "Update"],
       value: 0n,
     });
-    expect(writeAction["log"]).toHaveBeenCalledWith("Write transaction hash:", mockHash);
+    expect(writeAction["log"]).toHaveBeenCalledWith("Write Transaction Hash:", mockHash);
     expect(writeAction["succeedSpinner"]).toHaveBeenCalledWith(
       "Write operation successfully executed",
       mockReceipt,
