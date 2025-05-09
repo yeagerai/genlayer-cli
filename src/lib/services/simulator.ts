@@ -40,14 +40,14 @@ function sleep(millliseconds: number): Promise<void> {
 }
 
 export class SimulatorService implements ISimulatorService {
-  private composeOptions: string
+  private profileOptions: string
   private docker: Docker;
   public location: string;
 
   constructor() {
     const __filename = fileURLToPath(import.meta.url);
     this.location = path.resolve(path.dirname(__filename), '..');
-    this.composeOptions = "";
+    this.profileOptions = "";
     this.docker = new Docker();
   }
 
@@ -104,12 +104,22 @@ export class SimulatorService implements ISimulatorService {
     fs.writeFileSync(envFilePath, updatedConfig);
   }
 
-  public setComposeOptions(headless: boolean): void {
-    this.composeOptions = headless ? '--scale frontend=0' : '';
+  public setComposeOptions(headless: boolean, disableOllama: boolean = false): void {
+    let profiles = [];
+    
+    if (!headless) {
+      profiles.push("frontend");
+    }
+    
+    if (!disableOllama) {
+      profiles.push("ollama");
+    }
+    
+    this.profileOptions = profiles.length > 0 ? `--profile ${profiles.join(" --profile ")}` : "";
   }
 
   public getComposeOptions(): string {
-    return this.composeOptions;
+    return this.profileOptions;
   }
 
   public async checkCliVersion(): Promise<void> {

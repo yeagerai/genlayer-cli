@@ -144,6 +144,33 @@ describe("SimulatorService - Basic Tests", () => {
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
 
+  test("should execute the correct run simulator command based on disableOllama option", async () => {
+    (executeCommand as Mock).mockResolvedValue({
+      stdout: "Simulator started",
+      stderr: "",
+    });
+    
+    simulatorService.setComposeOptions(false, false);
+    let commandOptions = simulatorService.getComposeOptions();
+    expect(commandOptions).toBe("--profile frontend --profile ollama");
+    
+    simulatorService.setComposeOptions(true, false);
+    commandOptions = simulatorService.getComposeOptions();
+    expect(commandOptions).toBe("--profile ollama");
+    
+    simulatorService.setComposeOptions(false, true);
+    commandOptions = simulatorService.getComposeOptions();
+    expect(commandOptions).toBe("--profile frontend");
+    
+    simulatorService.setComposeOptions(true, true);
+    commandOptions = simulatorService.getComposeOptions();
+    expect(commandOptions).toBe("");
+    
+    await simulatorService.runSimulator();
+    const expectedCommand = DEFAULT_RUN_SIMULATOR_COMMAND(simulatorService.location, commandOptions);
+    expect(executeCommand).toHaveBeenCalledWith(expectedCommand);
+  });
+
   test("should create a backup of the .env file and add new config", () => {
     const envFilePath = `/.env`;
     const originalEnvContent = "KEY1=value1\nKEY2=value2";

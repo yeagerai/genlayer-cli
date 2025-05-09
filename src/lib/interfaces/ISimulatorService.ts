@@ -1,7 +1,7 @@
 import {AiProviders} from "../config/simulator";
 
 export interface ISimulatorService {
-  setComposeOptions(headless: boolean): void;
+  setComposeOptions(headless: boolean, disableOllama?: boolean): void;
   getComposeOptions(): string;
   checkInstallRequirements(): Promise<Record<string, boolean>>;
   checkVersionRequirements(): Promise<Record<string, string>>;

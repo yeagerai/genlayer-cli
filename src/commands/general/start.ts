@@ -9,6 +9,7 @@ export interface StartActionOptions {
   numValidators: number;
   headless: boolean;
   resetDb: boolean;
+  disableOllama: boolean;
 }
 
 export class StartAction extends BaseAction {
@@ -20,9 +21,9 @@ export class StartAction extends BaseAction {
   }
 
   async execute(options: StartActionOptions) {
-    const { resetValidators, numValidators, headless, resetDb } = options;
+    const { resetValidators, numValidators, headless, resetDb, disableOllama } = options;
 
-    this.simulatorService.setComposeOptions(headless);
+    this.simulatorService.setComposeOptions(headless, disableOllama);
     this.startSpinner("Checking CLI version...");
     await this.simulatorService.checkCliVersion();
 

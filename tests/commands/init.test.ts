@@ -15,7 +15,8 @@ const defaultOptions = {
   numValidators: "5",
   headless: false,
   resetDb: false,
-  localnetVersion: localnetCompatibleVersion
+  localnetVersion: localnetCompatibleVersion,
+  disableOllama: false,
 }
 
 vi.mock("inquirer", () => ({
@@ -80,5 +81,11 @@ describe("init command", () => {
     expect(InitAction).toHaveBeenCalledTimes(1);
     expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, localnetVersion: "v1.0.0"});
     expect(openFrontendSpy).not.toHaveBeenCalled();
+  });
+
+  test("option --disable-ollama is accepted", async () => {
+    program.parse(["node", "test", "init", "--disable-ollama"]);
+    expect(InitAction).toHaveBeenCalledTimes(1);
+    expect(InitAction.prototype.execute).toHaveBeenCalledWith({...defaultOptions, disableOllama: true});
   });
 });

@@ -11,6 +11,7 @@ export interface InitActionOptions {
   headless: boolean;
   resetDb: boolean;
   localnetVersion: string;
+  disableOllama: boolean;
 }
 
 function getRequirementsErrorMessage({ docker }: Record<string, boolean>): string {
@@ -41,7 +42,7 @@ export class InitAction extends BaseAction {
 
   public async execute(options: InitActionOptions): Promise<void> {
     try {
-      this.simulatorService.setComposeOptions(options.headless);
+      this.simulatorService.setComposeOptions(options.headless, options.disableOllama);
       let localnetVersion = options.localnetVersion;
       if (localnetVersion !== "latest") {
         localnetVersion = this.simulatorService.normalizeLocalnetVersion(localnetVersion);
@@ -141,7 +142,7 @@ export class InitAction extends BaseAction {
 
       this.stopSpinner();
 
-      if (selectedLlmProviders.includes("ollama")) {
+      if (selectedLlmProviders.includes("ollama") && !options.disableOllama) {
         const ollamaAction = new OllamaAction();
         if (!defaultOllamaModel) {
           this.writeConfig("defaultOllamaModel", "llama3");
