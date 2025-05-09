@@ -83,6 +83,7 @@ services:
     depends_on:
       ollama:
         condition: service_started
+        required: false
     restart: always
     security_opt:
       - "no-new-privileges=true"
@@ -93,7 +94,8 @@ services:
         max-file: "3"
 
   ollama:
-    image: ollama/ollama:0.6.6
+    profiles: ["ollama"]
+    image: ollama/ollama:0.5.11
     ports:
       - 11434:11434
     container_name: ollama
