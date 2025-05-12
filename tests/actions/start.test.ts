@@ -20,6 +20,7 @@ describe("StartAction", () => {
 
     mockSimulatorService.waitForSimulatorToBeReady = vi.fn().mockResolvedValue({ initialized: true });
     mockSimulatorService.stopDockerContainers = vi.fn().mockResolvedValue(undefined);
+    mockSimulatorService.getAiProvidersOptions = vi.fn().mockResolvedValue(undefined);
 
     mockConfirmPrompt = vi.spyOn(startAction as any, "confirmPrompt").mockResolvedValue(undefined);
     vi.spyOn(startAction as any, "startSpinner").mockImplementation(() => {});
@@ -37,6 +38,7 @@ describe("StartAction", () => {
     numValidators: 5,
     headless: false,
     resetDb: false,
+    ollama: false
   };
 
   test("should check if localnet is running and proceed without confirmation when not running", async () => {
@@ -193,5 +195,17 @@ describe("StartAction", () => {
     expect(startAction["succeedSpinner"]).toHaveBeenCalledWith(
       "GenLayer simulator initialized successfully! "
     );
+  });
+
+  test("should exclude ollama from choices when ollama option is false", async () => {
+    await startAction.execute({ ...defaultOptions, resetValidators: true, ollama: false });
+    
+    expect(mockSimulatorService.getAiProvidersOptions).toHaveBeenCalledWith(false, ["ollama"]);
+  });
+
+  test("should include ollama in choices when ollama option is true", async () => {
+    await startAction.execute({ ...defaultOptions, resetValidators: true, ollama: true });
+
+    expect(mockSimulatorService.getAiProvidersOptions).toHaveBeenCalledWith(false, []);
   });
 });
