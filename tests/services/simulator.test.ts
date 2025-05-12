@@ -308,14 +308,11 @@ describe("SimulatorService - Basic Tests", () => {
     const allProviders = simulatorService.getAiProvidersOptions(false);
     const providersWithoutOllama = simulatorService.getAiProvidersOptions(false, ["ollama"]);
     
-    // Check that the list without Ollama is shorter
     expect(providersWithoutOllama.length).toBeLessThan(allProviders.length);
     
-    // Verify Ollama is not in the filtered list
     const ollamaProvider = providersWithoutOllama.find(p => p.value === "ollama");
     expect(ollamaProvider).toBeUndefined();
     
-    // Verify other providers are still present
     const openaiProvider = providersWithoutOllama.find(p => p.value === "openai");
     expect(openaiProvider).toBeDefined();
   });
@@ -323,14 +320,12 @@ describe("SimulatorService - Basic Tests", () => {
   test("should exclude multiple providers when specified", () => {
     const providersWithoutMultiple = simulatorService.getAiProvidersOptions(false, ["ollama", "openai"]);
     
-    // Verify excluded providers are not in the list
     const ollamaProvider = providersWithoutMultiple.find(p => p.value === "ollama");
     const openaiProvider = providersWithoutMultiple.find(p => p.value === "openai");
     
     expect(ollamaProvider).toBeUndefined();
     expect(openaiProvider).toBeUndefined();
     
-    // Verify other providers are still present
     const heuristaiProvider = providersWithoutMultiple.find(p => p.value === "heuristai");
     expect(heuristaiProvider).toBeDefined();
   });
