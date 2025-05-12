@@ -14,7 +14,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
     .option("--localnet-version <localnetVersion>", "Select a specific localnet version", localnetCompatibleVersion)
-    .option("--disable-ollama", "Disable Ollama container", false)
+    .option("--ollama", "Enable Ollama container", false)
     .action(async (options: InitActionOptions) => {
       const initAction = new InitAction();
       await initAction.execute(options)
@@ -27,7 +27,7 @@ export function initializeGeneralCommands(program: Command) {
     .option("--numValidators <numValidators>", "Number of validators", "5")
     .option("--headless", "Headless mode", false)
     .option("--reset-db", "Reset Database", false)
-    .option("--disable-ollama", "Disable Ollama container", false)
+    .option("--ollama", "Enable Ollama container", false)
     .action(async (options: StartActionOptions) => {
       const startAction = new StartAction();
       await startAction.execute(options);

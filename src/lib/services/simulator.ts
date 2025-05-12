@@ -104,14 +104,14 @@ export class SimulatorService implements ISimulatorService {
     fs.writeFileSync(envFilePath, updatedConfig);
   }
 
-  public setComposeOptions(headless: boolean, disableOllama: boolean = false): void {
+  public setComposeOptions(headless: boolean, ollama: boolean = false): void {
     let profiles = [];
     
     if (!headless) {
       profiles.push("frontend");
     }
     
-    if (!disableOllama) {
+    if (ollama) {
       profiles.push("ollama");
     }
     
@@ -237,13 +237,15 @@ export class SimulatorService implements ISimulatorService {
     return rpcClient.request({method: "sim_deleteAllValidators", params: []});
   }
 
-  public getAiProvidersOptions(withHint: boolean = true): Array<{name: string; value: string}> {
-    return Object.values(AI_PROVIDERS_CONFIG).map(providerConfig => {
-      return {
-        name: `${providerConfig.name}${withHint ? ` ${providerConfig.hint}` : ""}`,
-        value: providerConfig.cliOptionValue,
-      };
-    });
+  public getAiProvidersOptions(withHint: boolean = true, excludeProviders: AiProviders[] = []): Array<{name: string; value: string}> {
+    return Object.values(AI_PROVIDERS_CONFIG)
+      .filter(providerConfig => !excludeProviders.includes(providerConfig.cliOptionValue as AiProviders))
+      .map(providerConfig => {
+        return {
+          name: `${providerConfig.name}${withHint ? ` ${providerConfig.hint}` : ""}`,
+          value: providerConfig.cliOptionValue,
+        };
+      });
   }
 
   public getFrontendUrl(): string {

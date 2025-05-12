@@ -144,25 +144,25 @@ describe("SimulatorService - Basic Tests", () => {
     expect(result).toEqual({ stdout: "Simulator started", stderr: "" });
   });
 
-  test("should execute the correct run simulator command based on disableOllama option", async () => {
+  test("should execute the correct run simulator command based on ollama option", async () => {
     (executeCommand as Mock).mockResolvedValue({
       stdout: "Simulator started",
       stderr: "",
     });
     
-    simulatorService.setComposeOptions(false, false);
+    simulatorService.setComposeOptions(false, true);
     let commandOptions = simulatorService.getComposeOptions();
     expect(commandOptions).toBe("--profile frontend --profile ollama");
     
-    simulatorService.setComposeOptions(true, false);
+    simulatorService.setComposeOptions(true, true);
     commandOptions = simulatorService.getComposeOptions();
     expect(commandOptions).toBe("--profile ollama");
     
-    simulatorService.setComposeOptions(false, true);
+    simulatorService.setComposeOptions(false, false);
     commandOptions = simulatorService.getComposeOptions();
     expect(commandOptions).toBe("--profile frontend");
     
-    simulatorService.setComposeOptions(true, true);
+    simulatorService.setComposeOptions(true, false);
     commandOptions = simulatorService.getComposeOptions();
     expect(commandOptions).toBe("");
     
@@ -302,6 +302,37 @@ describe("SimulatorService - Basic Tests", () => {
   test("should return providers without errors", () => {
     expect(simulatorService.getAiProvidersOptions(true)).toEqual(expect.any(Array));
     expect(simulatorService.getAiProvidersOptions(false)).toEqual(expect.any(Array));
+  });
+
+  test("should exclude specified providers from the options list", () => {
+    const allProviders = simulatorService.getAiProvidersOptions(false);
+    const providersWithoutOllama = simulatorService.getAiProvidersOptions(false, ["ollama"]);
+    
+    // Check that the list without Ollama is shorter
+    expect(providersWithoutOllama.length).toBeLessThan(allProviders.length);
+    
+    // Verify Ollama is not in the filtered list
+    const ollamaProvider = providersWithoutOllama.find(p => p.value === "ollama");
+    expect(ollamaProvider).toBeUndefined();
+    
+    // Verify other providers are still present
+    const openaiProvider = providersWithoutOllama.find(p => p.value === "openai");
+    expect(openaiProvider).toBeDefined();
+  });
+
+  test("should exclude multiple providers when specified", () => {
+    const providersWithoutMultiple = simulatorService.getAiProvidersOptions(false, ["ollama", "openai"]);
+    
+    // Verify excluded providers are not in the list
+    const ollamaProvider = providersWithoutMultiple.find(p => p.value === "ollama");
+    const openaiProvider = providersWithoutMultiple.find(p => p.value === "openai");
+    
+    expect(ollamaProvider).toBeUndefined();
+    expect(openaiProvider).toBeUndefined();
+    
+    // Verify other providers are still present
+    const heuristaiProvider = providersWithoutMultiple.find(p => p.value === "heuristai");
+    expect(heuristaiProvider).toBeDefined();
   });
 
   test("clean simulator should success", async () => {

@@ -11,7 +11,7 @@ export interface InitActionOptions {
   headless: boolean;
   resetDb: boolean;
   localnetVersion: string;
-  disableOllama: boolean;
+  ollama: boolean;
 }
 
 function getRequirementsErrorMessage({ docker }: Record<string, boolean>): string {
@@ -42,7 +42,7 @@ export class InitAction extends BaseAction {
 
   public async execute(options: InitActionOptions): Promise<void> {
     try {
-      this.simulatorService.setComposeOptions(options.headless, options.disableOllama);
+      this.simulatorService.setComposeOptions(options.headless, options.ollama);
       let localnetVersion = options.localnetVersion;
       if (localnetVersion !== "latest") {
         localnetVersion = this.simulatorService.normalizeLocalnetVersion(localnetVersion);
@@ -89,7 +89,7 @@ export class InitAction extends BaseAction {
           type: "checkbox",
           name: "selectedLlmProviders",
           message: "Select which LLM providers do you want to use:",
-          choices: this.simulatorService.getAiProvidersOptions(true),
+          choices: this.simulatorService.getAiProvidersOptions(true, options.ollama ? [] : ["ollama"]),
           validate: (answer) =>
             answer.length < 1 ? "You must choose at least one option." : true,
         },
@@ -142,7 +142,7 @@ export class InitAction extends BaseAction {
 
       this.stopSpinner();
 
-      if (selectedLlmProviders.includes("ollama") && !options.disableOllama) {
+      if (selectedLlmProviders.includes("ollama")) {
         const ollamaAction = new OllamaAction();
         if (!defaultOllamaModel) {
           this.writeConfig("defaultOllamaModel", "llama3");

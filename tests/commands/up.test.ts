@@ -31,7 +31,7 @@ describe("up command", () => {
         numValidators: "5",
         headless: false,
         resetDb: false,
-        disableOllama: false,
+        ollama: false,
       })
     );
   });
@@ -73,7 +73,7 @@ describe("up command", () => {
         numValidators: "5",
         headless: false,
         resetDb: false,
-        disableOllama: false,
+        ollama: false,
       })
     );
   });
@@ -88,7 +88,7 @@ describe("up command", () => {
       "10",
       "--headless",
       "--reset-db",
-      "--disable-ollama",
+      "--ollama",
     ]);
 
     expect(StartAction).toHaveBeenCalledTimes(1);
@@ -98,7 +98,7 @@ describe("up command", () => {
         numValidators: "10",
         headless: true,
         resetDb: true,
-        disableOllama: true,
+        ollama: true,
       })
     );
   });
