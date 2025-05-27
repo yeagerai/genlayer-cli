@@ -62,7 +62,7 @@ export class SimulatorService implements ISimulatorService {
     const containers = await this.docker.listContainers({ all: true });
     return containers.filter(container =>
       container.Names.some(name =>
-        name.startsWith(CONTAINERS_NAME_PREFIX) || name.includes("ollama")
+        name.startsWith(CONTAINERS_NAME_PREFIX)
       )
     );
   }
