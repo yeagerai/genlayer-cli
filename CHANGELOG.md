@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0 (2025-05-28)
+
+### Features
+
+* using profiles to set frontend and ollama containers ([#221](https://github.com/yeagerai/genlayer-cli/issues/221)) ([a3d0d4e](https://github.com/yeagerai/genlayer-cli/commit/a3d0d4e77e7a92a5a31ae534f5f83e81a1672783))
+
 ## 0.17.0 (2025-05-05)
 
 ### Features
