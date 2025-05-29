@@ -136,10 +136,11 @@ export class DeployAction extends BaseAction {
       this.log("Deployment Parameters:", deployParams);
 
       const hash = (await client.deployContract(deployParams)) as any;
+      this.log("Deployment Transaction Hash:", hash);
       const result = await client.waitForTransactionReceipt({
         hash,
-        retries: 15,
-        interval: 2000,
+        retries: 50,
+        interval: 5000,
         status: TransactionStatus.ACCEPTED,
       });
 
