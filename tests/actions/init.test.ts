@@ -29,6 +29,7 @@ describe("InitAction", () => {
     headless: false,
     resetDb: false,
     localnetVersion: "v1.0.0",
+    ollama: false
   };
 
   beforeEach(() => {
@@ -155,6 +156,7 @@ describe("InitAction", () => {
         headless: true,
         resetDb: true,
         localnetVersion: "v1.0.0",
+        ollama: true
       };
       await initAction.execute(headlessOptions);
       expect(cleanDatabaseSpy).toHaveBeenCalled();
@@ -217,6 +219,30 @@ describe("InitAction", () => {
       await initAction.execute(defaultOptions);
       expect(capturedQuestion.validate([])).toBe("You must choose at least one option.");
       expect(capturedQuestion.validate(["openai"])).toBe(true);
+    });
+
+    test("should exclude ollama from choices when ollama option is false", async () => {
+      const getAiProvidersOptionsSpy = vi.spyOn(SimulatorService.prototype, "getAiProvidersOptions");
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      
+      await initAction.execute({ ...defaultOptions, ollama: false });
+      
+      expect(getAiProvidersOptionsSpy).toHaveBeenCalledWith(true, ["ollama"]);
+    });
+
+    test("should include ollama in choices when ollama option is true", async () => {
+      const getAiProvidersOptionsSpy = vi.spyOn(SimulatorService.prototype, "getAiProvidersOptions");
+      inquirerPromptSpy
+        .mockResolvedValueOnce({ confirmAction: true })
+        .mockResolvedValueOnce({ selectedLlmProviders: ["openai"] })
+        .mockResolvedValueOnce({ openai: "API_KEY_OPENAI" });
+      
+      await initAction.execute({ ...defaultOptions, ollama: true });
+      
+      expect(getAiProvidersOptionsSpy).toHaveBeenCalledWith(true, []);
     });
   });
 

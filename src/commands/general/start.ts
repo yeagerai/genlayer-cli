@@ -9,6 +9,7 @@ export interface StartActionOptions {
   numValidators: number;
   headless: boolean;
   resetDb: boolean;
+  ollama: boolean;
 }
 
 export class StartAction extends BaseAction {
@@ -20,9 +21,9 @@ export class StartAction extends BaseAction {
   }
 
   async execute(options: StartActionOptions) {
-    const {resetValidators, numValidators, headless, resetDb} = options;
+    const {resetValidators, numValidators, headless, resetDb, ollama} = options;
 
-    this.simulatorService.setComposeOptions(headless);
+    this.simulatorService.setComposeOptions(headless, ollama);
     this.startSpinner("Checking CLI version...");
     await this.simulatorService.checkCliVersion();
 
@@ -80,7 +81,7 @@ export class StartAction extends BaseAction {
             type: "checkbox",
             name: "selectedLlmProviders",
             message: "Select which LLM providers do you want to use:",
-            choices: this.simulatorService.getAiProvidersOptions(false),
+            choices: this.simulatorService.getAiProvidersOptions(false, ollama ? [] : ["ollama"]),
             validate: answer => (answer.length < 1 ? "You must choose at least one option." : true),
           },
         ];

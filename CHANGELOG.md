@@ -5,6 +5,13 @@
 ### Features
 
 * separate read and write calls ([#222](https://github.com/yeagerai/genlayer-cli/issues/222)) ([fce8904](https://github.com/yeagerai/genlayer-cli/commit/fce8904f6b51587bfb9e690b0e42efe441f19b1d))
+## 0.18.1 (2025-05-29)
+
+## 0.18.0 (2025-05-28)
+
+### Features
+
+* using profiles to set frontend and ollama containers ([#221](https://github.com/yeagerai/genlayer-cli/issues/221)) ([a3d0d4e](https://github.com/yeagerai/genlayer-cli/commit/a3d0d4e77e7a92a5a31ae534f5f83e81a1672783))
 
 ## 0.17.0 (2025-05-05)
 

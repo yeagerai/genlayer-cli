@@ -27,6 +27,7 @@ describe("DeployAction", () => {
     vi.mocked(createAccount).mockReturnValue({privateKey: mockPrivateKey} as any);
     deployer = new DeployAction();
     vi.spyOn(deployer as any, "getPrivateKey").mockResolvedValue(mockPrivateKey);
+    vi.spyOn(deployer as any, "getConfig").mockReturnValue({});
 
     vi.spyOn(deployer as any, "startSpinner").mockImplementation(() => {});
     vi.spyOn(deployer as any, "succeedSpinner").mockImplementation(() => {});
