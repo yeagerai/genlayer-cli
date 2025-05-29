@@ -28,7 +28,7 @@ export class NetworkActions extends BaseAction {
   }
 
   async setNetwork(networkName?: string): Promise<void> {
-    if (networkName) {
+    if (networkName || networkName === "") {
       if (!networks.some(n => n.name === networkName || n.alias === networkName)) {
         this.failSpinner(`Network ${networkName} not found`);
         return;
@@ -38,7 +38,7 @@ export class NetworkActions extends BaseAction {
         this.failSpinner(`Network ${networkName} not found`);
         return;
       }
-      this.writeConfig("network", JSON.stringify(selectedNetwork));
+      this.writeConfig("network", JSON.stringify(selectedNetwork.value));
       this.succeedSpinner(`Network successfully set to ${selectedNetwork.name}`);
       return;
     }
