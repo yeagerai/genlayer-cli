@@ -14,7 +14,6 @@ npm install -g genlayer
 
 ## Usage
 
-
 Each command includes syntax, usage information, and examples to help you effectively use the CLI for interacting with the GenLayer environment.
 
 ### Command line syntax
@@ -40,12 +39,13 @@ OPTIONS:
    --headless                            Headless mode (default: false)
    --reset-db                            Reset Database (default: false)
    --localnet-version <localnetVersion>  Select a specific localnet version
+   --ollama                              Enable Ollama container (default: false)
 
 EXAMPLES:
    genlayer init
    genlayer init --numValidators 10 --headless --reset-db --localnet-version v0.10.2
+   genlayer init --ollama
 ```
-
 
 ##### Version Compatibility
 
@@ -68,10 +68,12 @@ OPTIONS:
    --numValidators <numValidators>  Number of validators (default: "5")
    --headless                       Headless mode (default: false)
    --reset-db                       Reset Database (default: false)
+   --ollama                         Enable Ollama container (default: false)
 
 EXAMPLES:
    genlayer up
    genlayer up --reset-validators --numValidators 8 --headless --reset-db
+   genlayer up --ollama
 ```
 
 #### Stop GenLayer environment
@@ -93,7 +95,7 @@ USAGE:
 
 OPTIONS:
    --path <directory>  Specify the directory for the new project (default: ".")
-   --overwrite        Overwrite existing directory if it exists (default: false)
+   --overwrite         Overwrite existing directory if it exists (default: false)
 
 EXAMPLES:
    genlayer new myProject
@@ -121,6 +123,20 @@ EXAMPLES:
    genlayer config reset keyPairPath
 ```
 
+#### Network Management
+
+Set the network to use for contract operations.
+
+```bash
+USAGE:
+   genlayer network [network]
+
+EXAMPLES:
+   genlayer network
+   genlayer network testnet
+   genlayer network mainnet
+```
+
 #### Deploy and Call Intelligent Contracts
 
 Deploy and interact with intelligent contracts.
@@ -129,22 +145,36 @@ Deploy and interact with intelligent contracts.
 USAGE:
    genlayer deploy [options]
    genlayer call <contractAddress> <method> [options]
+   genlayer write <contractAddress> <method> [options]
 
 OPTIONS (deploy):
    --contract <contractPath>  (Optional) Path to the intelligent contract to deploy
+   --rpc <rpcUrl>             RPC URL for the network
    --args <args...>           Positional arguments for the contract (space-separated, use quotes for multi-word arguments)
 
 OPTIONS (call):
+   --rpc <rpcUrl>             RPC URL for the network
+   --args <args...>           Positional arguments for the method (space-separated, use quotes for multi-word arguments)
+
+OPTIONS (write):
+   --rpc <rpcUrl>             RPC URL for the network
    --args <args...>           Positional arguments for the method (space-separated, use quotes for multi-word arguments)
 
 EXAMPLES:
    genlayer deploy
    genlayer deploy --contract ./my_contract.gpy
+   genlayer deploy --contract ./my_contract.gpy --args "arg1" "arg2" 123
    genlayer call 0x123456789abcdef greet --args "Hello World!"
+   genlayer write 0x123456789abcdef updateValue --args 42
 ```
+
 ##### Deploy Behavior
 - If `--contract` is specified, the command will **deploy the given contract**.
 - If `--contract` is omitted, the CLI will **search for scripts inside the `deploy` folder**, sort them, and execute them sequentially.
+
+##### Call vs Write
+- `call` - Calls a contract method without sending a transaction or changing the state (read-only)
+- `write` - Sends a transaction to a contract method that modifies the state
 
 #### Keypair Management
 
@@ -209,7 +239,7 @@ OPTIONS (create-random):
    --models <models...>                   Space-separated list of model names (e.g., gpt-4 gpt-4o)
 
 OPTIONS (create):
-   --stake <stake>                        Stake amount for the validator (default: 1)
+   --stake <stake>                        Stake amount for the validator (default: "1")
    --config <config>                      Optional JSON configuration for the validator
    --provider <provider>                  Specify the provider for the validator
    --model <model>                        Specify the model for the validator
@@ -225,9 +255,7 @@ EXAMPLES:
    genlayer validators create
    genlayer validators create --stake 50 --provider openai --model gpt-4
    genlayer validators create-random --count 3 --providers openai --models gpt-4 gpt-4o
-
 ```
-
 
 ### Running the CLI from the repository
 
